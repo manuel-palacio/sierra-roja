@@ -1,0 +1,17 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/units/body.gd" id="1_body"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_1"]
+size = Vector3(1.6, 0.3, 0.5)
+
+[sub_resource type="StandardMaterial3D" id="m_body"]
+albedo_color = Color(0.4, 0.4, 0.45, 1)
+
+[node name="Body" type="Node3D"]
+script = ExtResource("1_body")
+
+[node name="Mesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
+mesh = SubResource("BoxMesh_1")
+surface_material_override/0 = SubResource("m_body")
