@@ -11,6 +11,7 @@ const HEARD_AT := Vector3(-3, 0, 2)
 var brain: GuardBrain
 var alarms: Array = []
 var states: Array = []
+var noise_radii: Array = []
 
 
 func before_each() -> void:
@@ -153,13 +154,65 @@ func test_investigate_returns_to_patrol_4s_after_arriving() -> void:
 	assert_eq(brain.state, GuardBrain.State.PATROL)
 
 
-func test_investigate_wait_needs_no_sight() -> void:
+func test_investigate_far_becomes_suspicious_with_fresh_total() -> void:
+	_to_investigate()
+	brain.tick(0.5, FAR, SEEN_AT, false)
+	assert_eq(brain.state, GuardBrain.State.SUSPICIOUS)
+	assert_eq(brain.goal_pos, SEEN_AT)
+	brain.tick(0.9, FAR, SEEN_AT, false)
+	assert_eq(brain.state, GuardBrain.State.SUSPICIOUS, "1.4 s so far")
+	brain.tick(0.1, FAR, SEEN_AT, false)
+	assert_eq(brain.state, GuardBrain.State.ALARM)
+
+
+func test_investigate_hear_retargets_and_restarts_arrival() -> void:
 	_to_investigate()
 	brain.notify_arrived()
 	brain.tick(3.9, NONE, Vector3.ZERO, false)
-	brain.tick(0.1, FAR, SEEN_AT, false)
-	brain.tick(3.9, NONE, Vector3.ZERO, false)
+	states.clear()
+	var next := Vector3(9, 0, 9)
+	brain.hear(next)
+	assert_eq(brain.goal_pos, next)
 	assert_eq(brain.state, GuardBrain.State.INVESTIGATE)
+	assert_false(brain.has_arrived())
+	assert_eq(states, [], "same state, nothing to announce")
+	brain.tick(10.0, NONE, Vector3.ZERO, false)
+	assert_eq(brain.state, GuardBrain.State.INVESTIGATE, "the wait starts again on arrival")
+
+
+func test_repeated_noise_cannot_cancel_building_suspicion() -> void:
+	# A noise every 0.5 s (a running unit) with the target in the far zone throughout.
+	for i in 15:
+		if i % 5 == 0:
+			brain.hear(HEARD_AT)
+		brain.tick(0.1, FAR, SEEN_AT, false)
+	assert_eq(brain.state, GuardBrain.State.ALARM, "1.5 s of far sight in total, noise or not")
+	assert_eq(alarms, [SEEN_AT])
+
+
+func test_far_total_is_cleared_by_going_back_on_patrol() -> void:
+	brain.tick(1.0, FAR, SEEN_AT, false)
+	brain.hear(HEARD_AT)
+	brain.notify_arrived()
+	brain.tick(4.0, NONE, Vector3.ZERO, false)
+	assert_eq(brain.state, GuardBrain.State.PATROL)
+	brain.tick(1.4, FAR, SEEN_AT, false)
+	assert_eq(brain.state, GuardBrain.State.SUSPICIOUS)
+
+
+func test_alarm_updated_only_with_sight_while_in_alarm() -> void:
+	var updates: Array = []
+	brain.alarm_updated.connect(func(p: Vector3) -> void: updates.append(p))
+	brain.tick(0.1, NEAR, SEEN_AT, false)
+	assert_eq(updates, [], "entering is announced by alarm_raised")
+	var moved := Vector3(1, 0, 1)
+	brain.tick(0.1, FAR, moved, false)
+	brain.tick(0.1, NEAR, moved, false)
+	assert_eq(updates, [moved, moved], "once per vision check, far or near")
+	brain.tick(0.1, NONE, Vector3.ZERO, false)
+	brain.tick(0.1, NONE, moved, true)
+	brain.on_alarm(moved)
+	assert_eq(updates.size(), 2, "not without sight, nor when told by a peer")
 
 
 func test_alarm_no_sight_30s_stands_down_alerted() -> void:
@@ -265,6 +318,59 @@ func test_guards_share_alarm() -> void:
 	assert_eq(c.brain.state, GuardBrain.State.ALARM)
 	assert_eq(a.brain.goal_pos, SEEN_AT)
 	assert_eq(raised, [0, 1, 0], "only the guard who saw it raises the alarm")
+
+
+func test_peer_follows_a_moving_target_and_stays_in_the_fight() -> void:
+	var seer := _guard()
+	var peer := _guard(Vector3(30, 0, 0))
+	var raised := [0]
+	peer.brain.alarm_raised.connect(func(_p: Vector3) -> void: raised[0] += 1)
+	var spec := _specialist(Vector3(0, 0, -10))
+	seer.brain.tick(0.1, NEAR, spec.global_position, false)
+	peer.brain.tick(29.9, NONE, Vector3.ZERO, false)
+	spec.global_position = Vector3(2, 0, -10)
+	seer.advance(0.1)
+	assert_almost_eq(peer.brain.goal_pos, spec.global_position, Vector3.ONE * 0.001, "goal follows")
+	peer.brain.tick(29.9, NONE, Vector3.ZERO, false)
+	assert_eq(peer.brain.state, GuardBrain.State.ALARM, "no-sight timer was reset")
+	peer.brain.tick(0.1, NONE, Vector3.ZERO, false)
+	assert_eq(peer.brain.state, GuardBrain.State.PATROL)
+	assert_eq(raised, [0], "the peer never raises it itself")
+
+
+func test_updates_reach_guards_spawned_earlier_too() -> void:
+	var peer := _guard(Vector3(30, 0, 0))
+	var seer := _guard()
+	var spec := _specialist(Vector3(0, 0, -10))
+	seer.brain.tick(0.1, NEAR, spec.global_position, false)
+	spec.global_position = Vector3(2, 0, -10)
+	seer.advance(0.1)
+	assert_almost_eq(peer.brain.goal_pos, spec.global_position, Vector3.ONE * 0.001)
+
+
+func test_new_noise_redirects_an_investigating_guard() -> void:
+	var g := _guard()
+	NoiseBus.emit_noise(Vector3(0, 0, 3), 8.0)
+	g.brain.notify_arrived()
+	g.stop()
+	NoiseBus.emit_noise(Vector3(3, 0, 0), 8.0)
+	assert_eq(g.brain.goal_pos, Vector3(3, 0, 0))
+	assert_true(g._moving, "walks to the new noise")
+
+
+func _count_noise(_pos: Vector3, radius: float) -> void:
+	noise_radii.append(radius)
+
+
+func test_rifle_fire_makes_noise() -> void:
+	var g := _guard()
+	_specialist(Vector3(0, 0, -10))
+	g.brain.on_alarm(Vector3(0, 0, -10))
+	noise_radii = []
+	NoiseBus.noise_emitted.connect(_count_noise)
+	_run(g, 1.6)
+	NoiseBus.noise_emitted.disconnect(_count_noise)
+	assert_eq(noise_radii, [35.0])
 
 
 func test_noise_within_radius_is_investigated() -> void:

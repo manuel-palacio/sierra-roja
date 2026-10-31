@@ -4,7 +4,7 @@ extends Unit
 ## and fires its rifle. GuardBrain decides; this carries it out.
 ##
 ## Alarm sharing is wired here, through the `guards` group: each guard connects to every other
-## guard's brain.alarm_raised as it enters the tree, so it needs no Mission and survives any
+## guard's brain.alarm_raised and alarm_updated as it enters the tree, so it needs no Mission and survives any
 ## order of spawning.
 
 signal fired(target: Specialist)
@@ -42,7 +42,9 @@ func _ready() -> void:
 	for node in peers:
 		var peer := node as Guard
 		peer.brain.alarm_raised.connect(_on_peer_alarm)
+		peer.brain.alarm_updated.connect(_on_peer_alarm)
 		brain.alarm_raised.connect(peer._on_peer_alarm)
+		brain.alarm_updated.connect(peer._on_peer_alarm)
 	add_to_group(GROUP)
 
 
@@ -168,6 +170,7 @@ func _act_in_alarm(spec: Specialist, elapsed: float) -> void:
 			_fire_timer = tuning.fire_interval
 			spec.take_damage(tuning.rifle_damage)
 			fired.emit(spec)
+			NoiseBus.emit_noise(global_position, tuning.rifle_noise_radius)
 	elif _alarm_dest.distance_to(brain.goal_pos) > 1.0:
 		_alarm_dest = brain.goal_pos
 		move_to(brain.goal_pos, true)
@@ -229,6 +232,9 @@ func _walk_route() -> void:
 func _on_noise(pos: Vector3, radius: float) -> void:
 	if alive and global_position.distance_to(pos) <= radius:
 		brain.hear(pos)
+		# Also covers a new noise while investigating, which changes the goal but not the state.
+		if brain.state == GuardBrain.State.INVESTIGATE:
+			_apply_state()
 
 
 func _on_peer_alarm(pos: Vector3) -> void:

@@ -18,6 +18,7 @@ static var _defaults: GuardTuning
 @export var rifle_damage := 34
 @export var fire_interval := 1.5
 @export var fire_range := 14.0
+@export var rifle_noise_radius := 35.0
 ## Seconds without moving stuck_progress metres before a guard counts as stuck.
 @export var stuck_time := 3.0
 @export var stuck_progress := 0.25

@@ -7,6 +7,8 @@ var noises: Array = []
 
 func before_each() -> void:
 	mission = load("res://scenes/missions/bridge.tscn").instantiate()
+	# These tests are about one unit; live guards could shoot it.
+	mission.get_node("Guards").process_mode = Node.PROCESS_MODE_DISABLED
 	add_child_autofree(mission)
 	await get_tree().process_frame
 	mission.build_nav()
@@ -114,6 +116,11 @@ func test_zero_noise_radius_makes_no_noise() -> void:
 	await _frames(40)
 	NoiseBus.noise_emitted.disconnect(_count_noise)
 	assert_eq(noises.size(), 0)
+
+
+func test_fixture_guards_are_disabled() -> void:
+	for guard in mission.guards():
+		assert_false(guard.can_process())
 
 
 func test_specialist_joins_group() -> void:

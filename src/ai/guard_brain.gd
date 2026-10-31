@@ -5,6 +5,8 @@ extends RefCounted
 
 signal state_changed(state: State)
 signal alarm_raised(pos: Vector3)
+## A guard already in ALARM still has sight; sent on each vision check so peers keep up.
+signal alarm_updated(pos: Vector3)
 
 enum State { PATROL, SUSPICIOUS, INVESTIGATE, ALARM }
 
@@ -31,7 +33,10 @@ func _init(t: GuardTuning = null) -> void:
 ## One vision check. target_pos is only read when something is seen.
 func tick(delta: float, sight: Vision.Zone, target_pos: Vector3, body_seen: bool) -> void:
 	if sight == Vision.Zone.NEAR or body_seen:
+		var was_in_alarm := state == State.ALARM
 		_alarm(target_pos, true)
+		if was_in_alarm and sight != Vision.Zone.NONE:
+			alarm_updated.emit(target_pos)
 		return
 	var far := sight == Vision.Zone.FAR
 	match state:
@@ -44,16 +49,18 @@ func tick(delta: float, sight: Vision.Zone, target_pos: Vector3, body_seen: bool
 			if far:
 				goal_pos = target_pos
 				_no_sight = 0.0
-				_far_total += delta
-				if _reached(_far_total, tuning.far_time_to_alarm):
-					_alarm(target_pos, true)
+				_add_far_time(delta, target_pos)
 			else:
 				_no_sight += delta
 				if _reached(_no_sight, tuning.suspicious_no_sight):
 					_enter(State.INVESTIGATE)
 		State.INVESTIGATE:
 			if far:
-				_wait = 0.0
+				goal_pos = target_pos
+				var carried := _far_total
+				_enter(State.SUSPICIOUS)
+				_far_total = carried
+				_add_far_time(delta, target_pos)
 			elif _arrived:
 				_wait += delta
 				if _reached(_wait, tuning.investigate_wait):
@@ -62,6 +69,7 @@ func tick(delta: float, sight: Vision.Zone, target_pos: Vector3, body_seen: bool
 			if far:
 				goal_pos = target_pos
 				_no_sight = 0.0
+				alarm_updated.emit(target_pos)
 			else:
 				_no_sight += delta
 				if _reached(_no_sight, tuning.alarm_stand_down):
@@ -69,13 +77,22 @@ func tick(delta: float, sight: Vision.Zone, target_pos: Vector3, body_seen: bool
 					_enter(State.PATROL)
 
 
+## A noise never clears time already built up in the far zone: otherwise repeated noise from a
+## player in plain view would keep sending the guard back to a fresh total, and no alarm.
 func hear(pos: Vector3) -> void:
-	if state == State.PATROL or state == State.SUSPICIOUS:
-		goal_pos = pos
-		_enter(State.INVESTIGATE)
+	match state:
+		State.PATROL, State.SUSPICIOUS:
+			var carried := _far_total
+			goal_pos = pos
+			_enter(State.INVESTIGATE)
+			_far_total = carried
+		State.INVESTIGATE:
+			goal_pos = pos
+			_wait = 0.0
+			_arrived = false
 
 
-## Another guard raised the alarm. Does not emit alarm_raised, so guards don't loop.
+## Another guard raised or updated the alarm. Emits neither signal, so guards don't loop.
 func on_alarm(pos: Vector3) -> void:
 	_alarm(pos, false)
 
@@ -113,6 +130,12 @@ func load_state(d: Dictionary) -> void:
 	_no_sight = float(d["no_sight"])
 	_wait = float(d["wait"])
 	_arrived = bool(d["arrived"])
+
+
+func _add_far_time(delta: float, target_pos: Vector3) -> void:
+	_far_total += delta
+	if _reached(_far_total, tuning.far_time_to_alarm):
+		_alarm(target_pos, true)
 
 
 func _alarm(pos: Vector3, announce: bool) -> void:

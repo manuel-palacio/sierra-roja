@@ -11,6 +11,7 @@ alarm_stand_down = 30.0
 rifle_damage = 34
 fire_interval = 1.5
 fire_range = 14.0
+rifle_noise_radius = 35.0
 stuck_time = 3.0
 stuck_progress = 0.25
 vision_interval = 0.1
