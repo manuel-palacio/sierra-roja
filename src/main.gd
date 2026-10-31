@@ -8,6 +8,7 @@ var mission: Mission
 var camera: IsoCamera
 var specialists: Array[Specialist] = []
 var rules: MissionRules
+var player_input: PlayerInput
 
 
 func _ready() -> void:
@@ -28,6 +29,12 @@ func _ready() -> void:
 	rules = MissionRules.new()
 	add_child(rules)
 	rules.setup(mission, specialists)
+	player_input = PlayerInput.new()
+	add_child(player_input)
+	player_input.setup(camera, specialists)  # selects the Dynamiter
+	camera.edge_scroll_enabled = true
+	rules.result_changed.connect(func(r: MissionRules.Result) -> void:
+		player_input.orders_enabled = r == MissionRules.Result.RUNNING)
 	var errors := MissionValidator.validate(mission)
 	if not errors.is_empty():
 		for message in errors:
