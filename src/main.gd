@@ -45,6 +45,7 @@ func _ready() -> void:
 	hud = (load("res://scenes/ui/hud.tscn") as PackedScene).instantiate() as Hud
 	add_child(hud)
 	hud.setup(player_input, rules, specialists, overlay)
+	add_child(SoundEffects.new())
 	SaveGame.message.connect(hud.show_message)
 	SaveGame.restart_offered.connect(hud.offer_restart)
 	var errors := MissionValidator.validate(mission)

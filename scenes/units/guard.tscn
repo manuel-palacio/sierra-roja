@@ -5,16 +5,12 @@
 [ext_resource type="Resource" path="res://resources/guard_tuning.tres" id="3_tuning"]
 [ext_resource type="Resource" path="res://resources/guard_vision.tres" id="4_vision"]
 
+[ext_resource type="PackedScene" path="res://assets/characters/character-j.glb" id="9_model"]
+[ext_resource type="Script" path="res://src/units/unit_visual.gd" id="10_visual"]
+
 [sub_resource type="CapsuleShape3D" id="Capsule_1"]
 radius = 0.4
 height = 1.7
-
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_1"]
-radius = 0.4
-height = 1.7
-
-[sub_resource type="StandardMaterial3D" id="m_guard"]
-albedo_color = Color(0.25, 0.32, 0.2, 1)
 
 [node name="Guard" type="CharacterBody3D"]
 script = ExtResource("1_guard")
@@ -26,9 +22,10 @@ stats = ExtResource("2_stats")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.85, 0)
 shape = SubResource("Capsule_1")
 
-[node name="Mesh" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.85, 0)
-mesh = SubResource("CapsuleMesh_1")
-surface_material_override/0 = SubResource("m_guard")
-
 [node name="NavigationAgent3D" type="NavigationAgent3D" parent="."]
+
+[node name="Model" parent="." instance=ExtResource("9_model")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 0)
+
+[node name="UnitVisual" type="Node" parent="."]
+script = ExtResource("10_visual")

@@ -15,6 +15,13 @@ signal state_loaded()
 const GUARD_SCENE := "res://scenes/units/guard.tscn"
 ## The bake leaves its surface this many cells above the real ground.
 const NAV_BAKE_LIFT_CELLS := 2.0
+## Where the banks end at the gorge, and how the broken deck stubs reach out from there.
+const BANK_EDGE_X := 5.0
+const STUB_OVERLAP := 0.2
+const STUB_LENGTH := 3.0
+const STUB_DROOP := 0.2
+## The rails run this far from the centre line, in the intact scene.
+const RAIL_SPAN := 40.0
 
 ## Ground-plane extent (x, z in metres) the camera may show.
 @export var bounds_rect := Rect2(-40.0, -30.0, 80.0, 60.0)
@@ -157,8 +164,9 @@ func spawn_specialists() -> Array[Specialist]:
 	return out
 
 
-## Swaps the intact deck for broken stubs reaching 3 m out from each bank, then rebakes the
-## navmesh so nothing can path across the gorge. Safe to call twice.
+## Swaps the intact deck for broken stubs drooping out over the gorge from each bank, then rebakes
+## the navmesh so nothing can path across the gorge. The stubs, and the girders and rails they
+## replace, are meshes only: no collision, and the navmesh bake never sees them. Safe to call twice.
 func break_bridge() -> void:
 	var region := _region()
 	var deck := get_node_or_null("Nav/BridgeDeck")
@@ -169,14 +177,21 @@ func break_bridge() -> void:
 	var stubs := Node3D.new()
 	stubs.name = "BridgeBroken"
 	region.add_child(stubs)
-	var half: float = (deck as CSGBox3D).size.x / 2.0
+	var csg := deck as CSGBox3D
 	for sign in [-1.0, 1.0]:
-		var stub := CSGBox3D.new()
-		stub.use_collision = true
-		stub.size = Vector3(3.0, 0.4, (deck as CSGBox3D).size.z)
-		stub.material = (deck as CSGBox3D).material
-		stubs.add_child(stub)
-		stub.position = Vector3(deck.position.x + sign * (half - 1.5), deck.position.y, deck.position.z)
+		var root: float = sign * (BANK_EDGE_X + STUB_OVERLAP)
+		var pivot := Node3D.new()
+		stubs.add_child(pivot)
+		pivot.position = Vector3(root, deck.position.y, deck.position.z)
+		pivot.rotation.z = sign * STUB_DROOP
+		pivot.add_child(_visual_box(Vector3(STUB_LENGTH, csg.size.y, csg.size.z), csg.material,
+				Vector3(-sign * STUB_LENGTH / 2.0, 0.0, 0.0)))
+		for z in [-0.7, 0.7]:
+			var rail := _visual_box(Vector3(RAIL_SPAN - BANK_EDGE_X - STUB_OVERLAP, 0.16, 0.12),
+					_scenery_material("RailA"),
+					Vector3(sign * (RAIL_SPAN + BANK_EDGE_X + STUB_OVERLAP) / 2.0, 0.08, z))
+			stubs.add_child(rail)
+	_show_span(false)
 	_rebake_next_frame()
 
 
@@ -190,6 +205,7 @@ func repair_bridge() -> void:
 		stubs.free()
 	region.add_child(_intact_deck)
 	_intact_deck = null
+	_show_span(true)
 	_rebake_next_frame()
 
 
@@ -289,6 +305,29 @@ func _rebake_next_frame() -> void:
 	await get_tree().process_frame
 	if request == _rebake_request and is_inside_tree():
 		rebake_nav()
+
+
+func _visual_box(size: Vector3, material: Material, at: Vector3) -> MeshInstance3D:
+	var mesh := BoxMesh.new()
+	mesh.size = size
+	mesh.material = material
+	var instance := MeshInstance3D.new()
+	instance.mesh = mesh
+	instance.position = at
+	return instance
+
+
+func _scenery_material(node_name: String) -> Material:
+	var node := get_node_or_null("Scenery/" + node_name) as CSGBox3D
+	return node.material if node else null
+
+
+## The girders and the long rails belong to the intact bridge.
+func _show_span(shown: bool) -> void:
+	for node_name in ["GirderN", "GirderS", "RailA", "RailB"]:
+		var node := get_node_or_null("Scenery/" + node_name) as Node3D
+		if node:
+			node.visible = shown
 
 
 func _route_points(route: Path3D) -> PackedVector3Array:

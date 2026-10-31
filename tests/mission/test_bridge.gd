@@ -74,3 +74,32 @@ func test_units_walk_on_the_ground_not_above_it() -> void:
 	await wait_seconds(0.5)
 	assert_almost_eq(walker.global_position.y, 0.0, 0.05)
 	assert_gt(walker.velocity.length(), 0.0, "it was really walking")
+
+
+func test_broken_bridge_stubs_jut_over_the_gorge_without_collision() -> void:
+	var mission: Mission = load("res://scenes/missions/bridge.tscn").instantiate()
+	add_child_autofree(mission)
+	await get_tree().process_frame
+	mission.build_nav()
+	mission.break_bridge()
+	var stubs := mission.get_node("Nav/BridgeBroken")
+	var over_gorge := 0
+	for mesh in stubs.find_children("*", "MeshInstance3D", true, false):
+		assert_false(mesh.get_parent() is CollisionObject3D)
+		if absf((mesh as MeshInstance3D).global_position.x) < Mission.BANK_EDGE_X:
+			over_gorge += 1
+	assert_eq(over_gorge, 2, "one stub past each bank edge")
+	assert_eq(stubs.find_children("*", "CSGShape3D", true, false).size(), 0, "nothing the bake or physics sees")
+	assert_false(mission.get_node("Scenery/GirderN").visible)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var west := mission.specialist_spawns()[0].global_position
+	var east := mission.extraction().global_position
+	var path := NavigationServer3D.map_get_path(mission.nav_map(), west, east, true)
+	var crosses := false
+	for p in path:
+		if absf(p.x) < Mission.BANK_EDGE_X - 0.5:
+			crosses = true
+	assert_false(crosses, "the gorge stays impassable")
+	mission.repair_bridge()
+	assert_true(mission.get_node("Scenery/GirderN").visible)
