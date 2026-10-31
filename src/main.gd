@@ -9,6 +9,8 @@ var camera: IsoCamera
 
 
 func _ready() -> void:
+	if PerfProbe.enabled():
+		add_child(PerfProbe.new())
 	mission = load(MISSION_SCENE).instantiate()
 	add_child(mission)
 	camera = IsoCamera.new()
