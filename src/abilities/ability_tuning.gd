@@ -13,6 +13,8 @@ static var _defaults: AbilityTuning
 @export var plant_range := 2.0
 ## Seconds from planting to the blast.
 @export var charge_fuse := 10.0
+## Charges the Dynamiter carries.
+@export var charge_count := 2
 @export var blast_radius := 8.0
 @export var blast_noise_radius := 80.0
 ## Lethal for anything with normal hit points.

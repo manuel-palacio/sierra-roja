@@ -33,12 +33,12 @@ func _user_ready(user: Specialist) -> bool:
 	return user != null and is_instance_valid(user) and user.alive and user.is_inside_tree()
 
 
-## A live unit other than the user, or null.
-func _unit_target(user: Specialist, target: Variant) -> Unit:
+## A live Guard, or null. Knife and firearms only ever target guards.
+func _unit_target(_user: Specialist, target: Variant) -> Guard:
 	if typeof(target) != TYPE_OBJECT or target == null or not is_instance_valid(target):
 		return null
-	var unit := target as Unit
-	if unit == null or unit == user or not unit.alive or not unit.is_inside_tree():
+	var unit := target as Guard
+	if unit == null or not unit.alive or not unit.is_inside_tree():
 		return null
 	return unit
 

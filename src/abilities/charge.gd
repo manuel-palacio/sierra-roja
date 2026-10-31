@@ -1,12 +1,13 @@
 class_name Charge
 extends Ability
 ## Plants a timed charge. The target is the spot (Vector3) within plant range; null plants
-## at the user's feet. Charges are unlimited in this milestone.
+## at the user's feet. Limited by charge_count.
 
 
 func _init(t: AbilityTuning = null) -> void:
 	super(t)
 	id = &"charge"
+	ammo = tuning.charge_count
 
 
 func can_use(user: Specialist, target: Variant) -> bool:

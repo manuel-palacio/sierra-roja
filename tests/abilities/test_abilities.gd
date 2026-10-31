@@ -14,6 +14,8 @@ func after_each() -> void:
 	# Bodies made by dying guards are not autofreed; keep them out of the next test.
 	for b in _bodies():
 		b.free()
+	for c in get_tree().get_nodes_in_group(PlantedCharge.GROUP):
+		c.free()
 	NoiseBus.noise_emitted.disconnect(_on_noise)
 
 
@@ -322,3 +324,42 @@ func test_body_round_trips_state() -> void:
 	user.global_position = Vector3(2, 0, 3)
 	(user.abilities["carry"] as Ability).use(user, body)
 	assert_eq(body.save_state()["carrier_path"], String(user.get_path()))
+
+
+func test_dynamiter_has_two_charges() -> void:
+	var charge: Ability = user.abilities["charge"]
+	assert_eq(charge.ammo, 2)
+	charge.use(user, null)
+	charge.use(user, null)
+	assert_eq(get_tree().get_nodes_in_group(PlantedCharge.GROUP).size(), 2)
+	assert_false(charge.can_use(user, null), "a third plant is refused")
+	charge.use(user, null)
+	assert_eq(get_tree().get_nodes_in_group(PlantedCharge.GROUP).size(), 2)
+	var d := JSON.parse_string(JSON.stringify(charge.save_state())) as Dictionary
+	var copy := AbilityKit.create("charge")
+	copy.load_state(d)
+	assert_eq(copy.ammo, 0)
+
+
+func test_weapons_refuse_a_specialist_target() -> void:
+	user.grant_abilities(PackedStringArray(["knife", "rifle", "pistol"]))
+	var friend := _spawn_specialist(PackedStringArray(), Vector3(1, 0, 0))
+	await wait_physics_frames(2)
+	for id in ["knife", "rifle", "pistol"]:
+		var a: Ability = user.abilities[id]
+		var before := a.ammo
+		assert_false(a.can_use(user, friend), id)
+		a.use(user, friend)
+		assert_eq(a.ammo, before, id)
+	assert_true(friend.alive)
+	assert_eq(friend.hp, 100)
+	assert_eq(noises.size(), 0)
+
+
+func test_marksman_scene_has_exactly_rifle_and_pistol() -> void:
+	var s := load("res://scenes/units/marksman.tscn").instantiate() as Specialist
+	add_child_autofree(s)
+	assert_eq(s.abilities.keys().size(), 2)
+	assert_true(s.has_ability("rifle"))
+	assert_true(s.has_ability("pistol"))
+	assert_eq(s.stats.resource_path, "res://resources/marksman.tres")
