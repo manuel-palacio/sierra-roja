@@ -22,6 +22,12 @@ func before_each() -> void:
 	brain.state_changed.connect(_on_state)
 
 
+func after_each() -> void:
+	# A guard killed in a test leaves a Body behind; later tests must not see it.
+	for b in get_tree().get_nodes_in_group(Body.GROUP):
+		b.free()
+
+
 func _on_alarm(pos: Vector3) -> void:
 	alarms.append(pos)
 

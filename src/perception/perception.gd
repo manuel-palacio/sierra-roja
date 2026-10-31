@@ -47,6 +47,11 @@ static func polygon(guard: Unit, far_range: float, rays := 24, tuning: GuardVisi
 	return out
 
 
-static func _ray(guard: Unit, from: Vector3, to: Vector3) -> Dictionary:
+## True when no world geometry lies between the two points. Units never block.
+static func line_clear(from_node: Node3D, from: Vector3, to: Vector3) -> bool:
+	return not _ray(from_node, from, to).has("position")
+
+
+static func _ray(guard: Node3D, from: Vector3, to: Vector3) -> Dictionary:
 	var query := PhysicsRayQueryParameters3D.create(from, to, WORLD_MASK)
 	return guard.get_world_3d().direct_space_state.intersect_ray(query)

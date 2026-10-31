@@ -36,6 +36,7 @@ func _ready() -> void:
 	brain = GuardBrain.new(tuning)
 	brain.state_changed.connect(_on_state_changed)
 	arrived.connect(_on_arrived)
+	died.connect(_on_died)
 	NoiseBus.noise_emitted.connect(_on_noise)
 	var peers := get_tree().get_nodes_in_group(GROUP)
 	_vision_timer = (peers.size() % 3) * tuning.vision_interval / 3.0
@@ -186,6 +187,19 @@ func _update_stuck(delta: float) -> void:
 		_stuck_time = 0.0
 		stop()
 		_on_arrived(self)
+
+
+## However the guard died (knife, shot, blast), a Body takes its place. The Body is added to
+## the guard's own parent, which outlives the guard.
+func _on_died(_unit: Unit) -> void:
+	remove_from_group(GROUP)
+	var parent := get_parent()
+	if parent != null:
+		var body := (load(Body.SCENE) as PackedScene).instantiate() as Body
+		parent.add_child(body)
+		body.global_position = global_position
+		body.rotation.y = rotation.y
+	queue_free()
 
 
 func _on_arrived(_unit: Unit) -> void:
