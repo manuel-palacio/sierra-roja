@@ -183,7 +183,9 @@ func test_broken_bridge_swaps_deck_and_navmesh() -> void:
 	var east := mission.extraction().global_position
 	assert_true(_reaches(west, east), "reachable over the intact bridge")
 	_blow_bridge()
-	await _frames(2)
+	# The rebake waits for the next idle frame, and a slow frame can fit several physics frames first.
+	await get_tree().process_frame
+	await get_tree().process_frame
 	assert_null(mission.get_node_or_null("Nav/BridgeDeck"))
 	assert_not_null(mission.get_node_or_null("Nav/BridgeBroken"))
 	assert_false(_reaches(west, east), "the gorge is open")
@@ -234,4 +236,7 @@ func _reaches(from: Vector3, to: Vector3) -> bool:
 
 func _reaches_in(m: Mission, from: Vector3, to: Vector3) -> bool:
 	var path := NavigationServer3D.map_get_path(m.nav_map(), from, to, true)
-	return not path.is_empty() and path[path.size() - 1].distance_to(to) <= 1.0
+	if path.is_empty():
+		return false
+	var end := path[path.size() - 1]
+	return Vector2(end.x - to.x, end.z - to.z).length() <= 1.0

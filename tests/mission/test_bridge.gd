@@ -57,3 +57,20 @@ func test_guards_walk_their_routes_once_nav_is_built() -> void:
 		var walked := mission.guards()[i].global_position.distance_to(starts[i])
 		assert_almost_eq(walked, 1.5, 0.5, "walks at 3 m/s")
 		assert_eq(mission.guards()[i].brain.state, GuardBrain.State.PATROL)
+
+
+func test_units_walk_on_the_ground_not_above_it() -> void:
+	var mission: Mission = load("res://scenes/missions/bridge.tscn").instantiate()
+	mission.get_node("Guards").process_mode = Node.PROCESS_MODE_DISABLED
+	add_child_autofree(mission)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	mission.build_nav()
+	for p in [Vector3(-36, 0, 0), Vector3(0, 0, 0), Vector3(35, 0, 18)]:
+		var surface := NavigationServer3D.map_get_closest_point(mission.nav_map(), p)
+		assert_almost_eq(surface.y, 0.0, 0.05, "navmesh height at %s" % p)
+	var walker: Specialist = mission.spawn_specialists()[0]
+	walker.move_to(walker.global_position + Vector3(3, 0, 0))
+	await wait_seconds(0.5)
+	assert_almost_eq(walker.global_position.y, 0.0, 0.05)
+	assert_gt(walker.velocity.length(), 0.0, "it was really walking")

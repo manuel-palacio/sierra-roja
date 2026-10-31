@@ -13,6 +13,8 @@ extends Node3D
 signal state_loaded()
 
 const GUARD_SCENE := "res://scenes/units/guard.tscn"
+## The bake leaves its surface this many cells above the real ground.
+const NAV_BAKE_LIFT_CELLS := 2.0
 
 ## Ground-plane extent (x, z in metres) the camera may show.
 @export var bounds_rect := Rect2(-40.0, -30.0, 80.0, 60.0)
@@ -126,9 +128,19 @@ func rebake_nav() -> bool:
 	var data := NavigationMeshSourceGeometryData3D.new()
 	_collect_faces(region, region, data)
 	NavigationServer3D.bake_from_source_geometry_data(region.navigation_mesh, data)
+	_lower_to_ground(region.navigation_mesh)
 	NavigationServer3D.region_set_navigation_mesh(region.get_rid(), region.navigation_mesh)
 	NavigationServer3D.map_force_update(region.get_navigation_map())
 	return true
+
+
+## Units take their height from the navmesh, so its surface has to be where the ground is.
+func _lower_to_ground(navmesh: NavigationMesh) -> void:
+	var lift := NAV_BAKE_LIFT_CELLS * navmesh.cell_height
+	var vertices := navmesh.get_vertices()
+	for i in vertices.size():
+		vertices[i].y -= lift
+	navmesh.set_vertices(vertices)
 
 
 ## Spawns the Dynamiter and the Marksman at the two specialist spawns, on this mission's navmesh.

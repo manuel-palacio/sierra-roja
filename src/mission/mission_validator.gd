@@ -44,4 +44,6 @@ static func _reaches(map: RID, from: Vector3, to: Vector3) -> bool:
 	var path := NavigationServer3D.map_get_path(map, from, to, true)
 	if path.is_empty():
 		return false
-	return path[path.size() - 1].distance_to(to) <= REACH_TOLERANCE
+	# On the ground plane: an objective's node may sit above the floor, as the extraction area does.
+	var end := path[path.size() - 1]
+	return Vector2(end.x - to.x, end.z - to.z).length() <= REACH_TOLERANCE

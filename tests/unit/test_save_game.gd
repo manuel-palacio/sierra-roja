@@ -120,7 +120,10 @@ func _blow_bridge() -> void:
 
 func _reaches(from: Vector3, to: Vector3) -> bool:
 	var path := NavigationServer3D.map_get_path(mission.nav_map(), from, to, true)
-	return not path.is_empty() and path[path.size() - 1].distance_to(to) <= 1.0
+	if path.is_empty():
+		return false
+	var end := path[path.size() - 1]
+	return Vector2(end.x - to.x, end.z - to.z).length() <= 1.0
 
 
 func _crosses_gorge() -> bool:
