@@ -9,6 +9,9 @@ test('game boots with a visible canvas and no console errors', async ({ page }) 
 
   await page.goto('/index.html');
   await expect(page.locator('canvas')).toBeVisible();
+  await page.waitForFunction(() => window.sierraStarted === true);
+  await page.waitForTimeout(500); // let the first frames run
+  await expect(page.locator('#message')).toBeHidden();
   expect(errors).toEqual([]);
 });
 

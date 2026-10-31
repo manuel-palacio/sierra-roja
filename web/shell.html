@@ -31,7 +31,7 @@
 		if (!probe.getContext('webgl2')) {
 			fail('This game needs WebGL2. Please use a current desktop browser with hardware acceleration enabled.');
 		} else {
-			new Engine(GODOT_CONFIG).startGame({ canvas }).catch((err) => fail('Failed to start: ' + err.message));
+			new Engine(GODOT_CONFIG).startGame({ canvas }).then(() => { window.sierraStarted = true; }).catch((err) => fail('Failed to start: ' + err.message));
 		}
 	</script>
 </body>
