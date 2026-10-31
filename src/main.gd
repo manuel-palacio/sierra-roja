@@ -6,6 +6,8 @@ const MISSION_SCENE := "res://scenes/missions/bridge.tscn"
 
 var mission: Mission
 var camera: IsoCamera
+var specialists: Array[Specialist] = []
+var rules: MissionRules
 
 
 func _ready() -> void:
@@ -22,6 +24,10 @@ func _ready() -> void:
 	# CSG geometry is built on the next idle frame; the nav bake needs it.
 	await get_tree().process_frame
 	mission.build_nav()
+	specialists = mission.spawn_specialists()
+	rules = MissionRules.new()
+	add_child(rules)
+	rules.setup(mission, specialists)
 	var errors := MissionValidator.validate(mission)
 	if not errors.is_empty():
 		for message in errors:

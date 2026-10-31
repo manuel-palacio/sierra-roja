@@ -70,6 +70,8 @@ navigation_mesh = SubResource("NavMesh_bridge")
 [node name="Routes" type="Node3D" parent="."]
 
 [node name="Extraction" type="Area3D" parent="."]
+collision_layer = 0
+collision_mask = 2
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 35, 1.5, 18)
 
 [node name="Shape" type="CollisionShape3D" parent="Extraction"]

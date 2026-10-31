@@ -68,17 +68,63 @@ func nav_map() -> RID:
 ## NavigationRegion3D.bake_navigation_mesh parse CSG nodes goes through RenderingServer
 ## meshes, which Godot warns about (GPU readback) and which fails the GUT run.
 func build_nav() -> void:
+	if not rebake_nav():
+		return
+	for guard in guards():
+		guard.set_nav_map(nav_map())
+		guard.start_patrol()
+
+
+## Rebakes without touching the guards, for a map that changes mid-mission.
+func rebake_nav() -> bool:
 	var region := _region()
 	if region == null or region.navigation_mesh == null:
-		return
+		return false
 	var data := NavigationMeshSourceGeometryData3D.new()
 	_collect_faces(region, region, data)
 	NavigationServer3D.bake_from_source_geometry_data(region.navigation_mesh, data)
 	NavigationServer3D.region_set_navigation_mesh(region.get_rid(), region.navigation_mesh)
 	NavigationServer3D.map_force_update(region.get_navigation_map())
-	for guard in guards():
-		guard.set_nav_map(nav_map())
-		guard.start_patrol()
+	return true
+
+
+## Spawns the Dynamiter and the Marksman at the two specialist spawns, on this mission's navmesh.
+func spawn_specialists() -> Array[Specialist]:
+	var out: Array[Specialist] = []
+	var spawns := specialist_spawns()
+	var scenes := ["res://scenes/units/specialist.tscn", "res://scenes/units/marksman.tscn"]
+	for i in mini(spawns.size(), scenes.size()):
+		var s := (load(scenes[i]) as PackedScene).instantiate() as Specialist
+		add_child(s)
+		s.global_position = spawns[i].global_position
+		s.set_nav_map(nav_map())
+		out.append(s)
+	return out
+
+
+## Swaps the intact deck for broken stubs reaching 3 m out from each bank, then rebakes the
+## navmesh so nothing can path across the gorge. Safe to call twice. CSG builds its geometry
+## on the next idle frame, so the rebake waits one frame (callers need not await it).
+func break_bridge() -> void:
+	var region := _region()
+	var deck := get_node_or_null("Nav/BridgeDeck")
+	if region == null or deck == null:
+		return
+	region.remove_child(deck)
+	deck.queue_free()
+	var stubs := Node3D.new()
+	stubs.name = "BridgeBroken"
+	region.add_child(stubs)
+	var half: float = (deck as CSGBox3D).size.x / 2.0
+	for sign in [-1.0, 1.0]:
+		var stub := CSGBox3D.new()
+		stub.use_collision = true
+		stub.size = Vector3(3.0, 0.4, (deck as CSGBox3D).size.z)
+		stub.material = (deck as CSGBox3D).material
+		stubs.add_child(stub)
+		stub.position = Vector3(deck.position.x + sign * (half - 1.5), deck.position.y, deck.position.z)
+	await get_tree().process_frame
+	rebake_nav()
 
 
 func _route_points(route: Path3D) -> PackedVector3Array:
