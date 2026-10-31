@@ -26,9 +26,12 @@
 			message.style.display = 'flex';
 		}
 
+		// Over plain HTTP the browser has no audioContext.audioWorklet, which the engine needs to start.
 		// Probe on a throwaway canvas so the game canvas stays untouched.
 		const probe = document.createElement('canvas');
-		if (!probe.getContext('webgl2')) {
+		if (!window.isSecureContext) {
+			fail('This game must be opened over HTTPS');
+		} else if (!probe.getContext('webgl2')) {
 			fail('This game needs WebGL2. Please use a current desktop browser with hardware acceleration enabled.');
 		} else {
 			new Engine(GODOT_CONFIG).startGame({ canvas }).then(() => { window.sierraStarted = true; }).catch((err) => fail('Failed to start: ' + err.message));

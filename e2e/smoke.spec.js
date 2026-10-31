@@ -164,3 +164,17 @@ test('shows a message when WebGL2 is unavailable', async ({ page }) => {
   await page.goto('/index.html');
   await expect(page.getByText('This game needs WebGL2')).toBeVisible();
 });
+
+test('refuses to start outside a secure context', async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.addInitScript(() => {
+    Object.defineProperty(window, 'isSecureContext', { value: false });
+  });
+
+  await page.goto('/index.html');
+  await expect(page.locator('#message')).toHaveText('This game must be opened over HTTPS');
+  await expect(page.locator('canvas')).toBeHidden();
+  await page.waitForTimeout(1000); // long enough for the engine to have started, had it been asked
+  expect(await page.evaluate(() => window.sierraStarted)).toBeUndefined();
+  expect(errors).toEqual([]);
+});

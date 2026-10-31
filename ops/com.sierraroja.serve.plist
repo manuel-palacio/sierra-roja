@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Serves build/web on 127.0.0.1:8003; players use https://game-host.example.ts.net:8003/ via
+     `tailscale serve`. launchd opens the log path below before the script runs, so logs/ must exist
+     first: ops/build-web.sh creates it, or run `mkdir -p logs`. -->
 <plist version="1.0">
 <dict>
   <key>Label</key><string>com.sierraroja.serve</string>
