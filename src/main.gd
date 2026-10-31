@@ -10,6 +10,7 @@ var specialists: Array[Specialist] = []
 var rules: MissionRules
 var player_input: PlayerInput
 var overlay: VisionOverlay
+var charge_display: ChargeDisplay
 var hud: Hud
 
 
@@ -46,6 +47,8 @@ func _ready() -> void:
 	add_child(hud)
 	hud.setup(player_input, rules, specialists, overlay)
 	add_child(SoundEffects.new())
+	charge_display = ChargeDisplay.new()
+	add_child(charge_display)
 	SaveGame.message.connect(hud.show_message)
 	SaveGame.restart_offered.connect(hud.offer_restart)
 	var errors := MissionValidator.validate(mission)

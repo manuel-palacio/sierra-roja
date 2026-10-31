@@ -240,3 +240,21 @@ func _reaches_in(m: Mission, from: Vector3, to: Vector3) -> bool:
 		return false
 	var end := path[path.size() - 1]
 	return Vector2(end.x - to.x, end.z - to.z).length() <= 1.0
+
+
+func test_blast_far_from_the_bridge_is_reported_and_leaves_it_whole() -> void:
+	var missed := [0]
+	rules.charge_too_far.connect(func() -> void: missed[0] += 1)
+	var target := mission.bridge_target().global_position
+	_blast(target + Vector3(MissionRules.BRIDGE_BLAST_RANGE + 1.0, 0, 0))
+	assert_eq(missed[0], 1)
+	assert_false(rules.bridge_destroyed)
+
+
+func test_blast_on_the_bridge_is_not_reported_as_too_far() -> void:
+	var missed := [0]
+	rules.charge_too_far.connect(func() -> void: missed[0] += 1)
+	_blow_bridge()
+	assert_eq(missed[0], 0)
+	_blast(mission.bridge_target().global_position + Vector3(30, 0, 0))
+	assert_eq(missed[0], 0, "the bridge is already down; there is nothing left to miss")

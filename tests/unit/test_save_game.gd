@@ -500,6 +500,52 @@ func test_loading_a_save_of_a_loss_shows_that_loss() -> void:
 	assert_true(hud.end_screen.visible)
 
 
+func _meshes(charge: Node) -> Array[Node]:
+	return charge.find_children("*", "MeshInstance3D", true, false)
+
+
+func test_planted_charge_shows_a_mesh_and_a_countdown() -> void:
+	specs[0].global_position = Vector3(-30, 0, 4)
+	_key(KEY_E)
+	var charge := _charges()[0] as PlantedCharge
+	await _frames(1)
+	assert_gt(_meshes(charge).size(), 0, "planted by the E key, seen in the world")
+	hud.refresh()
+	assert_eq(hud.fuse_label.text, "Fuse: %ds" % ceili(charge.fuse_left))
+
+
+func test_restored_charge_shows_its_mesh_and_countdown() -> void:
+	_plant(Vector3(-30, 0, 4), 6.5)
+	_save()
+	for c in _charges():
+		c.free()
+	hud.refresh()
+	assert_false(hud.fuse_label.visible)
+	_load()
+	assert_gt(_meshes(_charges()[0]).size(), 0)
+	hud.refresh()
+	assert_true(hud.fuse_label.visible)
+	assert_eq(hud.fuse_label.text, "Fuse: 7s")
+
+
+func test_detonation_flashes_and_the_flash_goes_away() -> void:
+	var display: ChargeDisplay = main.charge_display
+	assert_eq(display.get_child_count(), 0)
+	var at := Vector3(-30, 0, 4)
+	_plant(at, 1.0).advance(2.0)
+	assert_eq(display.get_child_count(), 1)
+	var flash := display.get_child(0) as Node3D
+	assert_almost_eq(flash.global_position, at, Vector3.ONE * 0.001)
+	assert_gt(flash.find_children("*", "MeshInstance3D", true, false).size(), 0)
+	await wait_seconds(ChargeDisplay.FLASH_SECONDS + 0.2)
+	assert_eq(display.get_child_count(), 0, "a brief flash")
+
+
+func test_charge_mesh_gives_sight_rays_and_clicks_nothing_to_hit() -> void:
+	var charge := _plant(Vector3(-30, 0, 4), 6.5)
+	assert_eq(charge.find_children("*", "CollisionObject3D", true, false).size(), 0)
+
+
 func test_browser_shortcuts_are_left_alone() -> void:
 	_key(KEY_L, true)
 	_key(KEY_O, true)

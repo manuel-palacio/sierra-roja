@@ -3,7 +3,8 @@ extends Node
 ## Web-only, read-only probe for the e2e screenshot test. Active only when the page URL has
 ## ?probe=1. window.sierraProbe() fills window.sierraGuards with the current screen position
 ## (canvas pixels) of each living guard, so a test can click one that is walking, and
-## window.sierraState with the message on screen and the first specialist's ground position.
+## window.sierraState with the message and fuse countdown on screen and the first specialist's
+## ground position.
 
 
 static func enabled() -> bool:
@@ -34,5 +35,10 @@ func _publish(_args: Array) -> void:
 	if main.hud != null:
 		var label: Label = main.hud.message_label
 		var pos: Vector3 = main.specialists[0].global_position
-		state = { "message": label.text if label.visible else "", "pos": [pos.x, pos.z] }
+		var fuse: Label = main.hud.fuse_label
+		state = {
+			"message": label.text if label.visible else "",
+			"fuse": fuse.text if fuse.visible else "",
+			"pos": [pos.x, pos.z],
+		}
 	JavaScriptBridge.eval("window.sierraState = %s" % JSON.stringify(state), true)

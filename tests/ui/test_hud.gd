@@ -37,6 +37,8 @@ func before_each() -> void:
 
 func after_each() -> void:
 	get_tree().paused = false
+	for c in get_tree().get_nodes_in_group(PlantedCharge.GROUP):
+		c.free()
 	for b in get_tree().get_nodes_in_group(Body.GROUP):
 		b.free()
 
@@ -59,6 +61,14 @@ func _lone_guard(pos: Vector3) -> Guard:
 	add_child_autofree(g)
 	g.global_position = pos
 	return g
+
+
+func _plant(pos: Vector3, fuse: float) -> PlantedCharge:
+	var charge := PlantedCharge.new()
+	charge.fuse_left = fuse
+	mission.add_child(charge)
+	charge.global_position = pos
+	return charge
 
 
 func test_ammo_label_updates() -> void:
@@ -130,8 +140,60 @@ func test_refusal_becomes_message() -> void:
 	assert_eq(hud.message_label.text, "out of ammo")
 
 
+func test_crawling_label_follows_each_portraits_stance() -> void:
+	hud.refresh()
+	assert_eq(hud.stance_labels[0].text, "Crawling")
+	assert_false(hud.stance_labels[0].visible)
+	specs[1].set_stance(Unit.Stance.CRAWLING)
+	hud.refresh()
+	assert_false(hud.stance_labels[0].visible)
+	assert_true(hud.stance_labels[1].visible)
+	specs[1].set_stance(Unit.Stance.STANDING)
+	hud.refresh()
+	assert_false(hud.stance_labels[1].visible)
+
+
+func test_fuse_label_counts_down_a_planted_charge() -> void:
+	hud.refresh()
+	assert_false(hud.fuse_label.visible, "no charge, no countdown")
+	var charge := _plant(Vector3(-30, 0, 0), 7.5)
+	hud.refresh()
+	assert_true(hud.fuse_label.visible)
+	assert_eq(hud.fuse_label.text, "Fuse: 8s")
+	charge.advance(2.0)
+	hud.refresh()
+	assert_eq(hud.fuse_label.text, "Fuse: 6s")
+
+
+func test_fuse_label_lists_two_charges_soonest_first() -> void:
+	_plant(Vector3(-30, 0, 0), 9.0)
+	_plant(Vector3(-30, 0, 4), 3.0)
+	hud.refresh()
+	assert_eq(hud.fuse_label.text, "Fuse: 3s, 9s")
+
+
+func test_fuse_label_goes_when_the_charge_does() -> void:
+	var charge := _plant(Vector3(-30, 0, 0), 1.0)
+	hud.refresh()
+	charge.advance(2.0)
+	hud.refresh()
+	assert_false(hud.fuse_label.visible, "a detonated charge is only waiting to be freed")
+
+
+func test_blast_far_from_the_bridge_says_so() -> void:
+	_plant(Vector3(-30, 0, 0), 1.0).advance(2.0)
+	assert_eq(hud.message_label.text, "The charge was too far from the bridge")
+	assert_true(hud.message_label.visible)
+
+
+func test_blast_at_the_bridge_says_it_was_destroyed() -> void:
+	_plant(mission.bridge_target().global_position, 1.0).advance(2.0)
+	assert_eq(hud.message_label.text, "Bridge destroyed")
+
+
 func test_widgets_let_mouse_through() -> void:
-	for node in [hud.root, hud.top_bar, hud.bottom_bar, hud.alarm_label, hud.message_label]:
+	for node in [hud.root, hud.top_bar, hud.bottom_bar, hud.alarm_label, hud.message_label,
+			hud.fuse_label, hud.stance_labels[0]]:
 		assert_eq((node as Control).mouse_filter, Control.MOUSE_FILTER_IGNORE, str(node.name))
 
 
@@ -188,7 +250,7 @@ func test_overlay_hides_on_guard_death() -> void:
 	assert_true(overlay.visible)
 	g.process_mode = Node.PROCESS_MODE_INHERIT
 	g.take_damage(1000)
-	await wait_frames(2)
+	await wait_process_frames(2)
 	assert_false(overlay.visible)
 	assert_null(overlay.guard)
 

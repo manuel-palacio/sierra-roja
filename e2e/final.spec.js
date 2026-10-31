@@ -1,7 +1,8 @@
 const { test, expect } = require('@playwright/test');
 
 // The art, night look and sound in the real build: a user gesture unlocks audio, nothing may log
-// an error, and a screenshot is kept for a human to look at (build/e2e/final.png).
+// an error, and a screenshot is kept for a human to look at (build/e2e/final.png, with a charge
+// planted and the Dynamiter crawling beside it, then build/e2e/flash.png of its detonation).
 test('night scene renders, audio unlocks on a click, no console errors', async ({ page }) => {
   const errors = [];
   page.on('console', (msg) => { if (msg.type() === 'error') errors.push(msg.text()); });
@@ -15,6 +16,11 @@ test('night scene renders, audio unlocks on a click, no console errors', async (
   await page.mouse.click(box.x + box.width * 0.5, box.y + box.height * 0.5); // the gesture
   await page.mouse.dblclick(box.x + box.width * 0.45, box.y + box.height * 0.6); // a run order makes footstep noise
   await page.waitForTimeout(1500);
+  await page.keyboard.press('e'); // plants at the Dynamiter's feet
+  await page.mouse.click(box.x + box.width * 0.55, box.y + box.height * 0.45); // walk off it
+  await page.waitForTimeout(1200);
+  await page.keyboard.press('c');
+  await page.waitForTimeout(600);
   // click the guard nearest the middle of the screen so its vision cones show on the night map
   await page.evaluate(() => window.sierraProbe());
   const guards = await page.evaluate(() => window.sierraGuards);
@@ -23,5 +29,14 @@ test('night scene renders, audio unlocks on a click, no console errors', async (
   if (guards.length) await page.mouse.click(box.x + guards[0][0], box.y + guards[0][1]);
   await page.waitForTimeout(500);
   await page.screenshot({ path: 'build/e2e/final.png' });
+  expect((await page.evaluate(() => { window.sierraProbe(); return window.sierraState; })).fuse).toMatch(/^Fuse: \d+s$/);
+  // leave the blast and see the detonation from outside it
+  await page.keyboard.press('c');
+  await page.mouse.dblclick(box.x + box.width * 0.23, box.y + box.height * 0.75);
+  await page.waitForFunction(() => {
+    window.sierraProbe();
+    return window.sierraState.message === 'The charge was too far from the bridge';
+  }, null, { polling: 16, timeout: 15000 });
+  await page.screenshot({ path: 'build/e2e/flash.png' });
   expect(errors).toEqual([]);
 });

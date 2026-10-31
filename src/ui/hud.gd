@@ -1,9 +1,10 @@
 class_name Hud
 extends CanvasLayer
-## Display only: two portraits with health, the selected specialist's ability bar with ammo,
-## the alarm level, a pause indicator (with Restart) and short messages. It reads rules state
-## and never writes it. The ability buttons, Restart and Keep playing are the only widgets that
-## take the mouse; everything else ignores it so clicks and edge scrolling reach the game.
+## Display only: two portraits with health and stance, the selected specialist's ability bar with
+## ammo, the alarm level, the fuse of each planted charge, a pause indicator (with Restart) and
+## short messages. It reads rules state and never writes it. The ability buttons, Restart and Keep
+## playing are the only widgets that take the mouse; everything else ignores it so clicks and edge
+## scrolling reach the game.
 
 const MESSAGE_SECONDS := 3.0
 const REFRESH_INTERVAL := 0.1
@@ -21,6 +22,8 @@ var top_bar: Control
 var bottom_bar: Control
 var alarm_label: Label
 var message_label: Label
+## "Fuse: 3s, 9s", soonest first; hidden with no charge planted.
+var fuse_label: Label
 var pause_box: Control
 var restart_button: Button
 ## Shown with a question in the message line after a bad save; answered with its two buttons.
@@ -30,6 +33,7 @@ var keep_playing_button: Button
 var end_screen: EndScreen
 ## Specialist index -> bars.
 var health_bars: Array[ProgressBar] = []
+var stance_labels: Array[Label] = []
 ## Ability id (String) of the selected specialist -> Button.
 var ability_buttons: Dictionary = {}
 
@@ -71,6 +75,7 @@ func setup(input: PlayerInput, rules: MissionRules, specialists: Array[Specialis
 	input.guard_clicked.connect(func(g: Guard) -> void: overlay.show_for(g))
 	rules.result_changed.connect(func(r: MissionRules.Result) -> void: end_screen.show_result(r))
 	rules.bridge_blown.connect(func() -> void: show_message("Bridge destroyed"))
+	rules.charge_too_far.connect(func() -> void: show_message("The charge was too far from the bridge"))
 	end_screen.show_result(rules.result)
 	refresh()
 
@@ -108,8 +113,10 @@ func refresh() -> void:
 		var s := _specialists[i]
 		health_bars[i].max_value = s.stats.max_hp
 		health_bars[i].value = s.hp
+		stance_labels[i].visible = s.stance == Unit.Stance.CRAWLING
 		_portraits[i].modulate = Color.WHITE if s == _input.selected else Color(1, 1, 1, 0.6)
 	_refresh_abilities()
+	_refresh_fuse()
 	alarm_label.text = "Alarm: %d" % _rules.alarm_level
 	alarm_label.modulate = Color(1, 0.4, 0.3) if _rules.alarm_level > 0 else Color.WHITE
 	pause_box.visible = _input.is_paused()
@@ -141,6 +148,19 @@ func _refresh_abilities() -> void:
 		button.text = text
 		button.disabled = ability.ammo == 0
 		button.modulate = Color(1, 0.9, 0.4) if _input.armed_ability == StringName(id) else Color.WHITE
+
+
+func _refresh_fuse() -> void:
+	var left: Array[float] = []
+	for node in get_tree().get_nodes_in_group(PlantedCharge.GROUP):
+		if not node.is_queued_for_deletion():
+			left.append((node as PlantedCharge).fuse_left)
+	left.sort()
+	var parts := PackedStringArray()
+	for seconds in left:
+		parts.append("%ds" % ceili(seconds))
+	fuse_label.visible = not left.is_empty()
+	fuse_label.text = "Fuse: " + ", ".join(parts)
 
 
 func _restart() -> void:
@@ -187,9 +207,14 @@ func _build_top() -> void:
 		top_bar.add_theme_constant_override("margin_" + side, 12)
 	root.add_child(top_bar)
 	var row := _control(HBoxContainer.new())
+	row.add_theme_constant_override("separation", 16)
 	top_bar.add_child(row)
 	alarm_label = _label("Alarm: 0")
 	row.add_child(alarm_label)
+	fuse_label = _label("")
+	fuse_label.modulate = Color(1, 0.65, 0.3)
+	fuse_label.visible = false
+	row.add_child(fuse_label)
 	message_label = _label("")
 	message_label.visible = false
 	message_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -229,6 +254,10 @@ func _build_portraits() -> void:
 		bar.add_theme_stylebox_override("fill", _flat(Color(0.3, 0.8, 0.35)))
 		bar.add_theme_stylebox_override("background", _flat(Color(0.1, 0.1, 0.1, 0.8)))
 		box.add_child(bar)
+		var stance := _label("Crawling")
+		stance.visible = false
+		box.add_child(stance)
+		stance_labels.append(stance)
 		row.add_child(panel)
 		row.move_child(panel, i)
 		_portraits.append(panel)

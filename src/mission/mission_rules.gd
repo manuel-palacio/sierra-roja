@@ -10,6 +10,8 @@ extends Node
 
 signal result_changed(result: Result)
 signal bridge_blown()
+## A charge went off while the bridge stood, too far away to destroy it.
+signal charge_too_far()
 
 enum Result { RUNNING, WON, LOST }
 
@@ -136,6 +138,7 @@ func _on_detonated(pos: Vector3) -> void:
 	if bridge_destroyed or target == null:
 		return
 	if pos.distance_to(target.global_position) > BRIDGE_BLAST_RANGE:
+		charge_too_far.emit()
 		return
 	bridge_destroyed = true
 	_mission.break_bridge()

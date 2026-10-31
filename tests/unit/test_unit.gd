@@ -172,3 +172,29 @@ func test_marksman_resource() -> void:
 	var s: Stats = load("res://resources/marksman.tres")
 	assert_eq(s.walk_speed, 3.0)
 	assert_eq(s.max_hp, 100)
+
+
+func test_crawling_lowers_the_model_and_nothing_else() -> void:
+	var model := unit.get_node("Model") as Node3D
+	var collider := unit.get_node("CollisionShape3D") as CollisionShape3D
+	await get_tree().process_frame
+	var rest := model.basis
+	var height: float = (collider.shape as CapsuleShape3D).height
+	var collider_at := collider.position
+	unit.set_stance(Unit.Stance.CRAWLING)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	assert_lt(model.basis.y.length(), 0.6, "visibly lower")
+	assert_almost_eq(model.basis.x.length(), 1.0, 0.001, "only squashed in height")
+	assert_eq(model.basis.x, rest.x, "still facing the same way")
+	assert_eq((collider.shape as CapsuleShape3D).height, height, "collision stays as it was")
+	assert_eq(collider.position, collider_at)
+	unit.set_stance(Unit.Stance.STANDING)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	assert_eq(model.basis, rest)
+
+
+## A load while paused can change the stance, and the player should see it before resuming.
+func test_unit_visual_keeps_up_while_paused() -> void:
+	assert_eq(unit.get_node("UnitVisual").process_mode, Node.PROCESS_MODE_ALWAYS)
