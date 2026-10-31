@@ -164,7 +164,6 @@ func _build_bottom() -> void:
 	var row := _control(HBoxContainer.new())
 	row.add_theme_constant_override("separation", 16)
 	bottom_bar.add_child(row)
-	row.set_meta("portraits", true)
 	_ability_row = _control(HBoxContainer.new())
 	_ability_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_ability_row.alignment = BoxContainer.ALIGNMENT_END
