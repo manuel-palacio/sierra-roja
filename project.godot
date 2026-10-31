@@ -15,3 +15,8 @@ enabled=PackedStringArray("res://addons/gut/plugin.cfg")
 
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
+
+[navigation]
+
+world/map_use_async_iterations=false
+world/region_use_async_iterations=false
