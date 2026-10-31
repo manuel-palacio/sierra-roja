@@ -1,0 +1,202 @@
+extends GutTest
+
+var mission: Mission
+var rules: MissionRules
+var specs: Array[Specialist]
+var cam: IsoCamera
+var input: PlayerInput
+var overlay: VisionOverlay
+var hud: Hud
+var restarts := 0
+
+
+func before_each() -> void:
+	restarts = 0
+	mission = load("res://scenes/missions/bridge.tscn").instantiate()
+	# Live guards would shoot the specialists; these tests are about the display.
+	mission.get_node("Guards").process_mode = Node.PROCESS_MODE_DISABLED
+	add_child_autofree(mission)
+	await get_tree().process_frame
+	mission.build_nav()
+	specs = mission.spawn_specialists()
+	rules = MissionRules.new()
+	add_child_autofree(rules)
+	rules.setup(mission, specs)
+	cam = IsoCamera.new()
+	add_child_autofree(cam)
+	input = PlayerInput.new()
+	add_child_autofree(input)
+	input.setup(cam, specs)
+	overlay = VisionOverlay.new()
+	add_child_autofree(overlay)
+	hud = load("res://scenes/ui/hud.tscn").instantiate() as Hud
+	add_child_autofree(hud)
+	hud.setup(input, rules, specs, overlay)
+	hud.restart_action = func() -> void: restarts += 1
+
+
+func after_each() -> void:
+	get_tree().paused = false
+	for b in get_tree().get_nodes_in_group(Body.GROUP):
+		b.free()
+
+
+func _wall(pos: Vector3, size: Vector3) -> void:
+	var body := StaticBody3D.new()
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = size
+	shape.shape = box
+	body.add_child(shape)
+	add_child_autofree(body)
+	body.global_position = pos
+	body.collision_layer = Perception.WORLD_MASK
+
+
+func _lone_guard(pos: Vector3) -> Guard:
+	var g := load("res://scenes/units/guard.tscn").instantiate() as Guard
+	g.process_mode = Node.PROCESS_MODE_DISABLED
+	add_child_autofree(g)
+	g.global_position = pos
+	return g
+
+
+func test_ammo_label_updates() -> void:
+	input.select(specs[1])
+	hud.refresh()
+	var rifle: Button = hud.ability_buttons["rifle"]
+	var before := rifle.text
+	(specs[1].abilities["rifle"] as Ability).ammo = 2
+	hud.refresh()
+	assert_ne(rifle.text, before)
+	assert_string_contains(rifle.text, "2")
+	assert_false(hud.ability_buttons.has("charge"), "the bar shows the selected specialist's abilities")
+
+
+func test_alarm_label_updates() -> void:
+	hud.refresh()
+	var calm := hud.alarm_label.text
+	mission.guards()[0].brain.on_alarm(Vector3.ZERO)
+	hud.refresh()
+	assert_ne(hud.alarm_label.text, calm)
+	assert_string_contains(hud.alarm_label.text, "1")
+
+
+func test_portrait_health_updates() -> void:
+	specs[0].take_damage(30)
+	hud.refresh()
+	assert_eq(hud.health_bars[0].value, 70.0)
+
+
+func test_pause_indicator_and_restart_while_paused() -> void:
+	assert_false(hud.pause_box.visible)
+	input.set_paused(true)
+	assert_true(hud.pause_box.visible)
+	assert_eq(hud.pause_box.process_mode, Node.PROCESS_MODE_ALWAYS)
+	hud.restart_button.pressed.emit()
+	assert_eq(restarts, 1)
+	assert_false(get_tree().paused, "restart clears the pause")
+
+
+func test_end_screen_shows_on_result() -> void:
+	assert_false(hud.end_screen.visible)
+	specs[0].take_damage(1000)
+	rules.evaluate()
+	assert_true(hud.end_screen.visible)
+	assert_eq(hud.end_screen.title_label.text, "Mission failed")
+
+
+func test_end_screen_won_text() -> void:
+	hud.end_screen.show_result(MissionRules.Result.WON)
+	assert_eq(hud.end_screen.title_label.text, "Mission complete")
+
+
+func test_restart_reloads_mission() -> void:
+	hud.end_screen.show_result(MissionRules.Result.LOST)
+	input.set_paused(true)
+	hud.end_screen.restart_button.pressed.emit()
+	assert_eq(restarts, 1)
+	assert_false(get_tree().paused)
+
+
+func test_show_message() -> void:
+	hud.show_message("Out of ammo")
+	assert_eq(hud.message_label.text, "Out of ammo")
+	assert_true(hud.message_label.visible)
+
+
+func test_refusal_becomes_message() -> void:
+	input.order_refused.emit("out of ammo")
+	assert_eq(hud.message_label.text, "out of ammo")
+
+
+func test_widgets_let_mouse_through() -> void:
+	for node in [hud.root, hud.top_bar, hud.bottom_bar, hud.alarm_label, hud.message_label]:
+		assert_eq((node as Control).mouse_filter, Control.MOUSE_FILTER_IGNORE, str(node.name))
+
+
+func test_ability_button_arms_through_input() -> void:
+	input.select(specs[1])
+	hud.refresh()
+	(hud.ability_buttons["rifle"] as Button).pressed.emit()
+	assert_eq(input.armed_ability, &"rifle")
+
+
+func test_guard_click_shows_overlay_one_at_a_time() -> void:
+	var a := _lone_guard(Vector3(0, 0, 0))
+	var b := _lone_guard(Vector3(20, 0, 0))
+	await wait_physics_frames(2)
+	input.guard_clicked.emit(a)
+	assert_true(overlay.visible)
+	assert_eq(overlay.guard, a)
+	input.guard_clicked.emit(b)
+	assert_eq(overlay.guard, b)
+	input.set_paused(false)
+	overlay.hide_overlay()
+	assert_false(overlay.visible)
+
+
+func test_overlay_polygon_clipped_by_wall() -> void:
+	var g := _lone_guard(Vector3.ZERO)
+	_wall(Vector3(0, 1.5, -9), Vector3(30, 3, 0.5))
+	await wait_physics_frames(2)
+	overlay.show_for(g)
+	assert_gt(overlay.far_polygon.size(), 2)
+	for i in range(1, overlay.far_polygon.size()):
+		var p := overlay.far_polygon[i]
+		assert_lt(Vector2(p.x, p.z).length(), 12.0, "far zone (14 m open) stops at the wall 9 m away")
+	for i in range(1, overlay.near_polygon.size()):
+		assert_lte(Vector2(overlay.near_polygon[i].x, overlay.near_polygon[i].z).length(),
+				g.vision.near_range + 0.01)
+
+
+func test_overlay_far_range_grows_when_alerted() -> void:
+	var g := _lone_guard(Vector3.ZERO)
+	await wait_physics_frames(2)
+	overlay.show_for(g)
+	var calm := Vector2(overlay.far_polygon[1].x, overlay.far_polygon[1].z).length()
+	g.brain.alerted = true
+	overlay.rebuild()
+	var alerted := Vector2(overlay.far_polygon[1].x, overlay.far_polygon[1].z).length()
+	assert_gt(alerted, calm)
+
+
+func test_overlay_hides_on_guard_death() -> void:
+	var g := _lone_guard(Vector3.ZERO)
+	await wait_physics_frames(2)
+	overlay.show_for(g)
+	assert_true(overlay.visible)
+	g.process_mode = Node.PROCESS_MODE_INHERIT
+	g.take_damage(1000)
+	await wait_frames(2)
+	assert_false(overlay.visible)
+	assert_null(overlay.guard)
+
+
+func test_overlay_hides_when_guard_freed() -> void:
+	var g := _lone_guard(Vector3.ZERO)
+	await wait_physics_frames(2)
+	overlay.show_for(g)
+	g.free()
+	overlay._process(0.2)
+	assert_false(overlay.visible)

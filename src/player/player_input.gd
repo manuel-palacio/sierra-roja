@@ -165,6 +165,11 @@ func _move_selected(target: Vector3, screen_pos: Vector2) -> void:
 	selected.move_to(target, double)
 
 
+## What pressing the ability's key does; the HUD's ability buttons call this.
+func arm_ability(id: StringName) -> void:
+	_press_ability([id])
+
+
 func _press_ability(ids: Array) -> void:
 	if not _can_order():
 		return

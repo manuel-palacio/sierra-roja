@@ -9,11 +9,15 @@ var camera: IsoCamera
 var specialists: Array[Specialist] = []
 var rules: MissionRules
 var player_input: PlayerInput
+var overlay: VisionOverlay
+var hud: Hud
 
 
 func _ready() -> void:
 	if PerfProbe.enabled():
 		add_child(PerfProbe.new())
+	if ScreenProbe.enabled():
+		add_child(ScreenProbe.new())
 	mission = load(MISSION_SCENE).instantiate()
 	add_child(mission)
 	camera = IsoCamera.new()
@@ -35,6 +39,11 @@ func _ready() -> void:
 	camera.edge_scroll_enabled = true
 	rules.result_changed.connect(func(r: MissionRules.Result) -> void:
 		player_input.orders_enabled = r == MissionRules.Result.RUNNING)
+	overlay = VisionOverlay.new()
+	add_child(overlay)
+	hud = (load("res://scenes/ui/hud.tscn") as PackedScene).instantiate() as Hud
+	add_child(hud)
+	hud.setup(player_input, rules, specialists, overlay)
 	var errors := MissionValidator.validate(mission)
 	if not errors.is_empty():
 		for message in errors:
