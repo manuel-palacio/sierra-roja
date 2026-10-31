@@ -437,14 +437,65 @@ func test_o_and_l_keys_save_and_load_while_paused() -> void:
 	assert_almost_eq(specs[0].global_position, Vector3(-20, 0.5, 4), Vector3.ONE * 0.001)
 
 
-func test_o_key_saves_after_a_result() -> void:
+func test_o_key_refuses_after_a_loss_and_keeps_the_save() -> void:
+	specs[0].global_position = Vector3(-20, 0.5, 4)
+	_save()
+	var before := _read_save()
 	specs[0].take_damage(1000)
 	await _frames()
+	messages.clear()
 	_key(KEY_O)
-	assert_eq(messages[-1], "Game saved")
+	assert_eq(messages.size(), 0, "nothing was saved")
+	assert_eq(hud.message_label.text, "Can't save after the mission has ended")
+	assert_true(hud.message_label.visible)
+	assert_eq(_read_save(), before, "the only save still holds the state before the loss")
 	_key(KEY_L)
 	assert_eq(messages[-1], "Game loaded")
-	assert_eq(rules.result, MissionRules.Result.LOST, "a save made after the loss is that loss")
+	assert_eq(rules.result, MissionRules.Result.RUNNING)
+	assert_true(specs[0].alive)
+
+
+func test_o_key_refuses_after_a_win() -> void:
+	await _blow_bridge()
+	_to_extraction(specs[0])
+	_to_extraction(specs[1])
+	await _frames(4)
+	assert_eq(rules.result, MissionRules.Result.WON)
+	_key(KEY_O)
+	assert_false(FileAccess.file_exists(TEST_PATH), "nothing was saved")
+	assert_eq(hud.message_label.text, "Can't save after the mission has ended")
+
+
+func test_orders_enabled_follows_the_mission_result() -> void:
+	_save()
+	assert_true(input.orders_enabled, "running")
+	specs[0].take_damage(1000)
+	await _frames()
+	assert_false(input.orders_enabled, "lost")
+	_key(KEY_L)
+	assert_true(input.orders_enabled, "the load is running again")
+	await _blow_bridge()
+	_to_extraction(specs[0])
+	_to_extraction(specs[1])
+	await _frames(4)
+	assert_eq(rules.result, MissionRules.Result.WON)
+	assert_false(input.orders_enabled, "won")
+
+
+func test_o_key_saves_while_paused() -> void:
+	input.set_paused(true)
+	_key(KEY_O)
+	assert_eq(messages[-1], "Game saved")
+
+
+## Saves made after a loss by earlier builds are still on players' disks.
+func test_loading_a_save_of_a_loss_shows_that_loss() -> void:
+	specs[0].take_damage(1000)
+	await _frames()
+	_save()
+	_key(KEY_L)
+	assert_eq(messages[-1], "Game loaded")
+	assert_eq(rules.result, MissionRules.Result.LOST)
 	assert_false(input.orders_enabled)
 	assert_true(hud.end_screen.visible)
 

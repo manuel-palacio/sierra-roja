@@ -15,6 +15,7 @@ signal order_refused(reason: String)
 
 const DOUBLE_CLICK_SEC := 0.3
 const DOUBLE_CLICK_SLOP := 12.0
+const SAVE_REFUSED_TEXT := "Can't save after the mission has ended"
 
 enum Mode {
 	GUARD,  ## Arms; the next click must hit a guard.
@@ -124,9 +125,13 @@ func _on_key(event: InputEventKey) -> void:
 	elif key == KEY_ESCAPE:
 		_set_armed(&"")
 	elif key == KEY_O:
-		# Saving and loading work paused and after a result, like the pause itself.
+		# Saving works paused, but not after a result: that would overwrite the only save with the
+		# ended mission. Loading works any time, so a lost mission can go back to that save.
 		if _mission != null:
-			SaveGame.quick_save(_mission)
+			if orders_enabled:
+				SaveGame.quick_save(_mission)
+			else:
+				_refuse(SAVE_REFUSED_TEXT)
 	elif key == KEY_L:
 		if _mission != null:
 			SaveGame.quick_load(_mission)
