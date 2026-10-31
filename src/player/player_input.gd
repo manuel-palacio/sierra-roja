@@ -4,7 +4,7 @@ extends Node
 ## and the pause. Rules live in Unit and Ability; this only decides which order a click or key is.
 ##
 ## Hotkeys: 1/2 select, C stance, Q knife, E main ability (charge, else rifle), R pistol,
-## F pick up / drop, Space pause, Escape or right click disarm. O and L belong to save/load.
+## F pick up / drop, Space pause, Escape or right click disarm, O quick save, L quick load.
 
 signal selection_changed(s: Specialist)
 signal paused_changed(paused: bool)
@@ -48,6 +48,7 @@ var picker := Callable()
 ## Seconds; replaceable for tests.
 var clock := func() -> float: return Time.get_ticks_msec() / 1000.0
 
+var _mission: Mission
 var _camera: IsoCamera
 var _specialists: Array[Specialist] = []
 var _last_click_time := -INF
@@ -67,6 +68,12 @@ func setup(cam: IsoCamera, specialists: Array[Specialist]) -> void:
 		picker = func(pos: Vector2) -> Dictionary: return Picker.pick(_camera, pos)
 	if not specialists.is_empty():
 		select(specialists[0])
+
+
+## The mission O and L save and load.
+func bind_mission(mission: Mission) -> void:
+	_mission = mission
+	mission.state_loaded.connect(_on_state_loaded)
 
 
 func select(s: Specialist) -> void:
@@ -116,6 +123,13 @@ func _on_key(event: InputEventKey) -> void:
 		set_paused(not is_paused())
 	elif key == KEY_ESCAPE:
 		_set_armed(&"")
+	elif key == KEY_O:
+		# Saving and loading work paused and after a result, like the pause itself.
+		if _mission != null:
+			SaveGame.quick_save(_mission)
+	elif key == KEY_L:
+		if _mission != null:
+			SaveGame.quick_load(_mission)
 	elif SELECT_KEYS.has(key):
 		if _can_order():
 			var index: int = SELECT_KEYS[key]
@@ -245,6 +259,19 @@ func _set_armed(id: StringName) -> void:
 
 func _refuse(reason: String) -> void:
 	order_refused.emit(reason)
+
+
+## Keeps the selection if its specialist lives in the loaded state, else picks a living one.
+func _on_state_loaded() -> void:
+	_set_armed(&"")
+	if selected != null and selected.alive:
+		return
+	selected = null
+	for s in _specialists:
+		if s.alive:
+			select(s)
+			return
+	selection_changed.emit(null)
 
 
 func _on_specialist_died(unit: Unit) -> void:

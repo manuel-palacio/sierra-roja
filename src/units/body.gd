@@ -7,9 +7,10 @@ const GROUP := "bodies"
 const SCENE := "res://scenes/units/body.tscn"
 
 var found := false
-## The carrier, or null. Task 11 saves a stable reference (e.g. the carrier's save id) via
-## save_state's "carried" flag and resolves it on load.
+## The carrier, or null.
 var carried_by: Specialist
+## The guard this was, which is what identifies it in a save.
+var save_id := ""
 
 
 func _ready() -> void:
@@ -24,23 +25,26 @@ func _physics_process(_delta: float) -> void:
 			carried_by = null
 
 
-## JSON-safe snapshot. "carrier_path" is the carrier's path in the scene tree ("" when lying
-## down); Task 11 swaps it for a save id if it wants one.
+## JSON-safe snapshot. "carrier" is the carrier's save id, the Unit's name ("" when lying down).
 func save_state() -> Dictionary:
-	var carrier_path := ""
-	if carried_by != null and is_instance_valid(carried_by) and carried_by.is_inside_tree():
-		carrier_path = String(carried_by.get_path())
+	var carrier := ""
+	if carried_by != null and is_instance_valid(carried_by):
+		carrier = String(carried_by.name)
 	return {
+		"id": save_id,
 		"pos": [global_position.x, global_position.y, global_position.z],
+		"rot": rotation.y,
 		"found": found,
-		"carrier_path": carrier_path,
+		"carrier": carrier,
 	}
 
 
-## Restores position and found. The carrier is left to the loader: read "carrier_path" from
-## the saved dictionary, find the Specialist, and call Specialist.pick_up(body).
+## Restores everything but the carrier, which is left to the loader: find the Specialist named
+## by "carrier" and call Specialist.pick_up(body).
 func load_state(d: Dictionary) -> void:
+	save_id = String(d["id"])
 	var p: Array = d["pos"]
 	global_position = Vector3(p[0], p[1], p[2])
+	rotation.y = float(d["rot"])
 	found = bool(d["found"])
 	carried_by = null

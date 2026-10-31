@@ -10,6 +10,7 @@ config/features=PackedStringArray("4.7")
 [autoload]
 
 NoiseBus="*res://src/core/noise_bus.gd"
+SaveGame="*res://src/save/save_game.gd"
 
 [editor_plugins]
 

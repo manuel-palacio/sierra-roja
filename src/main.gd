@@ -36,6 +36,7 @@ func _ready() -> void:
 	player_input = PlayerInput.new()
 	add_child(player_input)
 	player_input.setup(camera, specialists)  # selects the Dynamiter
+	player_input.bind_mission(mission)
 	camera.edge_scroll_enabled = true
 	rules.result_changed.connect(func(r: MissionRules.Result) -> void:
 		player_input.orders_enabled = r == MissionRules.Result.RUNNING)
@@ -44,6 +45,8 @@ func _ready() -> void:
 	hud = (load("res://scenes/ui/hud.tscn") as PackedScene).instantiate() as Hud
 	add_child(hud)
 	hud.setup(player_input, rules, specialists, overlay)
+	SaveGame.message.connect(hud.show_message)
+	SaveGame.restart_offered.connect(hud.offer_restart)
 	var errors := MissionValidator.validate(mission)
 	if not errors.is_empty():
 		for message in errors:

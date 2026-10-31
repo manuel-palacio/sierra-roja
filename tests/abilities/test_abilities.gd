@@ -320,10 +320,10 @@ func test_body_round_trips_state() -> void:
 	copy.load_state(d)
 	assert_eq(copy.global_position, Vector3(2, 0, 3))
 	assert_true(copy.found)
-	assert_eq(d["carrier_path"], "")
+	assert_eq(d["carrier"], "")
 	user.global_position = Vector3(2, 0, 3)
 	(user.abilities["carry"] as Ability).use(user, body)
-	assert_eq(body.save_state()["carrier_path"], String(user.get_path()))
+	assert_eq(body.save_state()["carrier"], String(user.name))
 
 
 func test_dynamiter_has_two_charges() -> void:

@@ -97,15 +97,23 @@ func save_state() -> Dictionary:
 	d["brain"] = brain.save_state()
 	d["waypoint"] = _waypoint
 	d["fire_timer"] = _fire_timer
+	d["vision_timer"] = _vision_timer
+	d["alarm_dest"] = null if _alarm_dest == Vector3.INF else [_alarm_dest.x, _alarm_dest.y, _alarm_dest.z]
 	return d
 
 
 func load_state(d: Dictionary) -> void:
+	# The saved movement order already matches the saved brain, so no _apply_state: a guard that
+	# stopped to shoot stays stopped.
 	super(d)
 	brain.load_state(d["brain"])
 	_waypoint = int(d["waypoint"])
-	_apply_state()
 	_fire_timer = float(d["fire_timer"])
+	_vision_timer = float(d["vision_timer"])
+	var dest: Variant = d["alarm_dest"]
+	_alarm_dest = Vector3.INF if dest == null else Vector3(dest[0], dest[1], dest[2])
+	_stuck_time = 0.0
+	_stuck_anchor = global_position
 
 
 func _check_vision(elapsed: float) -> void:
@@ -196,6 +204,7 @@ func _on_died(_unit: Unit) -> void:
 	var parent := get_parent()
 	if parent != null:
 		var body := (load(Body.SCENE) as PackedScene).instantiate() as Body
+		body.save_id = String(name)
 		parent.add_child(body)
 		body.global_position = global_position
 		body.rotation.y = rotation.y

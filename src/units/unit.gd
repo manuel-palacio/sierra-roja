@@ -111,12 +111,18 @@ func _physics_process(delta: float) -> void:
 
 ## JSON-safe snapshot (no Vector3 or enums) so the save system can write it directly.
 func save_state() -> Dictionary:
+	var target := _agent.target_position
 	return {
+		"id": String(name),
 		"pos": [global_position.x, global_position.y, global_position.z],
 		"rot": rotation.y,
 		"stance": int(stance),
 		"hp": hp,
 		"alive": alive,
+		"moving": _moving,
+		"running": _running,
+		"target": [target.x, target.y, target.z],
+		"noise_timer": _noise_timer,
 	}
 
 
@@ -128,3 +134,8 @@ func load_state(d: Dictionary) -> void:
 	hp = int(d["hp"])
 	alive = bool(d["alive"])
 	stop()
+	if bool(d["moving"]):
+		var t: Array = d["target"]
+		move_to(Vector3(t[0], t[1], t[2]))
+		_running = bool(d["running"])
+	_noise_timer = float(d["noise_timer"])

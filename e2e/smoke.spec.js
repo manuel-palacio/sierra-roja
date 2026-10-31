@@ -44,6 +44,114 @@ test('keys and clicks in the real build raise no console errors', async ({ page 
   expect(errors).toEqual([]);
 });
 
+// Saves live in IndexedDB, which Godot writes to asynchronously after the file closes, plus a
+// synchronous localStorage copy (see save_game.gd). The reload tests cover each path.
+async function bootWithProbe(page) {
+  await page.goto('/?probe=1');
+  await page.waitForFunction(() => window.sierraStarted === true);
+  await page.waitForFunction(() => typeof window.sierraProbe === 'function');
+  await page.waitForTimeout(500);
+}
+
+const state = (page) => page.evaluate(() => { window.sierraProbe(); return window.sierraState; });
+
+async function waitForMessage(page, text) {
+  await page.waitForFunction((t) => {
+    window.sierraProbe();
+    return window.sierraState.message === t;
+  }, text, { polling: 16 });
+}
+
+function collectErrors(page) {
+  const errors = [];
+  page.on('console', (msg) => { if (msg.type() === 'error') errors.push(msg.text()); });
+  page.on('pageerror', (err) => errors.push(err.message));
+  return errors;
+}
+
+test('quick save survives a move, a load and a page reload', async ({ page }) => {
+  const errors = collectErrors(page);
+  await bootWithProbe(page);
+  const box = await page.locator('canvas').boundingBox();
+  const saved = (await state(page)).pos;
+
+  await page.keyboard.press('o');
+  await waitForMessage(page, 'Game saved');
+
+  await page.mouse.click(box.x + box.width * 0.6, box.y + box.height * 0.6);
+  await page.waitForFunction((from) => {
+    window.sierraProbe();
+    const p = window.sierraState.pos;
+    return Math.hypot(p[0] - from[0], p[1] - from[1]) > 1.0;
+  }, saved);
+
+  await page.keyboard.press('l');
+  await waitForMessage(page, 'Game loaded');
+  let now = (await state(page)).pos;
+  expect(Math.hypot(now[0] - saved[0], now[1] - saved[1])).toBeLessThan(0.5);
+
+  await page.reload();
+  await page.waitForFunction(() => window.sierraStarted === true);
+  await page.waitForFunction(() => typeof window.sierraProbe === 'function');
+  await page.waitForTimeout(500);
+  await page.keyboard.press('l');
+  await waitForMessage(page, 'Game loaded');
+  now = (await state(page)).pos;
+  expect(Math.hypot(now[0] - saved[0], now[1] - saved[1])).toBeLessThan(0.5);
+  expect(errors).toEqual([]);
+});
+
+test('a reload right after the saved message still finds the save', async ({ page }) => {
+  const errors = collectErrors(page);
+  await bootWithProbe(page);
+  await page.keyboard.press('o');
+  await waitForMessage(page, 'Game saved');
+  await page.reload(); // no grace time at all
+  await page.waitForFunction(() => window.sierraStarted === true);
+  await page.waitForFunction(() => typeof window.sierraProbe === 'function');
+  await page.waitForTimeout(500);
+  await page.keyboard.press('l');
+  await waitForMessage(page, 'Game loaded');
+  expect(errors).toEqual([]);
+});
+
+test('the save reaches IndexedDB at user://quicksave.json and loads from there alone', async ({ page }) => {
+  const errors = collectErrors(page);
+  await bootWithProbe(page);
+  await page.keyboard.press('o');
+  await waitForMessage(page, 'Game saved');
+  const keys = () => page.evaluate(() => new Promise((resolve, reject) => {
+    const open = indexedDB.open('/userfs');
+    open.onerror = () => reject(open.error);
+    open.onsuccess = () => {
+      const all = open.result.transaction('FILE_DATA').objectStore('FILE_DATA').getAllKeys();
+      all.onsuccess = () => { open.result.close(); resolve(all.result); };
+    };
+  }));
+  const saveFiles = async () => (await keys()).filter((k) => k.includes('/Sierra Roja/quicksave'));
+  await expect.poll(saveFiles).toEqual(['/userfs/godot/app_userdata/Sierra Roja/quicksave.json']);
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  await page.waitForFunction(() => window.sierraStarted === true);
+  await page.waitForFunction(() => typeof window.sierraProbe === 'function');
+  await page.waitForTimeout(500);
+  await page.keyboard.press('l');
+  await waitForMessage(page, 'Game loaded');
+  expect(errors).toEqual([]);
+});
+
+test('a corrupt save offers a restart and raises no console errors', async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await bootWithProbe(page);
+  await page.evaluate(() => localStorage.setItem('user://quicksave.json', '{ not json'));
+  await page.keyboard.press('l');
+  await waitForMessage(page, "This save can't be loaded. Restart the mission?");
+  await page.waitForTimeout(200);
+  await page.screenshot({ path: 'build/e2e/bad-save.png' });
+  expect(errors).toEqual([]);
+});
+
 test('shows a message when WebGL2 is unavailable', async ({ page }) => {
   await page.addInitScript(() => {
     const original = HTMLCanvasElement.prototype.getContext;

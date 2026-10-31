@@ -2,8 +2,8 @@ class_name Hud
 extends CanvasLayer
 ## Display only: two portraits with health, the selected specialist's ability bar with ammo,
 ## the alarm level, a pause indicator (with Restart) and short messages. It reads rules state
-## and never writes it. The ability buttons and Restart are the only widgets that take the mouse;
-## everything else ignores it so clicks and edge scrolling reach the game.
+## and never writes it. The ability buttons, Restart and Keep playing are the only widgets that
+## take the mouse; everything else ignores it so clicks and edge scrolling reach the game.
 
 const MESSAGE_SECONDS := 3.0
 const REFRESH_INTERVAL := 0.1
@@ -23,6 +23,10 @@ var alarm_label: Label
 var message_label: Label
 var pause_box: Control
 var restart_button: Button
+## Shown with a question in the message line after a bad save; answered with its two buttons.
+var restart_offer: Control
+var restart_offer_button: Button
+var keep_playing_button: Button
 var end_screen: EndScreen
 ## Specialist index -> bars.
 var health_bars: Array[ProgressBar] = []
@@ -51,6 +55,7 @@ func _init() -> void:
 	end_screen = EndScreen.new()
 	end_screen.restart_pressed.connect(_restart)
 	root.add_child(end_screen)
+	_build_restart_offer()
 
 
 func setup(input: PlayerInput, rules: MissionRules, specialists: Array[Specialist],
@@ -75,6 +80,13 @@ func show_message(text: String) -> void:
 	message_label.text = text
 	message_label.visible = true
 	_message_left = MESSAGE_SECONDS
+	restart_offer.visible = false
+
+
+## Keeps the current message up, as a question, until one of the two buttons answers it.
+func offer_restart() -> void:
+	restart_offer.visible = true
+	_message_left = INF
 
 
 func _process(delta: float) -> void:
@@ -135,6 +147,37 @@ func _restart() -> void:
 	# Reloading rebuilds all rules state; only the engine pause has to be cleared by hand.
 	get_tree().paused = false
 	restart_action.call()
+
+
+func _build_restart_offer() -> void:
+	restart_offer = _control(HBoxContainer.new())
+	restart_offer.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	restart_offer.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	restart_offer.offset_top = 48
+	restart_offer.add_theme_constant_override("separation", 12)
+	restart_offer.visible = false
+	root.add_child(restart_offer)
+	restart_offer_button = _offer_button("Restart")
+	restart_offer_button.pressed.connect(func() -> void:
+		_close_offer()
+		_restart())
+	keep_playing_button = _offer_button("Keep playing")
+	keep_playing_button.pressed.connect(_close_offer)
+
+
+func _offer_button(text: String) -> Button:
+	var button := Button.new()
+	button.text = text
+	button.process_mode = Node.PROCESS_MODE_ALWAYS
+	button.focus_mode = Control.FOCUS_NONE
+	restart_offer.add_child(button)
+	return button
+
+
+func _close_offer() -> void:
+	restart_offer.visible = false
+	message_label.visible = false
+	_message_left = 0.0
 
 
 func _build_top() -> void:

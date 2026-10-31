@@ -37,6 +37,7 @@ var alarm_level: int:
 func setup(mission: Mission, specialists: Array[Specialist]) -> void:
 	_mission = mission
 	_specialists = specialists
+	mission.rules = self
 	for s in specialists:
 		s.died.connect(_on_specialist_died)
 	var area := mission.extraction()
@@ -75,14 +76,26 @@ func evaluate() -> void:
 
 
 func save_state() -> Dictionary:
-	return { "result": int(result), "bridge_destroyed": bridge_destroyed }
+	var inside: Array[String] = []
+	for s in _in_extraction:
+		inside.append(String((s as Specialist).name))
+	return { "result": int(result), "bridge_destroyed": bridge_destroyed, "at_extraction": inside }
 
 
-## Restores a destroyed bridge too: the broken deck is rebuilt and the navmesh rebaked.
+## Puts the bridge in the saved condition, broken or whole, with the navmesh to match. Who is at
+## extraction comes from the save: the area only reports a teleport on the next physics step,
+## and until then a stale answer could hand out a false win.
 func load_state(d: Dictionary) -> void:
 	bridge_destroyed = bool(d["bridge_destroyed"])
-	if bridge_destroyed and _mission:
-		_mission.break_bridge()
+	if _mission:
+		if bridge_destroyed:
+			_mission.break_bridge()
+		else:
+			_mission.repair_bridge()
+	_in_extraction.clear()
+	for s in _specialists:
+		if d["at_extraction"].has(String(s.name)):
+			_in_extraction[s] = true
 	var loaded := int(d["result"]) as Result
 	if loaded != result:
 		result = loaded
