@@ -103,3 +103,30 @@ func test_broken_bridge_stubs_jut_over_the_gorge_without_collision() -> void:
 	assert_false(crosses, "the gorge stays impassable")
 	mission.repair_bridge()
 	assert_true(mission.get_node("Scenery/GirderN").visible)
+
+
+func test_crate_hides_a_crawler_but_not_a_stander() -> void:
+	var mission: Mission = load("res://scenes/missions/bridge.tscn").instantiate()
+	mission.get_node("Guards").process_mode = Node.PROCESS_MODE_DISABLED
+	add_child_autofree(mission)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	mission.build_nav()
+	var spec: Specialist = mission.spawn_specialists()[0]
+	var guard: Guard = mission.guards()[0]
+	var crate := mission.get_node("Nav/Cover4") as Node3D
+	# The guard looks along -z at the crate; the specialist is just behind it, in the near zone.
+	var x := crate.global_position.x
+	var z := crate.global_position.z
+	guard.global_transform = Transform3D(Basis.IDENTITY, Vector3(x, 0, z + 4))
+	spec.global_position = Vector3(x, 0, z - 1.5)
+	await wait_physics_frames(2)
+	var vision := Vision.defaults()
+	var seen := func(s: Specialist) -> Vision.Zone:
+		return Perception.sees(guard, s, vision.target_height(s.stance))
+	assert_eq(seen.call(spec), Vision.Zone.NEAR, "the stander's head shows over the crate")
+	spec.set_stance(Unit.Stance.CRAWLING)
+	assert_eq(seen.call(spec), Vision.Zone.NONE, "the crate hides the crawler")
+	spec.global_position = Vector3(x + 2, 0, z)
+	await wait_physics_frames(2)
+	assert_eq(seen.call(spec), Vision.Zone.NEAR, "beside the crate the same crawler is seen")
