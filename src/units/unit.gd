@@ -8,6 +8,8 @@ signal arrived(unit: Unit)
 
 enum Stance { STANDING, CRAWLING }
 
+const LAYER_WORLD := 1
+const LAYER_UNITS := 2
 const NOISE_INTERVAL := 0.5
 const VERTICAL_SNAP_SPEED := 10.0
 
@@ -25,6 +27,10 @@ var _agent: NavigationAgent3D
 
 
 func _ready() -> void:
+	# Layer 1 is the world; units sit on layer 2 and collide with the world only, so sight
+	# rays and nav-bake collision never see them.
+	collision_layer = LAYER_UNITS
+	collision_mask = LAYER_WORLD
 	if stats == null:
 		stats = Stats.new()
 	hp = stats.max_hp
