@@ -1,6 +1,7 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://src/mission/mission.gd" id="1_mission"]
+[ext_resource type="PackedScene" path="res://scenes/units/guard.tscn" id="2_guard"]
 
 [sub_resource type="NavigationMesh" id="NavMesh_bridge"]
 cell_size = 0.25
@@ -249,3 +250,11 @@ curve = SubResource("Curve_3")
 
 [node name="BridgeTarget" type="Marker3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+
+[node name="Guards" type="Node3D" parent="."]
+
+[node name="Guard1" parent="Guards" instance=ExtResource("2_guard")]
+
+[node name="Guard2" parent="Guards" instance=ExtResource("2_guard")]
+
+[node name="Guard3" parent="Guards" instance=ExtResource("2_guard")]

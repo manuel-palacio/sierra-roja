@@ -102,7 +102,7 @@ func _physics_process(delta: float) -> void:
 		move_and_slide()
 	# Height follows the navmesh surface; speed is measured on the ground plane.
 	global_position.y = move_toward(global_position.y, next.y, VERTICAL_SNAP_SPEED * delta)
-	if _running:
+	if _running and stats.run_noise_radius > 0.0:
 		_noise_timer -= delta
 		if _noise_timer <= 0.0:
 			_noise_timer = NOISE_INTERVAL

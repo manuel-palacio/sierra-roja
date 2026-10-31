@@ -102,6 +102,30 @@ func test_walking_is_silent() -> void:
 	assert_eq(noises.size(), 0)
 
 
+func _count_noise(_pos: Vector3, _radius: float) -> void:
+	noises.append(_radius)
+
+
+func test_zero_noise_radius_makes_no_noise() -> void:
+	unit.stats = unit.stats.duplicate()
+	unit.stats.run_noise_radius = 0.0
+	NoiseBus.noise_emitted.connect(_count_noise)
+	unit.move_to(unit.global_position + Vector3(25, 0, 0), true)
+	await _frames(40)
+	NoiseBus.noise_emitted.disconnect(_count_noise)
+	assert_eq(noises.size(), 0)
+
+
+func test_specialist_joins_group() -> void:
+	assert_true(unit.is_in_group(Specialist.GROUP))
+
+
+func test_body_joins_group() -> void:
+	var body: Body = load("res://scenes/units/body.tscn").instantiate()
+	add_child_autofree(body)
+	assert_true(body.is_in_group(Body.GROUP))
+
+
 func test_save_load_roundtrip() -> void:
 	unit.global_position = Vector3(-30, 0, 1)
 	unit.rotation.y = 1.25

@@ -4,9 +4,21 @@ extends Node3D
 ## mission is a new scene with no engine code. Expected children:
 ## SpecialistSpawns/ and GuardSpawns/ (Marker3D), Routes/ (Path3D), BridgeTarget (Marker3D),
 ## Extraction (Area3D) and Nav (NavigationRegion3D holding the walkable geometry).
+## Guards/ holds the guard instances; each takes the spawn and route at its own index.
 
 ## Ground-plane extent (x, z in metres) the camera may show.
 @export var bounds_rect := Rect2(-40.0, -30.0, 80.0, 60.0)
+
+
+func _ready() -> void:
+	var spawns := guard_spawns()
+	var routes := patrol_routes()
+	var list := guards()
+	for i in list.size():
+		if i < spawns.size():
+			list[i].global_position = spawns[i].global_position
+		if i < routes.size():
+			list[i].set_route(_route_points(routes[i]))
 
 
 func specialist_spawns() -> Array[Marker3D]:
@@ -23,6 +35,16 @@ func patrol_routes() -> Array[Path3D]:
 	if holder:
 		for child in holder.get_children():
 			if child is Path3D:
+				out.append(child)
+	return out
+
+
+func guards() -> Array[Guard]:
+	var out: Array[Guard] = []
+	var holder := get_node_or_null("Guards")
+	if holder:
+		for child in holder.get_children():
+			if child is Guard:
 				out.append(child)
 	return out
 
@@ -54,6 +76,16 @@ func build_nav() -> void:
 	NavigationServer3D.bake_from_source_geometry_data(region.navigation_mesh, data)
 	NavigationServer3D.region_set_navigation_mesh(region.get_rid(), region.navigation_mesh)
 	NavigationServer3D.map_force_update(region.get_navigation_map())
+	for guard in guards():
+		guard.set_nav_map(nav_map())
+		guard.start_patrol()
+
+
+func _route_points(route: Path3D) -> PackedVector3Array:
+	var points := PackedVector3Array()
+	for i in route.curve.point_count:
+		points.append(route.to_global(route.curve.get_point_position(i)))
+	return points
 
 
 func _collect_faces(node: Node, region: NavigationRegion3D, data: NavigationMeshSourceGeometryData3D) -> void:
