@@ -30,21 +30,11 @@ Sound starts after your first click or key press (browser rule).
 
 ## Build and serve
 
-`build/` and `logs/` are not in git, so on a fresh clone create them first, then serve:
-
-    mkdir -p logs               # launchd opens logs/serve.log before ops/serve.sh runs
     ops/build-web.sh            # exports to build/web
     ops/serve.sh                # http://127.0.0.1:8003/; override with SIERRAROJA_HOST, SIERRAROJA_PORT
 
-The game needs a secure context (over plain HTTP the browser has no audio worklet, and the page says
-so instead of starting), so other machines reach it over HTTPS through Tailscale, tailnet only, not
-public Funnel. Run this once; it persists across restarts:
-
-    tailscale serve --bg --https=8003 http://127.0.0.1:8003
-
-Then play at https://game-host.example.ts.net:8003/.
-
-To keep the server running, load the agent in place (no copy into LaunchAgents is needed) with
-`launchctl bootstrap gui/$(id -u) ops/com.sierraroja.serve.plist` (logs in `logs/serve.log`).
+The game needs a secure context: over plain HTTP the browser has no audio worklet, and the page says
+so instead of starting. `localhost` counts as secure. To play from another machine, put the build
+behind HTTPS.
 
 Credits for the third-party art and sound are in `CREDITS.md`.

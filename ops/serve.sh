@@ -1,9 +1,7 @@
 #!/bin/zsh
-# Serves build/web (made by ops/build-web.sh) on 127.0.0.1:8003. Players use
-# https://game-host.example.ts.net:8003/, which Tailscale proxies here (tailnet only, see the
-# README): the game needs a secure context, so plain http on the Tailscale address won't boot.
-# Started by launchd (com.sierraroja.serve) or by hand. launchd gives an empty environment, so PATH
-# and HOME are set here. Override the bind address with SIERRAROJA_HOST.
+# Serves build/web (made by ops/build-web.sh) on 127.0.0.1:8003. The game needs a secure context, so
+# other machines must reach it through an HTTPS proxy (see the README). launchd gives an empty
+# environment, so PATH and HOME are set here. Override the bind address with SIERRAROJA_HOST.
 set -u
 export PATH=/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin
 export HOME="${HOME:-/Users/$(id -un)}"
