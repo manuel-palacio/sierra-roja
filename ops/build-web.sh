@@ -4,4 +4,6 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 # logs/ is for launchd, which opens the plist's log path before ops/serve.sh runs, and is not in git.
 mkdir -p build/web logs
+# Keeps Godot from importing build output and test screenshots, and packing them into the game.
+touch build/.gdignore
 godot --headless --path . --export-release "Web" build/web/index.html

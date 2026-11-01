@@ -23,18 +23,33 @@ camera, Godot 4.7 (Compatibility renderer, single-threaded web export). "Sierra 
 
 Sound starts after your first click or key press (browser rule).
 
+## Run it locally
+
+You need:
+
+- [Godot 4.7.2](https://godotengine.org/download/archive/4.7.2-stable/) with `godot` on your `PATH`
+  (on a Mac: `brew install --cask godot`).
+- Godot's 4.7.2 web export templates. In the Godot editor, open Editor > Manage Export Templates and
+  download them.
+- Python 3 and a desktop browser with WebGL2. `ops/serve.sh` also needs `zsh`, which Macs have.
+
+Then, from the repo root:
+
+    ops/build-web.sh            # exports the game to build/web
+    ops/serve.sh                # serves it until you press Ctrl+C
+
+Open http://localhost:8003/ and click the game once to enable sound. To use another port, start it
+with `SIERRAROJA_PORT=8080 ops/serve.sh`. Run `ops/build-web.sh` again after changing the game.
+
+The game only starts in a secure context: over plain HTTP the browser has no audio worklet, and the
+page says so instead of starting. `localhost` counts as secure, so to play from another machine, put
+the build behind HTTPS.
+
 ## Test
 
+Install the browser test tools once with `npm install`, then:
+
     ops/test.sh                 # GUT unit and mission tests (headless Godot)
-    ops/build-web.sh && npx playwright test   # real-build checks; the perf spec runs headed
-
-## Build and serve
-
-    ops/build-web.sh            # exports to build/web
-    ops/serve.sh                # http://127.0.0.1:8003/; override with SIERRAROJA_HOST, SIERRAROJA_PORT
-
-The game needs a secure context: over plain HTTP the browser has no audio worklet, and the page says
-so instead of starting. `localhost` counts as secure. To play from another machine, put the build
-behind HTTPS.
+    ops/build-web.sh && npx playwright test   # real-build checks; the perf spec opens a window
 
 Credits for the third-party art and sound are in `CREDITS.md`.
