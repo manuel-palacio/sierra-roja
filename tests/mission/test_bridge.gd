@@ -254,3 +254,23 @@ func test_a_walker_caught_by_the_blast_order_stops_at_the_bank() -> void:
 	assert_lte(p.x, -Mission.BANK_EDGE_X + 0.3, "on the west bank, not out over the gorge")
 	assert_gt(p.x, -9.5, "at the edge, having gone as far as it could")
 	assert_almost_eq(p.y, 0.0, 0.25, "standing on the abutment")
+
+
+func test_the_vision_overlay_leaves_the_embankment_foot_dark() -> void:
+	await _built()
+	var guard: Guard = mission.guards()[2]
+	guard.global_position = _on_ground(Vector2(-20, 0))
+	guard.rotation.y = PI  # facing +z, down the south bank
+	await wait_physics_frames(2)
+	var ground := func(x: float, z: float) -> float: return mission.ground_height(x, z)
+	var near := Perception.ground_samples(guard, guard.vision.near_range, 9, 0.5, guard.vision.target_height_crawling, ground)
+	var row: PackedVector3Array = near["points"][4]  # straight down the bank
+	var seen: PackedByteArray = near["visible"][4]
+	var hidden := 0
+	for j in row.size():
+		assert_almost_eq(row[j].y, mission.ground_height(row[j].x, row[j].z), 0.001, "draped on the land")
+		if row[j].z <= 2.0:
+			assert_eq(seen[j], 1, "the track bed at z = %.1f is in view" % row[j].z)
+		elif row[j].z >= 5.0:
+			hidden += 1 - seen[j]
+	assert_gte(hidden, 2, "the bottom of the bank is out of sight for a crawler")

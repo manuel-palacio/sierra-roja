@@ -218,6 +218,23 @@ func test_guard_click_shows_overlay_one_at_a_time() -> void:
 	assert_false(overlay.visible)
 
 
+func test_overlay_draws_less_ground_behind_a_low_wall() -> void:
+	var g := _lone_guard(Vector3.ZERO)
+	await wait_physics_frames(2)
+	overlay.show_for(g)
+	var open_near := overlay.near_quads
+	var open_far := overlay.far_quads
+	assert_gt(open_near, 20)
+	assert_gt(open_far, 20)
+	_wall(Vector3(0, 0.5, -3), Vector3(30, 1, 0.5))
+	await wait_physics_frames(2)
+	overlay.rebuild()
+	assert_lt(overlay.near_quads, open_near * 0.7, "a crawler is hidden behind it: less red")
+	assert_gt(overlay.far_quads, open_far * 0.8, "a stander is not: the yellow stays")
+	overlay.hide_overlay()
+	assert_eq(overlay.near_quads, 0)
+
+
 func test_overlay_polygon_clipped_by_wall() -> void:
 	var g := _lone_guard(Vector3.ZERO)
 	_wall(Vector3(0, 1.5, -9), Vector3(30, 3, 0.5))

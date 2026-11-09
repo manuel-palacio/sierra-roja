@@ -47,6 +47,43 @@ static func polygon(guard: Unit, far_range: float, rays := 24, tuning: GuardVisi
 	return out
 
 
+## The ground a guard's cone covers, sampled along `rays` rays from `from_m` out to `range_m` every
+## `step` metres (plus the two ends), and whether a target of `target_height` standing on each
+## sample would be in plain sight of the guard's eye. `ground.call(x, z)` gives the ground height.
+## Returns { "points": Array[PackedVector3Array], "visible": Array[PackedByteArray] }, a row per ray.
+static func ground_samples(guard: Unit, range_m: float, rays: int, step: float, target_height: float,
+		ground: Callable, tuning: GuardVision = null, from_m := 0.0) -> Dictionary:
+	var v := tuning if tuning != null else Vision.defaults()
+	var eye := guard.global_position + Vector3.UP * v.eye_height
+	var forward := -guard.global_basis.z
+	forward.y = 0.0
+	forward = forward.normalized()
+	var half := deg_to_rad(v.half_angle_deg)
+	var distances := PackedFloat32Array([from_m])
+	var d := (floorf(from_m / step) + 1.0) * step
+	while d < range_m - 0.001:
+		distances.append(d)
+		d += step
+	distances.append(range_m)
+	var points: Array[PackedVector3Array] = []
+	var visible: Array[PackedByteArray] = []
+	var n := maxi(rays, 2)
+	for i in n:
+		var dir := forward.rotated(Vector3.UP, lerpf(-half, half, float(i) / float(n - 1)))
+		var row := PackedVector3Array()
+		var seen := PackedByteArray()
+		for distance in distances:
+			var p := guard.global_position
+			if distance > 0.0:
+				p = eye + dir * distance
+				p.y = ground.call(p.x, p.z)
+			row.append(p)
+			seen.append(1 if distance <= 0.0 or line_clear(guard, eye, p + Vector3.UP * target_height) else 0)
+		points.append(row)
+		visible.append(seen)
+	return { "points": points, "visible": visible }
+
+
 ## True when no world geometry lies between the two points. Units never block.
 static func line_clear(from_node: Node3D, from: Vector3, to: Vector3) -> bool:
 	return not _ray(from_node, from, to).has("position")
