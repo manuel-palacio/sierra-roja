@@ -160,6 +160,10 @@ func build_scenery() -> void:
 	for node in find_children("*", "StaticBody3D", true, false):
 		if node is StoneWall or node is Building:
 			node.build(ground)
+	# Scatters go last: they keep clear of the walls and buildings.
+	for node in find_children("*", "Node3D", true, false):
+		if node is PropScatter:
+			node.build(self)
 	if terrain() == null:
 		return
 	for marker in specialist_spawns() + guard_spawns():
@@ -244,9 +248,12 @@ func break_bridge() -> void:
 		pivot.add_child(_visual_box(Vector3(STUB_LENGTH, csg.size.y, csg.size.z), csg.material,
 				Vector3(-sign * STUB_LENGTH / 2.0, 0.0, 0.0)))
 		for z in [-0.7, 0.7]:
-			var rail := _visual_box(Vector3(RAIL_SPAN - BANK_EDGE_X - STUB_OVERLAP, 0.16, 0.12),
+			var long_rail := get_node_or_null("Scenery/RailA") as CSGBox3D
+			var rail_size := long_rail.size if long_rail else Vector3(0.0, 0.16, 0.12)
+			var rail := _visual_box(Vector3(RAIL_SPAN - BANK_EDGE_X - STUB_OVERLAP, rail_size.y, rail_size.z),
 					_scenery_material("RailA"),
-					Vector3(sign * (RAIL_SPAN + BANK_EDGE_X + STUB_OVERLAP) / 2.0, 0.08, z))
+					Vector3(sign * (RAIL_SPAN + BANK_EDGE_X + STUB_OVERLAP) / 2.0,
+					long_rail.position.y if long_rail else 0.08, z))
 			stubs.add_child(rail)
 	_show_span(false)
 	_rebake_next_frame()
@@ -379,9 +386,9 @@ func _scenery_material(node_name: String) -> Material:
 	return node.material if node else null
 
 
-## The girders and the long rails belong to the intact bridge.
+## The girders, the long rails and the deck's sleepers belong to the intact bridge.
 func _show_span(shown: bool) -> void:
-	for node_name in ["GirderN", "GirderS", "RailA", "RailB"]:
+	for node_name in ["GirderN", "GirderS", "RailA", "RailB", "DeckSleepers"]:
 		var node := get_node_or_null("Scenery/" + node_name) as Node3D
 		if node:
 			node.visible = shown

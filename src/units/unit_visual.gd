@@ -1,16 +1,25 @@
 class_name UnitVisual
 extends Node
-## Display only. Plays the placeholder model's idle, walk, sprint and die animations to match
-## what the parent Unit is doing, and squashes the model while it crawls (the placeholder has no
-## crawl animation). It reads the unit and never writes to it, and collision stays as it is.
+## Display only. Dresses the parent Unit's model in its uniform, plays its idle, walk, sprint and
+## die animations to match what the unit is doing, lays it face down while it crawls, and sets
+## its feet on the drawn ground (the unit itself stands on the navmesh, which runs a little above
+## or below). It reads the unit and never writes to it, and collision stays as it is.
 
-## The model's height while crawling, as a share of its height standing.
-const CRAWL_HEIGHT := 0.45
+## A lying model is this high off the ground at its middle, and this far back so it is centred
+## on the unit instead of stretching out ahead of it.
+const PRONE_HEIGHT := 0.3
+const PRONE_BACK := 0.85
+const CRAWL_ANIMATION_SPEED := 0.5
+## The model is never moved further than this from the unit's own height.
+const MAX_GROUND_SHIFT := 0.5
+
+## Replaces the texture the model came with.
+@export var uniform: Texture2D
 
 var _unit: Unit
 var _player: AnimationPlayer
 var _model: Node3D
-var _rest_basis := Basis.IDENTITY
+var _rest := Transform3D.IDENTITY
 var _current := &""
 
 
@@ -21,23 +30,65 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_model = _unit.get_node_or_null("Model") as Node3D
 	if _model != null:
-		_rest_basis = _model.basis
+		_rest = _model.transform
+		dress(_model, uniform)
 
 
 func _process(_delta: float) -> void:
 	if _unit == null:
 		return
+	var crawling := _unit.stance == Unit.Stance.CRAWLING and _unit.alive
 	if _model != null:
-		var height := CRAWL_HEIGHT if _unit.stance == Unit.Stance.CRAWLING else 1.0
-		_model.basis = _rest_basis * Basis.from_scale(Vector3(1.0, height, 1.0))
+		var pose := _rest
+		if crawling:
+			# Tipped forward about the unit's side-to-side axis, head toward where it faces (-z).
+			pose = Transform3D(Basis(Vector3.RIGHT, -PI / 2.0) * _rest.basis,
+					_rest.origin + Vector3(0.0, PRONE_HEIGHT, PRONE_BACK))
+		pose.origin.y += _ground_shift()
+		_model.transform = pose
 	if _player != null:
-		_play(_wanted())
+		_player.speed_scale = CRAWL_ANIMATION_SPEED if crawling else 1.0
+		_play(_wanted(crawling))
 
 
-func _wanted() -> StringName:
+## Gives every mesh under a model a copy of its material with this texture. Used for bodies too.
+static func dress(model: Node, texture: Texture2D) -> void:
+	if texture == null:
+		return
+	var dressed := {}
+	for node in model.find_children("*", "MeshInstance3D", true, false):
+		var mesh := node as MeshInstance3D
+		for i in mesh.get_surface_override_material_count():
+			var material := mesh.get_active_material(i) as BaseMaterial3D
+			if material == null:
+				continue
+			if not dressed.has(material):
+				var copy := material.duplicate() as BaseMaterial3D
+				copy.albedo_texture = texture
+				dressed[material] = copy
+			mesh.set_surface_override_material(i, dressed[material])
+
+
+## How far the drawn ground under the unit is above (or below) the height the unit stands at.
+func _ground_shift() -> float:
+	if not _unit.is_inside_tree():
+		return 0.0
+	var from := _unit.global_position + Vector3.UP * (MAX_GROUND_SHIFT + 0.5)
+	var to := _unit.global_position + Vector3.DOWN * (MAX_GROUND_SHIFT + 1.0)
+	var query := PhysicsRayQueryParameters3D.create(from, to, Unit.LAYER_WORLD)
+	var hit := _unit.get_world_3d().direct_space_state.intersect_ray(query)
+	if not hit.has("position"):
+		return 0.0
+	return clampf(hit["position"].y - _unit.global_position.y, -MAX_GROUND_SHIFT, MAX_GROUND_SHIFT)
+
+
+func _wanted(crawling: bool) -> StringName:
 	if not _unit.alive:
 		return &"die"
 	var speed := Vector2(_unit.velocity.x, _unit.velocity.z).length()
+	if crawling:
+		# The legs and arms work while it moves and hold still while it lies.
+		return &"walk" if speed >= 0.1 else &"static"
 	if speed < 0.1:
 		return &"idle"
 	return &"sprint" if speed > _unit.stats.walk_speed * 1.2 else &"walk"

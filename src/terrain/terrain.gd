@@ -12,17 +12,20 @@ const ROCK_SLOPE_DEG := 38.0
 ## Collision covers the playable bounds plus this many metres.
 const COLLISION_MARGIN := 6.0
 const COLORS := {
-	HeightField.Surface.GRASS: Color(0.30, 0.37, 0.18),
-	HeightField.Surface.EARTH: Color(0.44, 0.38, 0.24),
-	HeightField.Surface.ROAD: Color(0.55, 0.47, 0.33),
-	HeightField.Surface.BALLAST: Color(0.43, 0.41, 0.40),
-	HeightField.Surface.ROCK: Color(0.42, 0.39, 0.36),
+	HeightField.Surface.GRASS: Color(0.31, 0.35, 0.19),
+	HeightField.Surface.EARTH: Color(0.47, 0.40, 0.27),
+	HeightField.Surface.ROAD: Color(0.56, 0.48, 0.34),
+	HeightField.Surface.BALLAST: Color(0.40, 0.38, 0.36),
+	HeightField.Surface.ROCK: Color(0.45, 0.40, 0.35),
 }
 ## Each face is lighter or darker by up to this share, so the facets read.
 const SHADE_JITTER := 0.07
 ## Grass gives way to bare earth where this noise is high.
 const EARTH_PERIOD := 17.0
 const EARTH_THRESHOLD := 0.28
+## Land beyond the playable bounds darkens to nothing over this share of the skirt, so the map
+## has no visible end.
+const FADE_SHARE := 0.75
 
 @export var spec: TerrainSpec
 var field: HeightField
@@ -123,7 +126,7 @@ func _chunk(col0: int, row0: int, earth: FastNoiseLite) -> MeshInstance3D:
 				for v in [a, b, d]:
 					verts[i] = v
 					normals[i] = normal
-					colors[i] = color
+					colors[i] = color.darkened(edge_fade(v.x, v.z))
 					i += 1
 	var arrays := []
 	arrays.resize(Mesh.ARRAY_MAX)
@@ -137,6 +140,14 @@ func _chunk(col0: int, row0: int, earth: FastNoiseLite) -> MeshInstance3D:
 	instance.name = "Chunk_%d_%d" % [col0 / CHUNK, row0 / CHUNK]
 	instance.mesh = mesh
 	return instance
+
+
+## 0 inside the bounds, rising to 1 out across the skirt.
+func edge_fade(x: float, z: float) -> float:
+	var b := spec.bounds
+	var outside := Vector2(maxf(maxf(b.position.x - x, x - b.end.x), 0.0),
+			maxf(maxf(b.position.y - z, z - b.end.y), 0.0)).length()
+	return smoothstep(0.0, maxf(spec.skirt * FADE_SHARE, 0.001), outside)
 
 
 ## A quad's surface: what the generator tagged, else earth in patches over the grass.

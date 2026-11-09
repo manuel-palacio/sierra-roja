@@ -6,3 +6,5 @@
 - hingydunyas "Gunshot sound effect" (`assets/audio/gunshot.wav`, converted from the original file to 22 kHz mono WAV), CC0 1.0: https://opengameart.org/content/gunshot-sound-effect
 - Joth "Chunky Explosion" (`assets/audio/explosion.mp3`), CC0 1.0: https://opengameart.org/content/chunky-explosion
 - EZduzziteh "Alarm" (`assets/audio/alarm.ogg`, from `alarm_2.ogg`), CC0 1.0: https://opengameart.org/content/alarm-1
+- Kenney "Nature Kit" 2.1 (trees, bushes, grass, rocks, a log stack and a stump, `assets/props/nature/`, recoloured in the game by `src/terrain/prop_scatter.gd`), CC0 1.0: https://kenney.nl/assets/nature-kit. Licence text kept in `assets/props/nature/LICENSE-kenney-nature-kit.txt`.
+- Kenney "Survival Kit" 2.0 (barrel, boxes, tent and signpost with their colour map, `assets/props/survival/`), CC0 1.0: https://kenney.nl/assets/survival-kit. Licence text kept in `assets/props/survival/LICENSE-kenney-survival-kit.txt`.

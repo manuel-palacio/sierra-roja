@@ -174,25 +174,29 @@ func test_marksman_resource() -> void:
 	assert_eq(s.max_hp, 100)
 
 
-func test_crawling_lowers_the_model_and_nothing_else() -> void:
+func test_crawling_lays_the_model_down_and_nothing_else() -> void:
 	var model := unit.get_node("Model") as Node3D
 	var collider := unit.get_node("CollisionShape3D") as CollisionShape3D
 	await get_tree().process_frame
-	var rest := model.basis
+	var rest := model.transform
 	var height: float = (collider.shape as CapsuleShape3D).height
 	var collider_at := collider.position
+	var unit_at := unit.global_position
 	unit.set_stance(Unit.Stance.CRAWLING)
 	await get_tree().process_frame
 	await get_tree().process_frame
-	assert_lt(model.basis.y.length(), 0.6, "visibly lower")
-	assert_almost_eq(model.basis.x.length(), 1.0, 0.001, "only squashed in height")
-	assert_eq(model.basis.x, rest.x, "still facing the same way")
+	var up := model.basis.y.normalized()
+	assert_lt(absf(up.y), sin(deg_to_rad(10.0)), "the model's up axis is within 10 degrees of flat")
+	assert_lt(up.z, -0.9, "head first, along the way the unit faces")
+	assert_almost_eq(model.basis.y.length(), 1.0, 0.001, "laid down, not squashed")
+	assert_lt(model.position.y, 0.6, "low on the ground")
 	assert_eq((collider.shape as CapsuleShape3D).height, height, "collision stays as it was")
 	assert_eq(collider.position, collider_at)
+	assert_eq(unit.global_position, unit_at)
 	unit.set_stance(Unit.Stance.STANDING)
 	await get_tree().process_frame
 	await get_tree().process_frame
-	assert_eq(model.basis, rest)
+	assert_eq(model.transform, rest, "standing puts it back exactly")
 
 
 ## A load while paused can change the stance, and the player should see it before resuming.

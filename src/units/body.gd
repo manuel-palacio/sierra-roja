@@ -6,6 +6,9 @@ extends Node3D
 const GROUP := "bodies"
 const SCENE := "res://scenes/units/body.tscn"
 
+## The uniform the guard wore.
+@export var uniform: Texture2D
+
 var found := false
 ## The carrier, or null.
 var carried_by: Specialist
@@ -15,6 +18,17 @@ var save_id := ""
 
 func _ready() -> void:
 	add_to_group(GROUP)
+	var model := get_node_or_null("Model")
+	if model == null:
+		return
+	UnitVisual.dress(model, uniform)
+	# The guard as it fell: the last frame of its death, held.
+	for node in model.find_children("*", "AnimationPlayer", true, false):
+		var player := node as AnimationPlayer
+		if player.has_animation("die"):
+			player.play("die")
+			player.seek(player.current_animation_length, true)
+			player.pause()
 
 
 func _physics_process(_delta: float) -> void:

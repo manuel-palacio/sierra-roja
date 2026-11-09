@@ -6,6 +6,7 @@ in the Godot editor, so a change to the land, the blockers or the patrols is one
 
     python3 tools/make_bridge_map.py && godot --headless --path . -s tools/map_preview.gd -- /tmp/map.png
 """
+import math
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -85,6 +86,46 @@ CRATES = [
 ]
 
 
+# Scattered kit models. Blocking ones go under Nav/ and stop feet and eyes.
+NATURE = "res://assets/props/nature/"
+PINES = ["tree_pineTallA", "tree_pineTallB", "tree_pineRoundA", "tree_pineRoundC"]
+WHOLE_MAP = [(-54, -39), (54, -39), (54, 39), (-54, 39)]
+HILL = [(-54, -39), (-10, -39), (-10, -24), (-20, -17), (-44, -17), (-54, -20)]
+NORTH_EAST = [(8, -39), (54, -39), (54, -10), (12, -10)]
+SOUTH_WEST = [(-54, 9), (-8, 9), (-6, 39), (-54, 39)]
+SOUTH_EAST = [(10, 9), (54, 9), (54, 39), (12, 39)]
+# Places the scatters leave open: the trail north of the track and the lying-up spots by the ramps.
+CLEAR = [(-53.5, 12.5), (-52, 13.5), (-53.5, -9.5), (-50, -14.5), (-42, -15), (-33, -15), (-26, -13),
+         (-20, -10.5), (-21.5, -12), (-15, 10), (-11, 30), (-30, 36), (44.5, 10), (46, 20)]
+# name, blocking, models, area, count, seed, spacing, scale range, keep clear, blocker size, max slope
+SCATTERS = [
+    ("HillPines", True, PINES, HILL, 36, 11, 4.5, (3.2, 4.4), 3.0, (0.5, 3.0, 0.5), 32),
+    ("NorthEastPines", True, PINES, NORTH_EAST, 24, 12, 5.0, (3.2, 4.4), 3.0, (0.5, 3.0, 0.5), 32),
+    ("SouthWestTrees", True, ["tree_oak_dark", "tree_pineRoundA"], SOUTH_WEST, 9, 13, 8.0, (3.6, 4.6), 3.5, (0.6, 3.0, 0.6), 25),
+    ("SouthEastTrees", True, ["tree_oak_dark", "tree_pineRoundA"], SOUTH_EAST, 8, 14, 8.0, (3.6, 4.6), 3.5, (0.6, 3.0, 0.6), 25),
+    ("TallRocks", True, ["rock_tallA", "rock_tallB"], WHOLE_MAP, 14, 15, 9.0, (2.0, 2.6), 3.5, (1.4, 2.0, 1.4), 28),
+    ("FlatRocks", True, ["rock_largeA", "rock_largeB", "rock_largeC"], WHOLE_MAP, 20, 16, 7.0, (2.2, 2.8), 3.5, (1.8, 0.9, 1.8), 28),
+    ("Bushes", False, ["plant_bush", "plant_bushLarge", "plant_bushSmall"], WHOLE_MAP, 110, 17, 2.5, (2.2, 3.2), 1.5, None, 34),
+    ("Grass", False, ["grass", "grass_large"], WHOLE_MAP, 260, 18, 1.2, (2.5, 3.5), 1.0, None, 34),
+    ("Deadwood", False, ["stump_round", "log_stack"], HILL, 9, 20, 6.0, (2.6, 3.4), 2.0, None, 30),
+    ("Pebbles", False, ["rock_smallA", "rock_smallB", "rock_smallC"], WHOLE_MAP, 70, 19, 1.5, (1.5, 2.5), 1.0, None, 40),
+]
+# Single decorative props (no collision): model, x, ground height, z, scale, turn in radians.
+SURVIVAL = "res://assets/props/survival/"
+PLACED = [
+    ("barrel", -34.4, PLAIN, 11.2, 4.2, 0.0),
+    ("barrel", -34.2, PLAIN, 12.4, 4.2, 1.0),
+    ("box-large", -39.0, PLAIN, 16.0, 4.4, 0.3),
+    ("box", -38.2, PLAIN, 17.2, 4.4, 1.2),
+    ("box", -25.6, PLAIN, 13.0, 4.4, 0.5),
+    ("signpost", -27.4, PLAIN, 21.5, 4.0, 1.6),
+    ("tent", -40.5, PLAIN, 8.5, 5.0, 0.4),
+]
+# Lamps: x, z, height of the ground there. Warm pools of light at the checkpoint and the bridge.
+LAMPS = [(-28.2, 9.5, PLAIN), (-35, 16, PLAIN), (-26, 17, PLAIN), (-6.3, 2.2, 0.0), (6.3, -2.2, 0.0)]
+LAMP_HEIGHT = 3.2
+
+
 def v2(points):
     return "PackedVector2Array(" + ", ".join(f"{x}, {z}" for x, z in points) + ")"
 
@@ -121,15 +162,28 @@ def write_scene():
          '[ext_resource type="Script" path="res://src/terrain/terrain.gd" id="3_terrain"]',
          '[ext_resource type="Resource" path="res://resources/missions/bridge_land.tres" id="4_land"]',
          '[ext_resource type="Script" path="res://src/terrain/stone_wall.gd" id="5_wall"]',
-         '[ext_resource type="Script" path="res://src/terrain/building.gd" id="6_building"]', "",
+         '[ext_resource type="Script" path="res://src/terrain/building.gd" id="6_building"]',
+         '[ext_resource type="Script" path="res://src/terrain/prop_scatter.gd" id="7_scatter"]',
+         '[ext_resource type="Script" path="res://src/terrain/sleepers.gd" id="8_sleepers"]',
+         '[ext_resource type="Shader" path="res://assets/shaders/water.gdshader" id="9_water"]']
+    model_ids = {}
+    for scatter in SCATTERS:
+        for model in scatter[2]:
+            if model not in model_ids:
+                model_ids[model] = f"m_{model}"
+                o.append(f'[ext_resource type="PackedScene" path="{NATURE}{model}.glb" id="m_{model}"]')
+    for model in sorted({entry[0] for entry in PLACED}):
+        model_ids[model] = f"m_{model}"
+        o.append(f'[ext_resource type="PackedScene" path="{SURVIVAL}{model}.glb" id="m_{model}"]')
+    o += ["",
          '[sub_resource type="NavigationMesh" id="NavMesh_bridge"]', "cell_size = 0.25", "cell_height = 0.25",
          "agent_height = 1.75", "agent_radius = 0.5", "agent_max_climb = 0.25", "agent_max_slope = 35.0",
          # Coarse detail keeps the navmesh under the path search's 4096-polygon limit.
          "detail_sample_distance = 8.0", "detail_sample_max_error = 0.3",
          # The gorge floor is left out: nobody can get there.
          f"filter_baking_aabb = AABB({bx - 1}, -6, {bz - 1}, {bw + 2}, 30, {bd + 2})", ""]
-    materials = {"m_steel": (0.30, 0.32, 0.35), "m_crate": (0.45, 0.30, 0.16), "m_water": (0.12, 0.30, 0.45),
-                 "m_rail": (0.15, 0.15, 0.17), "m_pad": (0.2, 0.7, 0.3)}
+    materials = {"m_steel": (0.22, 0.24, 0.27), "m_crate": (0.45, 0.30, 0.16), "m_stone": (0.40, 0.38, 0.35),
+                 "m_rail": (0.15, 0.15, 0.17), "m_pad": (0.2, 0.7, 0.3), "m_post": (0.12, 0.12, 0.13), "m_barrier": (0.75, 0.2, 0.15)}
     for name, (r, g, b) in materials.items():
         o += [f'[sub_resource type="StandardMaterial3D" id="{name}"]', f"albedo_color = Color({r}, {g}, {b}, 1)", ""]
     for i, (_, points) in enumerate(GUARDS):
@@ -138,7 +192,14 @@ def write_scene():
         o += [f'[sub_resource type="Curve3D" id="Curve_{i + 1}"]', "_data = {",
               f'"points": PackedVector3Array({flat}),', f'"tilts": PackedFloat32Array({tilts})', "}",
               f"point_count = {len(points)}", ""]
-    o += ['[sub_resource type="BoxShape3D" id="Box_extraction"]', "size = Vector3(6, 3, 6)", ""]
+    o += ['[sub_resource type="BoxShape3D" id="Box_extraction"]', "size = Vector3(6, 3, 6)", "",
+          '[sub_resource type="ShaderMaterial" id="m_water"]', 'shader = ExtResource("9_water")', "",
+          '[sub_resource type="PlaneMesh" id="Mesh_water"]', 'material = SubResource("m_water")', "size = Vector2(44, 260)", "",
+          '[sub_resource type="StandardMaterial3D" id="m_lamp"]', "shading_mode = 0", "albedo_color = Color(1, 0.86, 0.55, 1)", "",
+          '[sub_resource type="SphereMesh" id="Mesh_bulb"]', 'material = SubResource("m_lamp")', "radius = 0.16", "height = 0.32",
+          "radial_segments = 8", "rings = 4", "",
+          '[sub_resource type="CylinderMesh" id="Mesh_post"]', 'material = SubResource("m_post")', "top_radius = 0.06",
+          "bottom_radius = 0.08", f"height = {LAMP_HEIGHT}", "radial_segments = 6", "rings = 1", ""]
 
     o += ['[node name="Bridge" type="Node3D"]', 'script = ExtResource("1_mission")',
           "bounds_rect = Rect2(%d, %d, %d, %d)" % BOUNDS, "",
@@ -154,7 +215,6 @@ def write_scene():
     for i, points in enumerate(WALLS):
         o += [f'[node name="Wall{i + 1}" type="StaticBody3D" parent="Nav"]', 'script = ExtResource("5_wall")',
               f"points = {v2(points)}", ""]
-    import math
     for name, x, z, rot, size, roof, ruin in BUILDINGS:
         c, s = math.cos(rot), math.sin(rot)
         o += [f'[node name="{name}" type="StaticBody3D" parent="Nav"]',
@@ -162,14 +222,54 @@ def write_scene():
               'script = ExtResource("6_building")', "size = Vector3(%s, %s, %s)" % size,
               f"roof_height = {roof}", f"ruin = {'true' if ruin else 'false'}", ""]
 
+    def scatter_node(parent, entry):
+        name, _, models, area, count, seed, spacing, scale, clear, blocker, slope = entry
+        lines = [f'[node name="{name}" type="Node3D" parent="{parent}"]', 'script = ExtResource("7_scatter")',
+                 "models = Array[PackedScene]([" + ", ".join(f'ExtResource("{model_ids[m]}")' for m in models) + "])",
+                 f"area = {v2(area)}", f"count = {count}", f"seed = {seed}", f"min_spacing = {float(spacing)}",
+                 f"max_slope_deg = {float(slope)}", "scale_range = Vector2(%s, %s)" % scale, f"keep_clear = {float(clear)}",
+                 f"clear_points = {v2(CLEAR)}"]
+        if blocker:
+            lines.append("blocker_size = Vector3(%s, %s, %s)" % blocker)
+        return lines + [""]
+
+    for entry in SCATTERS:
+        if entry[1]:
+            o += scatter_node("Nav", entry)
+
     o += ['[node name="Scenery" type="Node3D" parent="."]', "",
-          '[node name="River" type="CSGBox3D" parent="Scenery"]', at(1, -11.0, 0), "size = Vector3(40, 1, 200)",
-          'material = SubResource("m_water")', ""]
-    for name, z in (("GirderN", -1.6), ("GirderS", 1.6)):
-        o += [f'[node name="{name}" type="CSGBox3D" parent="Scenery"]', at(0, 1.0, z), "size = Vector3(10.8, 2, 0.2)",
+          '[node name="River" type="MeshInstance3D" parent="Scenery"]', at(1, -10.4, 0), 'mesh = SubResource("Mesh_water")', ""]
+    for entry in SCATTERS:
+        if not entry[1]:
+            o += scatter_node("Scenery", entry)
+    # A plate-girder bridge on two stone abutments.
+    for name, z in (("GirderN", -1.75), ("GirderS", 1.75)):
+        o += [f'[node name="{name}" type="CSGBox3D" parent="Scenery"]', at(0, 0.35, z), "size = Vector3(11.2, 1.5, 0.22)",
               'material = SubResource("m_steel")', ""]
+    for name, x in (("AbutmentW", -5.75), ("AbutmentE", 5.75)):
+        o += [f'[node name="{name}" type="CSGBox3D" parent="Scenery"]', at(x, -6.3, 0), "size = Vector3(1.9, 12, 5.4)",
+              'material = SubResource("m_stone")', ""]
+    for name, a, b in (("SleepersW", -100.0, -5.4), ("DeckSleepers", -5.0, 5.0), ("SleepersE", 5.4, 100.0)):
+        o += [f'[node name="{name}" type="MultiMeshInstance3D" parent="Scenery"]', 'script = ExtResource("8_sleepers")',
+              f"from_x = {a}", f"to_x = {b}", ""]
+    # The checkpoint's barrier: a striped pole across the road, high enough to walk under.
+    o += ['[node name="Barrier" type="CSGBox3D" parent="Scenery"]', at(-30, PLAIN + 1.9, 8.2), "size = Vector3(5.4, 0.14, 0.14)",
+          'material = SubResource("m_barrier")', "",
+          '[node name="BarrierPost" type="CSGBox3D" parent="Scenery"]', at(-32.8, PLAIN + 0.95, 8.2), "size = Vector3(0.3, 1.9, 0.3)",
+          'material = SubResource("m_post")', ""]
+    for i, (model, x, ground, z, scale, turn) in enumerate(PLACED):
+        c, sn = math.cos(turn) * scale, math.sin(turn) * scale
+        o += [f'[node name="Prop{i + 1}" parent="Scenery" instance=ExtResource("{model_ids[model]}")]',
+              f"transform = Transform3D({c:.4f}, 0, {-sn:.4f}, 0, {scale}, 0, {sn:.4f}, 0, {c:.4f}, {x}, {ground}, {z})", ""]
+    for i, (x, z, ground) in enumerate(LAMPS):
+        top = ground + LAMP_HEIGHT
+        o += [f'[node name="Lamp{i + 1}" type="OmniLight3D" parent="Scenery"]', at(x, top, z),
+              "light_color = Color(1, 0.72, 0.38, 1)", "light_energy = 1.9", "omni_range = 12.0", "omni_attenuation = 1.3", "",
+              f'[node name="Bulb" type="MeshInstance3D" parent="Scenery/Lamp{i + 1}"]', 'mesh = SubResource("Mesh_bulb")', "",
+              f'[node name="Post" type="MeshInstance3D" parent="Scenery/Lamp{i + 1}"]', at(0, -LAMP_HEIGHT / 2.0, 0),
+              'mesh = SubResource("Mesh_post")', ""]
     for name, z in (("RailA", -0.7), ("RailB", 0.7)):
-        o += [f'[node name="{name}" type="CSGBox3D" parent="Scenery"]', at(0, 0.08, z), "size = Vector3(200, 0.16, 0.12)",
+        o += [f'[node name="{name}" type="CSGBox3D" parent="Scenery"]', at(0, 0.19, z), "size = Vector3(200, 0.14, 0.1)",
               'material = SubResource("m_rail")', ""]
     ex, ez = EXTRACTION
     o += ['[node name="ExtractionPad" type="CSGBox3D" parent="Scenery"]', at(ex, PLAIN + 0.03, ez),

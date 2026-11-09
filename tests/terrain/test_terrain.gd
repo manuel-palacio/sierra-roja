@@ -92,3 +92,12 @@ func test_build_twice_leaves_one_terrain() -> void:
 	var before := t.get_child_count()
 	t.build()
 	assert_eq(t.get_child_count(), before)
+
+
+func test_land_fades_out_across_the_skirt() -> void:
+	var t := await _terrain()
+	assert_eq(t.edge_fade(0, 0), 0.0)
+	assert_eq(t.edge_fade(30, 20), 0.0, "the corner of the bounds is still fully lit")
+	assert_between(t.edge_fade(33, 0), 0.05, 0.95)
+	assert_eq(t.edge_fade(30 + 10 * Terrain.FADE_SHARE, 0), 1.0, "dark before the land ends")
+	assert_eq(t.edge_fade(-40, -30), 1.0)

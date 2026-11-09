@@ -4,10 +4,12 @@
 
 [sub_resource type="Environment" id="Environment_main"]
 background_mode = 1
-background_color = Color(0.03, 0.05, 0.11, 1)
+background_color = Color(0.012, 0.018, 0.035, 1)
 ambient_light_source = 2
-ambient_light_color = Color(0.32, 0.4, 0.68, 1)
-ambient_light_energy = 1.0
+ambient_light_color = Color(0.36, 0.42, 0.60, 1)
+ambient_light_energy = 0.5
+tonemap_mode = 2
+tonemap_exposure = 1.15
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1_main")
@@ -17,5 +19,14 @@ environment = SubResource("Environment_main")
 
 [node name="Moon" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.866, -0.25, 0.433, 0, 0.866, 0.5, -0.5, -0.433, 0.75, 0, 20, 0)
-light_color = Color(0.62, 0.72, 1, 1)
-light_energy = 0.9
+light_color = Color(0.72, 0.80, 1, 1)
+light_energy = 1.05
+shadow_enabled = true
+shadow_blur = 1.2
+directional_shadow_mode = 0
+directional_shadow_max_distance = 170.0
+
+[node name="Fill" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.707, 0.354, -0.612, 0, 0.866, 0.5, 0.707, 0.354, -0.612, 0, 20, 0)
+light_color = Color(0.4, 0.46, 0.7, 1)
+light_energy = 0.22

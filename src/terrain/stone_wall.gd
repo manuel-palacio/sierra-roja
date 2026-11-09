@@ -4,7 +4,7 @@ extends StaticBody3D
 ## hide someone crawling, low enough to see a standing head over. Goes under Nav/ so the navmesh
 ## bake cuts it out. The node stays at the origin; `points` are world positions.
 
-const COLOR := Color(0.47, 0.45, 0.41)
+const COLOR := Color(0.50, 0.46, 0.40)
 ## Longest single block, in metres.
 const BLOCK_LENGTH := 1.6
 ## Blocks reach this far into the ground, so a slope shows no gap under them.

@@ -5,6 +5,7 @@
 
 [ext_resource type="PackedScene" path="res://assets/characters/character-b.glb" id="9_model"]
 [ext_resource type="Script" path="res://src/units/unit_visual.gd" id="10_visual"]
+[ext_resource type="Texture2D" path="res://assets/characters/Textures/uniform-dynamiter.png" id="11_uniform"]
 
 [sub_resource type="CylinderMesh" id="Ring_1"]
 top_radius = 0.6
@@ -37,6 +38,7 @@ transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 0)
 
 [node name="UnitVisual" type="Node" parent="."]
 script = ExtResource("10_visual")
+uniform = ExtResource("11_uniform")
 
 [node name="Ring" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.04, 0)
