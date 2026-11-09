@@ -75,9 +75,10 @@ func _process(delta: float) -> void:
 
 
 ## Recomputes both zones from the guard's current position, facing and far range. Red is drawn
-## where someone crawling would be seen, out to the near range; yellow where someone standing
-## would be, from there to the far range. Ground the guard cannot see is left bare, so a dip, a
-## wall or the foot of a bank shows as a gap.
+## where even someone crawling would be seen, which is only inside the near range. Yellow is
+## drawn where someone standing would be seen and the ground is not already red: the far ring,
+## and ground inside the near range that hides a crawler (behind a low wall, say). Ground where
+## nobody would be seen is left bare, so a dip or the back of a building shows as a gap.
 func rebuild() -> void:
 	_since_rebuild = 0.0
 	if guard == null or not is_instance_valid(guard) or not guard.is_inside_tree():
@@ -86,12 +87,12 @@ func rebuild() -> void:
 	var vision := guard.vision
 	near_polygon = Perception.polygon(guard, vision.near_range, RAYS, vision)
 	far_polygon = Perception.polygon(guard, guard.current_far_range(), RAYS, vision)
-	var near := Perception.ground_samples(guard, vision.near_range, RAYS, STEP,
+	var crawling := Perception.ground_samples(guard, vision.near_range, RAYS, STEP,
 			vision.target_height_crawling, _ground_under, vision)
-	var far := Perception.ground_samples(guard, guard.current_far_range(), RAYS, STEP,
-			vision.target_height_standing, _ground_under, vision, vision.near_range)
-	var near_verts := _quads(near)
-	var far_verts := _quads(far)
+	var standing := Perception.ground_samples(guard, guard.current_far_range(), RAYS, STEP,
+			vision.target_height_standing, _ground_under, vision)
+	var near_verts := _quads(crawling)
+	var far_verts := _quads(standing, crawling)
 	near_quads = near_verts.size() / 6
 	far_quads = far_verts.size() / 6
 	_near_mesh.mesh = _mesh(near_verts)
@@ -128,10 +129,13 @@ static func _lifted(p: Vector3) -> Vector3:
 
 
 ## Two triangles for every patch of ground between neighbouring samples whose four corners are
-## all in sight, lifted a little off the ground.
-static func _quads(samples: Dictionary) -> PackedVector3Array:
+## all in sight, lifted a little off the ground. Patches that `under` already covers are left out
+## (both sample sets start at the guard with the same rays and step, so the same indices are the
+## same ground).
+static func _quads(samples: Dictionary, under := {}) -> PackedVector3Array:
 	var points: Array = samples["points"]
 	var visible: Array = samples["visible"]
+	var covered: Array = under.get("visible", [])
 	var verts := PackedVector3Array()
 	for i in points.size() - 1:
 		var a: PackedVector3Array = points[i]
@@ -140,6 +144,9 @@ static func _quads(samples: Dictionary) -> PackedVector3Array:
 		var b_seen: PackedByteArray = visible[i + 1]
 		for j in a.size() - 1:
 			if a_seen[j] + a_seen[j + 1] + b_seen[j] + b_seen[j + 1] < 4:
+				continue
+			if i + 1 < covered.size() and j + 1 < (covered[i] as PackedByteArray).size() \
+					and covered[i][j] + covered[i][j + 1] + covered[i + 1][j] + covered[i + 1][j + 1] == 4:
 				continue
 			verts.append_array([_lifted(a[j]), _lifted(a[j + 1]), _lifted(b[j + 1]),
 					_lifted(a[j]), _lifted(b[j + 1]), _lifted(b[j])])

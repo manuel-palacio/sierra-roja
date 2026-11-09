@@ -6,6 +6,7 @@ var starts := 0
 
 func before_each() -> void:
 	starts = 0
+	Briefing.seen = false
 
 
 func after_each() -> void:
@@ -128,3 +129,11 @@ func test_a_mission_already_over_stays_closed_to_orders_after_the_start() -> voi
 	assert_eq(main.rules.result, MissionRules.Result.LOST)
 	b.start_button.pressed.emit()
 	assert_false(main.player_input.orders_enabled)
+
+
+func test_once_started_it_is_not_put_up_again_on_a_restart() -> void:
+	assert_false(Briefing.seen)
+	var b := _briefing()
+	b.begin()
+	assert_true(Briefing.seen, "remembered for the rest of the session, across mission restarts")
+	assert_false(Briefing.wanted())

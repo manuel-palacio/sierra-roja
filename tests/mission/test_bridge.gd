@@ -274,3 +274,32 @@ func test_the_vision_overlay_leaves_the_embankment_foot_dark() -> void:
 		elif row[j].z >= 5.0:
 			hidden += 1 - seen[j]
 	assert_gte(hidden, 2, "the bottom of the bank is out of sight for a crawler")
+
+
+func test_whoever_stands_on_the_span_when_it_blows_goes_down_with_it() -> void:
+	await _built()
+	var specialists := mission.spawn_specialists()
+	var rules := MissionRules.new()
+	add_child_autofree(rules)
+	rules.setup(mission, specialists)
+	var sentry: Guard = mission.guards()[3]
+	# The charge at the west end: its 8 m blast does not reach the east end of the span.
+	sentry.global_position = Vector3(4.2, 0, 0)
+	specialists[0].global_position = Vector3(7.0, 0, 0)   # on the east abutment, off the span
+	specialists[1].global_position = Vector3(-30, mission.ground_height(-30, 30), 30)
+	var track_guard: Guard = mission.guards()[2]
+	track_guard.global_position = Vector3(4.0, mission.ground_height(4.0, 20.0), 20.0)  # in the gorge's line, not on the span
+	await wait_physics_frames(2)
+	assert_true(mission.on_span(sentry.global_position))
+	assert_false(mission.on_span(specialists[0].global_position))
+	assert_false(mission.on_span(Vector3(0, -9, 0)), "the gorge floor under the bridge is not the span")
+	var charge := PlantedCharge.new()
+	charge.fuse_left = 0.0
+	mission.add_child(charge)
+	charge.global_position = Vector3(-4.5, 0, 0)
+	charge.advance(0.1)
+	await wait_physics_frames(2)
+	assert_true(rules.bridge_destroyed)
+	assert_false(is_instance_valid(sentry) and sentry.alive, "the sentry on the span fell with it")
+	assert_true(specialists[0].alive, "the abutment holds")
+	assert_true(track_guard.alive)

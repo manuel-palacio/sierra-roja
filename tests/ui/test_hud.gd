@@ -218,7 +218,9 @@ func test_guard_click_shows_overlay_one_at_a_time() -> void:
 	assert_false(overlay.visible)
 
 
-func test_overlay_draws_less_ground_behind_a_low_wall() -> void:
+## Behind a low wall a crawler is hidden but someone standing is still seen, at once inside the
+## near range. The overlay must not leave that ground bare: it turns from red to yellow.
+func test_overlay_turns_yellow_not_bare_behind_a_low_wall() -> void:
 	var g := _lone_guard(Vector3.ZERO)
 	await wait_physics_frames(2)
 	overlay.show_for(g)
@@ -230,9 +232,22 @@ func test_overlay_draws_less_ground_behind_a_low_wall() -> void:
 	await wait_physics_frames(2)
 	overlay.rebuild()
 	assert_lt(overlay.near_quads, open_near * 0.7, "a crawler is hidden behind it: less red")
-	assert_gt(overlay.far_quads, open_far * 0.8, "a stander is not: the yellow stays")
+	assert_gt(overlay.far_quads, open_far, "that ground is yellow now: a stander is seen there")
+	assert_gt(overlay.near_quads + overlay.far_quads, (open_near + open_far) * 0.85,
+			"almost none of the cone is left bare")
 	overlay.hide_overlay()
 	assert_eq(overlay.near_quads, 0)
+
+
+func test_overlay_never_draws_red_and_yellow_on_the_same_ground() -> void:
+	var g := _lone_guard(Vector3.ZERO)
+	await wait_physics_frames(2)
+	overlay.show_for(g)
+	var rows := VisionOverlay.RAYS - 1
+	var near_steps := int(g.vision.near_range / VisionOverlay.STEP)
+	var far_steps := int(g.current_far_range() / VisionOverlay.STEP)
+	assert_eq(overlay.near_quads, rows * near_steps, "open ground: red out to the near range")
+	assert_eq(overlay.far_quads, rows * (far_steps - near_steps), "and yellow only beyond it")
 
 
 func test_overlay_polygon_clipped_by_wall() -> void:

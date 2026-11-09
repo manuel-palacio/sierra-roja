@@ -30,13 +30,17 @@ const CONTROLS: Array[Array] = [
 	["Mouse wheel, screen edges", "Zoom, scroll"],
 ]
 
+## Set by the first start, and kept for the session: a mission restart goes straight to the game.
+static var seen := false
+
 var title_label: Label
 var start_button: Button
 
 var _done := false
 
 
-## False where a person is not the one starting the game: test runs and the browser probes
+## False once it has been started in this session, and where a person is not the one starting
+## the game: test runs and the browser probes
 ## (?probe=1, ?perf=1). ?briefing=1 puts it up all the same, for the browser test of the briefing.
 static func wanted() -> bool:
 	if DisplayServer.get_name() == "headless":
@@ -44,7 +48,7 @@ static func wanted() -> bool:
 	if OS.has_feature("web") and str(JavaScriptBridge.eval(
 			"new URLSearchParams(location.search).get('briefing')", true)) == "1":
 		return true
-	return not PerfProbe.enabled() and not ScreenProbe.enabled()
+	return not seen and not PerfProbe.enabled() and not ScreenProbe.enabled()
 
 
 func _init() -> void:
@@ -121,6 +125,7 @@ func begin() -> void:
 	if _done:
 		return
 	_done = true
+	seen = true
 	visible = false
 	started.emit()
 	queue_free()

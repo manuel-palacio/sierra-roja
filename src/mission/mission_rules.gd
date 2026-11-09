@@ -141,5 +141,22 @@ func _on_detonated(pos: Vector3) -> void:
 		charge_too_far.emit()
 		return
 	bridge_destroyed = true
+	_drop_whoever_is_on_the_span()
 	_mission.break_bridge()
 	bridge_blown.emit()
+
+
+## The span goes into the gorge and takes with it anyone the blast itself did not reach, and any
+## body lying on it.
+func _drop_whoever_is_on_the_span() -> void:
+	var units: Array = []
+	units.append_array(get_tree().get_nodes_in_group(Guard.GROUP))
+	units.append_array(get_tree().get_nodes_in_group(Specialist.GROUP))
+	for node in units:
+		var unit := node as Unit
+		if unit != null and unit.alive and _mission.is_ancestor_of(unit) and _mission.on_span(unit.global_position):
+			unit.take_damage(unit.hp)
+	for node in get_tree().get_nodes_in_group(Body.GROUP):
+		var body := node as Body
+		if body.carried_by == null and _mission.is_ancestor_of(body) and _mission.on_span(body.global_position):
+			body.queue_free()

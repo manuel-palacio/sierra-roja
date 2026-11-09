@@ -35,6 +35,8 @@ func _ready() -> void:
 	await get_tree().physics_frame
 	mission.build_nav()
 	specialists = mission.spawn_specialists()
+	if not specialists.is_empty():
+		camera.set_ground_level(specialists[0].global_position.y)
 	rules = MissionRules.new()
 	add_child(rules)
 	rules.setup(mission, specialists)

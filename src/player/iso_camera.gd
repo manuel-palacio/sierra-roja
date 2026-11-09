@@ -133,6 +133,13 @@ func pan(delta: Vector2) -> void:
 	_apply()
 
 
+## The height of the ground the camera looks at. The view turns about a point at this height, so
+## it should be the level most of the play is on.
+func set_ground_level(y: float) -> void:
+	focus.y = y
+	_apply()
+
+
 ## Positive steps zoom in, negative zoom out.
 func zoom_by(step: int) -> void:
 	size = clampf(size - step * ZOOM_STEP, ZOOM_MIN, ZOOM_MAX)

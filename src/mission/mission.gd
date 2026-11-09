@@ -28,6 +28,8 @@ const NAV_TERRAIN_MARGIN := 2.0
 ## cuts the ground on its downhill side.
 const BLOCKER_SINK := 2.0
 const STANDING_RAY_TOP := 100.0
+## How far below the deck still counts as on the span.
+const SPAN_DEPTH := 1.5
 
 ## Ground-plane extent (x, z in metres) the camera may show.
 @export var bounds_rect := Rect2(-40.0, -30.0, 80.0, 60.0)
@@ -257,6 +259,15 @@ func break_bridge() -> void:
 			stubs.add_child(rail)
 	_show_span(false)
 	_rebake_next_frame()
+
+
+## Whether a point is on the bridge's span over the gorge (not the abutments, not the gorge floor).
+func on_span(pos: Vector3) -> bool:
+	var deck := (_intact_deck if _intact_deck != null else get_node_or_null("Nav/BridgeDeck")) as CSGBox3D
+	if deck == null:
+		return false
+	return absf(pos.x - deck.position.x) < BANK_EDGE_X and absf(pos.z - deck.position.z) <= deck.size.z / 2.0 + 0.3 \
+			and pos.y > deck.position.y - SPAN_DEPTH
 
 
 ## Undoes break_bridge, for a load whose save has the bridge whole. Safe to call on a whole bridge.
