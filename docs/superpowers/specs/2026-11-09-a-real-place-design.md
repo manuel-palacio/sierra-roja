@@ -27,8 +27,8 @@ on-screen help needed to read what is going on. The stealth rules do not change.
 ## Terrain
 
 - The mission owns a height field: a grid of heights over the mission bounds. A `Terrain` node turns
-  it into a flat-shaded mesh and a `HeightMapShape3D` on the world collision layer, so sight rays,
-  mouse picking and the navmesh bake all see the same ground.
+  it into a flat-shaded mesh and a collision shape made of the same triangles, on the world
+  collision layer, so sight rays, mouse picking and the navmesh bake all see the same ground.
 - The height field is produced by a deterministic generator from a short list of authored features
   (gorge, embankment, hill, road, flattened pads for buildings) plus low-amplitude noise. The same
   input always gives the same land, so tests and saves stay stable.
@@ -61,7 +61,8 @@ scripted bot run.
 ## Graphics
 
 - Moonlight casts shadows. A second, dim fill light keeps shadowed faces readable.
-- Night sky with stars instead of a flat colour, and distance fog matched to the horizon.
+- Distance fog fades the land beyond the map into the night. There is no sky to draw: the camera
+  is orthographic and always looks down at the ground.
 - The river is a moving-water shader on a plane in the gorge.
 - Warm lamps at the checkpoint and the guard hut, with visible lamp posts.
 - Props from CC0 kits: pines and scrub, rocks, dry-stone walls, fences, the checkpoint hut, a ruined
@@ -100,7 +101,7 @@ New parts, each with one job:
 
 Changed parts: `Mission` (terrain source for the navmesh bake, five guards), `VisionOverlay` (drape
 on terrain), `IsoCamera` (rotation), `UnitVisual` (prone pose, silhouette), `MissionValidator`
-(spawns and route points must lie on walkable ground), `main.tscn` (lighting, sky, fog), the HUD
+(spawns and route points must lie on walkable ground), `main.tscn` (lighting, fog), the HUD
 (objective line), and the save schema only if a new field is needed (camera rotation is not saved).
 
 Game rules still do not depend on what is drawn. Props that block sight or movement carry collision
@@ -133,7 +134,7 @@ All existing tests keep passing or are updated for the new map in the same chang
 Four slices, each playable, tested and pushed:
 
 1. Terrain and the new map, on the existing look.
-2. Lighting, sky, water and props.
+2. Lighting, fog, water and props.
 3. Readability and camera rotation.
 4. Briefing and objective line.
 
@@ -145,7 +146,7 @@ New characters, new stealth rules, more missions, music, touch controls, and a n
 
 1. The mission plays on the new terrain with three distinct routes and five guards.
 2. Height blocks sight and steep ground blocks movement.
-3. Shadows, sky, fog, water, lamps and props are in, and the map has no visible edge.
+3. Shadows, fog, water, lamps and props are in, and the map has no visible edge.
 4. Cones follow the ground, guard markers and order markers show, silhouettes work, the camera rotates.
 5. The briefing opens the game and the HUD shows the objective.
 6. All automated tests pass, including the scripted win and the 30 fps browser check.
