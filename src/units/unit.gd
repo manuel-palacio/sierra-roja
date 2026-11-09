@@ -24,6 +24,8 @@ var _moving := false
 var _running := false
 var _noise_timer := 0.0
 var _agent: NavigationAgent3D
+## The map given with set_nav_map; the unit's height comes from it.
+var _nav_map := RID()
 
 
 func _ready() -> void:
@@ -46,7 +48,16 @@ func _ready() -> void:
 
 
 func set_nav_map(map: RID) -> void:
+	_nav_map = map
 	_agent.set_navigation_map(map)
+
+
+## Height of the navmesh under the unit, which is where it stands. Its own height when it has been
+## given no map, or the map has nothing baked yet.
+func ground_y() -> float:
+	if not _nav_map.is_valid() or NavigationServer3D.map_get_iteration_id(_nav_map) == 0:
+		return global_position.y
+	return NavigationServer3D.map_get_closest_point(_nav_map, global_position).y
 
 
 func move_to(target: Vector3, run := false) -> void:
@@ -87,7 +98,12 @@ func current_speed() -> float:
 
 
 func _physics_process(delta: float) -> void:
-	if not alive or not _moving:
+	if not alive:
+		return
+	# Height follows the navmesh surface under the unit, on a slope too; speed is measured on the
+	# ground plane.
+	global_position.y = move_toward(global_position.y, ground_y(), VERTICAL_SNAP_SPEED * delta)
+	if not _moving:
 		return
 	if _agent.is_navigation_finished():
 		stop()
@@ -99,9 +115,9 @@ func _physics_process(delta: float) -> void:
 		var dir := flat.normalized()
 		velocity = dir * minf(current_speed(), flat.length() / delta)
 		rotation.y = lerp_angle(rotation.y, atan2(-dir.x, -dir.z), 0.3)
-		move_and_slide()
-	# Height follows the navmesh surface; speed is measured on the ground plane.
-	global_position.y = move_toward(global_position.y, next.y, VERTICAL_SNAP_SPEED * delta)
+		# The navmesh keeps units clear of everything solid, so they are moved along it directly:
+		# sliding a body over sloping ground fights the height taken from the navmesh.
+		global_position += velocity * delta
 	if _running and stats.run_noise_radius > 0.0:
 		_noise_timer -= delta
 		if _noise_timer <= 0.0:

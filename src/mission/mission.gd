@@ -22,6 +22,11 @@ const STUB_LENGTH := 3.0
 const STUB_DROOP := 0.2
 ## The rails run this far from the centre line, in the intact scene.
 const RAIL_SPAN := 40.0
+## Terrain this far past the bounds goes into the bake, so the navmesh reaches the map's edge.
+const NAV_TERRAIN_MARGIN := 2.0
+## A blocker cuts the navmesh from this far below its own bottom, so one standing on a slope still
+## cuts the ground on its downhill side.
+const BLOCKER_SINK := 2.0
 
 ## Ground-plane extent (x, z in metres) the camera may show.
 @export var bounds_rect := Rect2(-40.0, -30.0, 80.0, 60.0)
@@ -106,6 +111,22 @@ func bridge_target() -> Marker3D:
 
 func extraction() -> Area3D:
 	return get_node_or_null("Extraction") as Area3D
+
+
+## The mission's ground, when it has one: the Terrain directly under Nav/.
+func terrain() -> Terrain:
+	var region := _region()
+	if region:
+		for child in region.get_children():
+			if child is Terrain:
+				return child
+	return null
+
+
+## Height of the ground at a point on the ground plane. Maps without a Terrain are flat at 0.
+func ground_height(x: float, z: float) -> float:
+	var land := terrain()
+	return land.height_at(x, z) if land else 0.0
 
 
 func nav_map() -> RID:
@@ -337,15 +358,47 @@ func _route_points(route: Path3D) -> PackedVector3Array:
 	return points
 
 
+## What the bake sees under Nav/: the terrain inside the bounds, CSG shapes, and the box and
+## triangle-mesh collision shapes of static bodies (walls, buildings, tree trunks, rocks).
 func _collect_faces(node: Node, region: NavigationRegion3D, data: NavigationMeshSourceGeometryData3D) -> void:
+	var to_local := region.global_transform.affine_inverse()
 	for child in node.get_children():
 		var csg := child as CSGShape3D
+		if child is Terrain:
+			var land := child as Terrain
+			data.add_faces(land.faces(bounds_rect.grow(NAV_TERRAIN_MARGIN)), to_local * land.global_transform)
+			continue
 		if csg and csg.is_root_shape():
 			var shape := csg.bake_collision_shape()
 			if shape:
-				var to_region := region.global_transform.affine_inverse() * csg.global_transform
-				data.add_faces(shape.get_faces(), to_region)
+				data.add_faces(shape.get_faces(), to_local * csg.global_transform)
+		elif child is CollisionShape3D and child.get_parent() is StaticBody3D:
+			_collect_shape(child as CollisionShape3D, to_local, data, region.navigation_mesh.agent_radius)
 		_collect_faces(child, region, data)
+
+
+## A box is cut out of the navmesh over its footprint, grown by the agent's radius (its faces alone
+## would leave walkable ground inside it and on its roof). A triangle mesh goes in as faces.
+static func _collect_shape(collision: CollisionShape3D, to_local: Transform3D,
+		data: NavigationMeshSourceGeometryData3D, agent_radius: float) -> void:
+	var xform := to_local * collision.global_transform
+	if collision.shape is ConcavePolygonShape3D:
+		data.add_faces((collision.shape as ConcavePolygonShape3D).get_faces(), xform)
+	elif collision.shape is BoxShape3D:
+		var h := (collision.shape as BoxShape3D).size / 2.0
+		var outline := PackedVector3Array()
+		var low := INF
+		var high := -INF
+		var gx := h.x + agent_radius
+		var gz := h.z + agent_radius
+		for corner in [Vector3(-gx, 0, -gz), Vector3(gx, 0, -gz), Vector3(gx, 0, gz), Vector3(-gx, 0, gz)]:
+			outline.append(xform * (corner as Vector3))
+		for y in [-h.y, h.y]:
+			for corner in [Vector3(-h.x, y, -h.z), Vector3(h.x, y, h.z), Vector3(h.x, y, -h.z), Vector3(-h.x, y, h.z)]:
+				var world_y: float = (xform * (corner as Vector3)).y
+				low = minf(low, world_y)
+				high = maxf(high, world_y)
+		data.add_projected_obstruction(outline, low - BLOCKER_SINK, high - low + BLOCKER_SINK, true)
 
 
 func _region() -> NavigationRegion3D:

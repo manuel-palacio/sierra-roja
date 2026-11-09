@@ -110,3 +110,27 @@ func test_small_valid_mission_passes() -> void:
 	var mission: Mission = _small_mission(true)
 	await _built(mission)
 	assert_eq(MissionValidator.validate(mission), PackedStringArray())
+
+
+func test_guard_spawn_off_the_ground_is_named() -> void:
+	var mission: Mission = _small_mission(true)
+	mission.get_node("GuardSpawns/G1").position = Vector3(40, 0, 0)
+	await _built(mission)
+	var text := _joined_text(MissionValidator.validate(mission))
+	assert_string_contains(text, "guard spawn G1 is not on walkable ground")
+
+
+func test_route_point_off_the_ground_is_named() -> void:
+	var mission: Mission = _small_mission(true)
+	(mission.get_node("Routes/Route2") as Path3D).curve.add_point(Vector3(0, 0, 30))
+	await _built(mission)
+	var text := _joined_text(MissionValidator.validate(mission))
+	assert_string_contains(text, "route Route2 point 2 is not on walkable ground")
+
+
+func test_specialist_spawn_off_the_ground_is_named() -> void:
+	var mission: Mission = _small_mission(true)
+	mission.get_node("SpecialistSpawns/S2").position = Vector3(-8, 0, 30)
+	await _built(mission)
+	var text := _joined_text(MissionValidator.validate(mission))
+	assert_string_contains(text, "specialist spawn S2 is not on walkable ground")

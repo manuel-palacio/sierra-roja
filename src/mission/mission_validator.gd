@@ -5,6 +5,8 @@ extends RefCounted
 const SPECIALISTS_REQUIRED := 2
 const GUARDS_REQUIRED := 3
 const REACH_TOLERANCE := 1.0
+## A spawn or route point may be this far from the navmesh on the ground plane.
+const GROUND_TOLERANCE := 1.0
 
 
 static func validate(mission: Mission) -> PackedStringArray:
@@ -31,11 +33,30 @@ static func validate(mission: Mission) -> PackedStringArray:
 	for spawn in specialists:
 		if not _reaches(map, from, spawn.global_position):
 			errors.append("specialist spawn %s is not connected to the others" % spawn.name)
+	for spawn in specialists:
+		if not _on_ground(map, spawn.global_position):
+			errors.append("specialist spawn %s is not on walkable ground" % spawn.name)
+	for spawn in guards:
+		if not _on_ground(map, spawn.global_position):
+			errors.append("guard spawn %s is not on walkable ground" % spawn.name)
+	for route in mission.patrol_routes():
+		if route.curve == null:
+			continue
+		for i in route.curve.point_count:
+			if not _on_ground(map, route.to_global(route.curve.get_point_position(i))):
+				errors.append("route %s point %d is not on walkable ground" % [route.name, i])
 	if target and not _reaches(map, from, target.global_position):
 		errors.append("bridge target is unreachable from the specialist spawn")
 	if extraction and not _reaches(map, from, extraction.global_position):
 		errors.append("extraction is unreachable from the specialist spawn")
 	return errors
+
+
+static func _on_ground(map: RID, pos: Vector3) -> bool:
+	if not map.is_valid():
+		return false
+	var nearest := NavigationServer3D.map_get_closest_point(map, pos)
+	return Vector2(nearest.x - pos.x, nearest.z - pos.z).length() <= GROUND_TOLERANCE
 
 
 static func _reaches(map: RID, from: Vector3, to: Vector3) -> bool:
