@@ -10,7 +10,7 @@ var blown := 0
 func before_each() -> void:
 	results.clear()
 	blown = 0
-	mission = load("res://scenes/missions/bridge.tscn").instantiate()
+	mission = load("res://tests/fixtures/flat_bridge.tscn").instantiate()
 	# Live guards would shoot the specialists; these tests are about the rules.
 	mission.get_node("Guards").process_mode = Node.PROCESS_MODE_DISABLED
 	add_child_autofree(mission)
@@ -206,7 +206,7 @@ func test_save_and_load_state_is_json_safe() -> void:
 	assert_eq(int(copy["result"]), MissionRules.Result.LOST)
 	assert_true(copy["bridge_destroyed"])
 
-	var fresh: Mission = load("res://scenes/missions/bridge.tscn").instantiate()
+	var fresh: Mission = load("res://tests/fixtures/flat_bridge.tscn").instantiate()
 	fresh.get_node("Guards").process_mode = Node.PROCESS_MODE_DISABLED
 	add_child_autofree(fresh)
 	await get_tree().process_frame

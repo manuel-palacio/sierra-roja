@@ -21,12 +21,13 @@ const STUB_OVERLAP := 0.2
 const STUB_LENGTH := 3.0
 const STUB_DROOP := 0.2
 ## The rails run this far from the centre line, in the intact scene.
-const RAIL_SPAN := 40.0
+const RAIL_SPAN := 100.0
 ## Terrain this far past the bounds goes into the bake, so the navmesh reaches the map's edge.
 const NAV_TERRAIN_MARGIN := 2.0
 ## A blocker cuts the navmesh from this far below its own bottom, so one standing on a slope still
 ## cuts the ground on its downhill side.
 const BLOCKER_SINK := 2.0
+const STANDING_RAY_TOP := 100.0
 
 ## Ground-plane extent (x, z in metres) the camera may show.
 @export var bounds_rect := Rect2(-40.0, -30.0, 80.0, 60.0)
@@ -42,6 +43,7 @@ var _guard_routes: Dictionary = {}
 var _intact_deck: CSGBox3D
 ## Only the newest deferred rebake runs.
 var _rebake_request := 0
+var _scenery_built := false
 
 
 func _ready() -> void:
@@ -140,11 +142,45 @@ func nav_map() -> RID:
 ## NavigationRegion3D.bake_navigation_mesh parse CSG nodes goes through RenderingServer
 ## meshes, which Godot warns about (GPU readback) and which fails the GUT run.
 func build_nav() -> void:
+	build_scenery()
 	if not rebake_nav():
 		return
 	for guard in guards():
 		guard.set_nav_map(nav_map())
 		guard.start_patrol()
+
+
+## Sets everything that stands on the land onto it, once: walls and buildings, and the spawn and
+## route points, which are authored on the ground plane.
+func build_scenery() -> void:
+	if _scenery_built:
+		return
+	_scenery_built = true
+	var ground := ground_height
+	for node in find_children("*", "StaticBody3D", true, false):
+		if node is StoneWall or node is Building:
+			node.build(ground)
+	if terrain() == null:
+		return
+	for marker in specialist_spawns() + guard_spawns():
+		marker.global_position.y = _standing_height(marker.global_position)
+	var list := guards()
+	var routes := patrol_routes()
+	for i in list.size():
+		list[i].global_position.y = _standing_height(list[i].global_position)
+		if i < routes.size():
+			var route := _route_points(routes[i])
+			list[i].set_route(route)
+			_guard_routes[String(list[i].name)] = route
+
+
+## The height of whatever a unit would stand on at a point of the ground plane: the bridge deck
+## where there is one, else the land. Needs the physics world, so the mission must be in the tree.
+func _standing_height(at: Vector3) -> float:
+	var query := PhysicsRayQueryParameters3D.create(Vector3(at.x, STANDING_RAY_TOP, at.z),
+			Vector3(at.x, -STANDING_RAY_TOP, at.z), Unit.LAYER_WORLD)
+	var hit := get_world_3d().direct_space_state.intersect_ray(query)
+	return hit["position"].y if hit.has("position") else ground_height(at.x, at.z)
 
 
 ## Rebakes without touching the guards, for a map that changes mid-mission.
@@ -354,7 +390,10 @@ func _show_span(shown: bool) -> void:
 func _route_points(route: Path3D) -> PackedVector3Array:
 	var points := PackedVector3Array()
 	for i in route.curve.point_count:
-		points.append(route.to_global(route.curve.get_point_position(i)))
+		var p := route.to_global(route.curve.get_point_position(i))
+		if terrain() != null and is_inside_tree():
+			p.y = _standing_height(p)
+		points.append(p)
 	return points
 
 

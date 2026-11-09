@@ -27,8 +27,10 @@ func _ready() -> void:
 	var start := mission.specialist_spawns()
 	if not start.is_empty():
 		camera.pan(Vector2(start[0].global_position.x, start[0].global_position.z))
-	# CSG geometry is built on the next idle frame; the nav bake needs it.
+	# CSG geometry is built on the next idle frame; the nav bake needs it. The physics frame puts
+	# the land and the deck in the physics world, which spawns and routes are set down on.
 	await get_tree().process_frame
+	await get_tree().physics_frame
 	mission.build_nav()
 	specialists = mission.spawn_specialists()
 	rules = MissionRules.new()

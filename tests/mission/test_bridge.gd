@@ -1,86 +1,219 @@
 extends GutTest
+## The bridge mission's map: valid, on real ground, with three ways to the bridge.
+
+const SCENE := "res://scenes/missions/bridge.tscn"
+## Waypoints of each route from the start to the west end of the bridge.
+const ROAD_ROUTE: Array[Vector2] = [Vector2(-30, 34), Vector2(-30, 12), Vector2(-30, 0), Vector2(-7, 0)]
+const GORGE_ROUTE: Array[Vector2] = [Vector2(-30, 36), Vector2(-11, 30), Vector2(-13, 9), Vector2(-7, 1.5)]
+const HILL_ROUTE: Array[Vector2] = [Vector2(-53, 8), Vector2(-49, 0), Vector2(-53, -8), Vector2(-40, -16),
+		Vector2(-24, -19), Vector2(-14, -9), Vector2(-7, -1.5)]
+
+var mission: Mission
+
+
+func _load(guards_active := false) -> void:
+	mission = load(SCENE).instantiate()
+	if not guards_active:
+		mission.get_node("Guards").process_mode = Node.PROCESS_MODE_DISABLED
+	add_child_autofree(mission)
+	await get_tree().process_frame
+	await get_tree().physics_frame
+
+
+func _built(guards_active := false) -> void:
+	await _load(guards_active)
+	mission.build_nav()
+	await wait_physics_frames(2)
+
+
+func _on_ground(p: Vector2) -> Vector3:
+	return Vector3(p.x, mission.ground_height(p.x, p.y), p.y)
+
+
+func _path_length(from: Vector3, to: Vector3) -> float:
+	var path := NavigationServer3D.map_get_path(mission.nav_map(), from, to, true)
+	if path.is_empty() or Vector2(path[-1].x - to.x, path[-1].z - to.z).length() > 1.0:
+		return INF
+	var length := 0.0
+	for i in path.size() - 1:
+		length += path[i].distance_to(path[i + 1])
+	return length
+
+
+## Height of the navmesh at a point of the ground plane, wherever the point's own height is.
+func _walkable_y(p: Vector3) -> float:
+	var best := INF
+	var best_y := INF
+	for y in [-3.0, 0.0, 3.0]:
+		var q := NavigationServer3D.map_get_closest_point(mission.nav_map(), Vector3(p.x, y, p.z))
+		var off := Vector2(q.x - p.x, q.z - p.z).length()
+		if off < best:
+			best = off
+			best_y = q.y
+	return best_y
+
+
+## Walkable from the start through every waypoint, without a long way round between any two.
+func _assert_route(route: Array[Vector2], label: String) -> void:
+	var from := mission.specialist_spawns()[0].global_position
+	for p in route:
+		var to := _on_ground(p)
+		var length := _path_length(from, to)
+		assert_lt(length, from.distance_to(to) * 1.4 + 2.0, "%s: leg to %s" % [label, p])
+		from = to
 
 
 func test_bridge_valid() -> void:
-	var mission: Mission = load("res://scenes/missions/bridge.tscn").instantiate()
-	add_child_autofree(mission)
-	await get_tree().process_frame
-	await get_tree().process_frame
-	mission.build_nav()
+	await _built()
 	assert_eq(MissionValidator.validate(mission), PackedStringArray())
 
 
+## Godot's path search gives up after 4096 polygons and then logs an engine error for a target
+## nobody can reach (a click across the gorge once the bridge is down), so the navmesh stays
+## well under that.
+func test_navmesh_stays_small_enough_for_the_path_search() -> void:
+	await _built()
+	var polygons := (mission.get_node("Nav") as NavigationRegion3D).navigation_mesh.get_polygon_count()
+	assert_between(polygons, 500, 3200)
+
+
 func test_bridge_counts() -> void:
-	var mission: Mission = load("res://scenes/missions/bridge.tscn").instantiate()
-	add_child_autofree(mission)
+	await _load()
 	assert_eq(mission.specialist_spawns().size(), 2)
-	assert_eq(mission.guard_spawns().size(), 3)
-	assert_eq(mission.patrol_routes().size(), 3)
+	assert_eq(mission.guard_spawns().size(), 5)
+	assert_eq(mission.patrol_routes().size(), 5)
+	assert_eq(mission.guards().size(), 5)
 	assert_not_null(mission.bridge_target())
 	assert_not_null(mission.extraction())
+	assert_not_null(mission.terrain())
+	assert_eq(mission.bounds_rect, mission.terrain().spec.bounds)
 
 
 func test_extraction_is_far_side_from_start() -> void:
-	var mission: Mission = load("res://scenes/missions/bridge.tscn").instantiate()
-	add_child_autofree(mission)
+	await _load()
 	var start := mission.specialist_spawns()[0].global_position
 	var bridge := mission.bridge_target().global_position
 	var out := mission.extraction().global_position
 	assert_gt(out.distance_to(start), 60.0)
-	# start and extraction lie on opposite sides of the gorge, the bridge between them
 	assert_lt(start.x, bridge.x)
 	assert_gt(out.x, bridge.x)
 
 
-func test_bridge_has_three_guards_at_their_spawns() -> void:
-	var mission: Mission = load("res://scenes/missions/bridge.tscn").instantiate()
-	add_child_autofree(mission)
+func test_guards_and_spawns_stand_on_the_ground() -> void:
+	await _built()
 	var guards := mission.guards()
-	assert_eq(guards.size(), 3)
 	var spawns := mission.guard_spawns()
 	for i in guards.size():
-		assert_almost_eq(guards[i].global_position, spawns[i].global_position, Vector3.ONE * 0.001)
+		var p := guards[i].global_position
+		assert_almost_eq(Vector2(p.x, p.z), Vector2(spawns[i].global_position.x, spawns[i].global_position.z),
+				Vector2.ONE * 0.001)
+		assert_almost_eq(p.y, _walkable_y(p), 0.3, "%s height" % guards[i].name)
 		assert_eq(guards[i].route_size(), mission.patrol_routes()[i].curve.point_count)
+		for point in mission.guard_route(String(guards[i].name)):
+			assert_almost_eq(point.y, _walkable_y(point), 0.3, "%s route height" % guards[i].name)
+	for spawn in mission.specialist_spawns():
+		var p := spawn.global_position
+		assert_almost_eq(p.y, mission.ground_height(p.x, p.z), 0.01)
+		assert_lt(p.y, -2.0, "the start is on the low plain, below the railway")
 
 
 func test_guards_walk_their_routes_once_nav_is_built() -> void:
-	var mission: Mission = load("res://scenes/missions/bridge.tscn").instantiate()
-	add_child_autofree(mission)
-	await get_tree().process_frame
-	await get_tree().process_frame
+	await _load(true)
 	var starts: Array[Vector3] = []
 	for guard in mission.guards():
 		starts.append(guard.global_position)
 	mission.build_nav()
-	await wait_seconds(0.5)
+	await wait_seconds(1.0)
 	for i in starts.size():
-		var walked := mission.guards()[i].global_position.distance_to(starts[i])
-		assert_almost_eq(walked, 1.5, 0.5, "walks at 3 m/s")
+		var p := mission.guards()[i].global_position
+		var walked := Vector2(p.x - starts[i].x, p.z - starts[i].z).length()
+		assert_almost_eq(walked, 3.0, 0.6, "%s walks at 3 m/s" % mission.guards()[i].name)
 		assert_eq(mission.guards()[i].brain.state, GuardBrain.State.PATROL)
+		assert_almost_eq(p.y, mission.ground_height(p.x, p.z), 0.3, "on the ground")
 
 
-func test_units_walk_on_the_ground_not_above_it() -> void:
-	var mission: Mission = load("res://scenes/missions/bridge.tscn").instantiate()
-	mission.get_node("Guards").process_mode = Node.PROCESS_MODE_DISABLED
-	add_child_autofree(mission)
-	await get_tree().process_frame
-	await get_tree().process_frame
-	mission.build_nav()
-	for p in [Vector3(-36, 0, 0), Vector3(0, 0, 0), Vector3(35, 0, 18)]:
-		var surface := NavigationServer3D.map_get_closest_point(mission.nav_map(), p)
-		assert_almost_eq(surface.y, 0.0, 0.05, "navmesh height at %s" % p)
+func test_every_patrol_leg_is_walkable_without_a_detour() -> void:
+	await _built()
+	for guard in mission.guards():
+		var route := mission.guard_route(String(guard.name))
+		for i in route.size():
+			var from := route[i]
+			var to := route[(i + 1) % route.size()]
+			assert_lt(_path_length(from, to), from.distance_to(to) * 1.15 + 0.5,
+					"%s leg %d" % [guard.name, i])
+
+
+func test_three_routes_lead_to_the_bridge() -> void:
+	await _built()
+	_assert_route(ROAD_ROUTE, "road")
+	_assert_route(GORGE_ROUTE, "gorge path")
+	_assert_route(HILL_ROUTE, "hill path")
+
+
+func test_the_embankment_can_only_be_climbed_by_its_ramps() -> void:
+	await _built()
+	# Straight up the bank from the south plain to the track is 10 m; the way round is far longer.
+	var length := _path_length(_on_ground(Vector2(-20, 10)), _on_ground(Vector2(-20, 0)))
+	assert_gt(length, 18.0)
+	assert_lt(length, 60.0, "but there is a way")
+
+
+func test_a_walker_stays_on_the_ground_up_the_gorge_path() -> void:
+	await _built()
 	var walker: Specialist = mission.spawn_specialists()[0]
-	walker.move_to(walker.global_position + Vector3(3, 0, 0))
-	await wait_seconds(0.5)
-	assert_almost_eq(walker.global_position.y, 0.0, 0.05)
-	assert_gt(walker.velocity.length(), 0.0, "it was really walking")
+	walker.global_position = _on_ground(Vector2(-15, 10))
+	walker.move_to(_on_ground(Vector2(-7, 1.5)))
+	var worst := 0.0
+	var arrived := [false]
+	walker.arrived.connect(func(_u: Unit) -> void: arrived[0] = true)
+	for i in 480:
+		await get_tree().physics_frame
+		var p := walker.global_position
+		if i > 20:
+			worst = maxf(worst, absf(p.y - mission.ground_height(p.x, p.z)))
+		if arrived[0]:
+			break
+	assert_true(arrived[0], "reaches the abutment")
+	assert_lt(worst, 0.3)
+	assert_almost_eq(walker.global_position.y, 0.0, 0.15, "at rail level")
+
+
+func test_the_embankment_hides_a_crawler_at_its_foot_from_the_track() -> void:
+	await _built()
+	var spec: Specialist = mission.spawn_specialists()[0]
+	var guard: Guard = mission.guards()[2]
+	guard.global_position = _on_ground(Vector2(-20, 0))
+	guard.rotation.y = PI  # facing +z, down the south bank
+	spec.global_position = _on_ground(Vector2(-20, 7))
+	await wait_physics_frames(2)
+	var vision := Vision.defaults()
+	var seen := func() -> Vision.Zone: return Perception.sees(guard, spec, vision.target_height(spec.stance))
+	assert_eq(seen.call(), Vision.Zone.FAR, "someone standing at the foot shows over the shoulder")
+	spec.set_stance(Unit.Stance.CRAWLING)
+	assert_eq(seen.call(), Vision.Zone.NONE, "lying down they are hidden")
+
+
+func test_nothing_walks_in_the_gorge() -> void:
+	await _built()
+	for z in [-30.0, -12.0, 15.0, 32.0]:
+		var bed := NavigationServer3D.map_get_closest_point(mission.nav_map(), Vector3(0, -11, z))
+		assert_gt(bed.y, -5.0, "no navmesh on the gorge floor at z = %s" % z)
+	assert_almost_eq(mission.ground_height(0, 20), -12.0, 3.0, "the gorge is deep")
+
+
+func test_the_deck_joins_the_two_banks_at_rail_level() -> void:
+	await _built()
+	var west := _on_ground(Vector2(-8, 0))
+	var east := _on_ground(Vector2(8, 0))
+	assert_almost_eq(_path_length(west, east), 16.0, 0.5)
+	var mid := NavigationServer3D.map_get_closest_point(mission.nav_map(), Vector3.ZERO)
+	assert_almost_eq(mid, Vector3.ZERO, Vector3(0.1, 0.1, 0.1))
+	for point in mission.guard_route("Guard4"):
+		assert_almost_eq(point.y, 0.0, 0.05, "the sentry's route is at rail level")
 
 
 func test_broken_bridge_stubs_jut_over_the_gorge_without_collision() -> void:
-	var mission: Mission = load("res://scenes/missions/bridge.tscn").instantiate()
-	add_child_autofree(mission)
-	await get_tree().process_frame
-	mission.build_nav()
+	await _built()
 	mission.break_bridge()
 	var stubs := mission.get_node("Nav/BridgeBroken")
 	var over_gorge := 0
@@ -95,38 +228,9 @@ func test_broken_bridge_stubs_jut_over_the_gorge_without_collision() -> void:
 	await get_tree().process_frame
 	var west := mission.specialist_spawns()[0].global_position
 	var east := mission.extraction().global_position
-	var path := NavigationServer3D.map_get_path(mission.nav_map(), west, east, true)
-	var crosses := false
-	for p in path:
-		if absf(p.x) < Mission.BANK_EDGE_X - 0.5:
-			crosses = true
-	assert_false(crosses, "the gorge stays impassable")
+	assert_eq(_path_length(west, east), INF, "the gorge is impassable")
 	mission.repair_bridge()
 	assert_true(mission.get_node("Scenery/GirderN").visible)
-
-
-func test_crate_hides_a_crawler_but_not_a_stander() -> void:
-	var mission: Mission = load("res://scenes/missions/bridge.tscn").instantiate()
-	mission.get_node("Guards").process_mode = Node.PROCESS_MODE_DISABLED
-	add_child_autofree(mission)
 	await get_tree().process_frame
 	await get_tree().process_frame
-	mission.build_nav()
-	var spec: Specialist = mission.spawn_specialists()[0]
-	var guard: Guard = mission.guards()[0]
-	var crate := mission.get_node("Nav/Cover4") as Node3D
-	# The guard looks along -z at the crate; the specialist is just behind it, in the near zone.
-	var x := crate.global_position.x
-	var z := crate.global_position.z
-	guard.global_transform = Transform3D(Basis.IDENTITY, Vector3(x, 0, z + 4))
-	spec.global_position = Vector3(x, 0, z - 1.5)
-	await wait_physics_frames(2)
-	var vision := Vision.defaults()
-	var seen := func(s: Specialist) -> Vision.Zone:
-		return Perception.sees(guard, s, vision.target_height(s.stance))
-	assert_eq(seen.call(spec), Vision.Zone.NEAR, "the stander's head shows over the crate")
-	spec.set_stance(Unit.Stance.CRAWLING)
-	assert_eq(seen.call(spec), Vision.Zone.NONE, "the crate hides the crawler")
-	spec.global_position = Vector3(x + 2, 0, z)
-	await wait_physics_frames(2)
-	assert_eq(seen.call(spec), Vision.Zone.NEAR, "beside the crate the same crawler is seen")
+	assert_lt(_path_length(west, east), 200.0, "and whole again after a repair")

@@ -239,7 +239,7 @@ func test_roundtrip_dead_guard_stays_body() -> void:
 	assert_null(_guard("Guard2"), "the guard stays dead")
 	assert_eq(_bodies().size(), 1)
 	assert_almost_eq((_bodies()[0] as Node3D).global_position, at, Vector3.ONE * 0.001)
-	assert_eq(mission.guards().size(), 2)
+	assert_eq(mission.guards().size(), 4)
 
 
 # --- Bad and missing saves ---
@@ -578,8 +578,8 @@ func test_guard_killed_since_save_comes_back_on_its_route() -> void:
 	assert_eq(back.route_size(), route_size)
 	assert_eq(back.current_waypoint(), 1)
 	assert_eq(_bodies().size(), 0, "its body from after the save is gone")
-	assert_eq(mission.guards().size(), 3)
-	assert_eq(get_tree().get_nodes_in_group(Guard.GROUP).size(), 3)
+	assert_eq(mission.guards().size(), 5)
+	assert_eq(get_tree().get_nodes_in_group(Guard.GROUP).size(), 5)
 
 
 func test_guard_killed_in_the_same_frame_as_the_load_comes_back_cleanly() -> void:
@@ -587,10 +587,10 @@ func test_guard_killed_in_the_same_frame_as_the_load_comes_back_cleanly() -> voi
 	_guard("Guard2").take_damage(1000)
 	_load()
 	assert_not_null(_guard("Guard2"), "the dying node must not take the name")
-	assert_eq(mission.guards().size(), 3)
+	assert_eq(mission.guards().size(), 5)
 	assert_eq(_bodies().size(), 0)
 	await _frames()
-	assert_eq(mission.guards().size(), 3)
+	assert_eq(mission.guards().size(), 5)
 	assert_true(_guard("Guard2").alive)
 
 
@@ -620,7 +620,7 @@ func test_guard_alive_now_but_dead_in_save_goes() -> void:
 	_load()
 	assert_null(_guard("Guard1"), "alive now, dead in the save")
 	assert_null(_guard("Guard3"))
-	assert_eq(get_tree().get_nodes_in_group(Guard.GROUP).size(), 1)
+	assert_eq(get_tree().get_nodes_in_group(Guard.GROUP).size(), 3)
 	assert_eq(_bodies().size(), 2)
 
 

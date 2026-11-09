@@ -1,0 +1,277 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/mission/mission.gd" id="1_mission"]
+[ext_resource type="PackedScene" path="res://scenes/units/guard.tscn" id="2_guard"]
+
+[sub_resource type="NavigationMesh" id="NavMesh_bridge"]
+cell_size = 0.25
+cell_height = 0.25
+agent_height = 1.75
+agent_radius = 0.5
+agent_max_climb = 0.25
+
+[sub_resource type="StandardMaterial3D" id="m_ground"]
+albedo_color = Color(0.36, 0.40, 0.22, 1)
+
+[sub_resource type="StandardMaterial3D" id="m_wall"]
+albedo_color = Color(0.62, 0.55, 0.42, 1)
+
+[sub_resource type="StandardMaterial3D" id="m_steel"]
+albedo_color = Color(0.30, 0.32, 0.35, 1)
+
+[sub_resource type="StandardMaterial3D" id="m_crate"]
+albedo_color = Color(0.45, 0.30, 0.16, 1)
+
+[sub_resource type="StandardMaterial3D" id="m_water"]
+albedo_color = Color(0.12, 0.30, 0.45, 1)
+
+[sub_resource type="StandardMaterial3D" id="m_rail"]
+albedo_color = Color(0.15, 0.15, 0.17, 1)
+
+[sub_resource type="StandardMaterial3D" id="m_pad"]
+albedo_color = Color(0.2, 0.7, 0.3, 1)
+
+[sub_resource type="StandardMaterial3D" id="m_lamp"]
+shading_mode = 0
+albedo_color = Color(1, 0.85, 0.5, 1)
+
+[sub_resource type="Curve3D" id="Curve_1"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -14, 0.0, -6, 0, 0, 0, 0, 0, 0, -14, 0.0, 6, 0, 0, 0, 0, 0, 0, -8, 0.0, 6, 0, 0, 0, 0, 0, 0, -8, 0.0, -6),
+"tilts": PackedFloat32Array(0, 0, 0, 0)
+}
+point_count = 4
+
+[sub_resource type="Curve3D" id="Curve_2"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -21, 0.0, -18, 0, 0, 0, 0, 0, 0, -21, 0.0, 16),
+"tilts": PackedFloat32Array(0, 0)
+}
+point_count = 2
+
+[sub_resource type="Curve3D" id="Curve_3"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 12, 0.0, -8, 0, 0, 0, 0, 0, 0, 12, 0.0, 8, 0, 0, 0, 0, 0, 0, 22, 0.0, 8, 0, 0, 0, 0, 0, 0, 22, 0.0, -8),
+"tilts": PackedFloat32Array(0, 0, 0, 0)
+}
+point_count = 4
+
+[sub_resource type="BoxShape3D" id="Box_extraction"]
+size = Vector3(6, 3, 6)
+
+[node name="Bridge" type="Node3D"]
+script = ExtResource("1_mission")
+
+[node name="Nav" type="NavigationRegion3D" parent="."]
+navigation_mesh = SubResource("NavMesh_bridge")
+
+[node name="Scenery" type="Node3D" parent="."]
+
+[node name="SpecialistSpawns" type="Node3D" parent="."]
+
+[node name="GuardSpawns" type="Node3D" parent="."]
+
+[node name="Routes" type="Node3D" parent="."]
+
+[node name="Extraction" type="Area3D" parent="."]
+collision_layer = 0
+collision_mask = 2
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 35, 1.5, 18)
+
+[node name="Shape" type="CollisionShape3D" parent="Extraction"]
+shape = SubResource("Box_extraction")
+
+[node name="WestBank" type="CSGBox3D" parent="Nav"]
+use_collision = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22.5, -4, 0)
+size = Vector3(35, 8, 60)
+material = SubResource("m_ground")
+
+[node name="EastBank" type="CSGBox3D" parent="Nav"]
+use_collision = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22.5, -4, 0)
+size = Vector3(35, 8, 60)
+material = SubResource("m_ground")
+
+[node name="BridgeDeck" type="CSGBox3D" parent="Nav"]
+use_collision = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.2, 0)
+size = Vector3(16, 0.4, 3.4)
+material = SubResource("m_steel")
+
+[node name="WallN" type="CSGBox3D" parent="Nav"]
+use_collision = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -26, 1.5, -25.0)
+size = Vector3(0.6, 3, 10)
+material = SubResource("m_wall")
+
+[node name="WallMid" type="CSGBox3D" parent="Nav"]
+use_collision = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -26, 1.5, -4.5)
+size = Vector3(0.6, 3, 25)
+material = SubResource("m_wall")
+
+[node name="WallS" type="CSGBox3D" parent="Nav"]
+use_collision = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -26, 1.5, 20.5)
+size = Vector3(0.6, 3, 19)
+material = SubResource("m_wall")
+
+[node name="GuardPost" type="CSGBox3D" parent="Nav"]
+use_collision = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 1.5, -14)
+size = Vector3(4, 3, 3)
+material = SubResource("m_wall")
+
+[node name="Cover1" type="CSGBox3D" parent="Nav"]
+use_collision = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -33, 0.6, -7)
+size = Vector3(1.8, 1.2, 1.8)
+material = SubResource("m_crate")
+
+[node name="Cover2" type="CSGBox3D" parent="Nav"]
+use_collision = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 0.6, 9)
+size = Vector3(1.8, 1.2, 1.8)
+material = SubResource("m_crate")
+
+[node name="Cover3" type="CSGBox3D" parent="Nav"]
+use_collision = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -23.5, 0.6, -12)
+size = Vector3(1.8, 1.2, 1.8)
+material = SubResource("m_crate")
+
+[node name="Cover4" type="CSGBox3D" parent="Nav"]
+use_collision = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -23.5, 0.6, 5)
+size = Vector3(1.8, 1.2, 1.8)
+material = SubResource("m_crate")
+
+[node name="Cover5" type="CSGBox3D" parent="Nav"]
+use_collision = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17, 0.6, -3)
+size = Vector3(1.8, 1.2, 1.8)
+material = SubResource("m_crate")
+
+[node name="Cover6" type="CSGBox3D" parent="Nav"]
+use_collision = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11, 0.6, 9)
+size = Vector3(1.8, 1.2, 1.8)
+material = SubResource("m_crate")
+
+[node name="Cover7" type="CSGBox3D" parent="Nav"]
+use_collision = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.6, -9)
+size = Vector3(1.8, 1.2, 1.8)
+material = SubResource("m_crate")
+
+[node name="Cover8" type="CSGBox3D" parent="Nav"]
+use_collision = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 0.6, 14)
+size = Vector3(1.8, 1.2, 1.8)
+material = SubResource("m_crate")
+
+[node name="Cover9" type="CSGBox3D" parent="Nav"]
+use_collision = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 0.6, -14)
+size = Vector3(1.8, 1.2, 1.8)
+material = SubResource("m_crate")
+
+[node name="Cover10" type="CSGBox3D" parent="Nav"]
+use_collision = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 28, 0.6, 4)
+size = Vector3(1.8, 1.2, 1.8)
+material = SubResource("m_crate")
+
+[node name="Cover11" type="CSGBox3D" parent="Nav"]
+use_collision = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 0.6, 16)
+size = Vector3(1.8, 1.2, 1.8)
+material = SubResource("m_crate")
+
+[node name="Cover12" type="CSGBox3D" parent="Nav"]
+use_collision = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0.6, -12)
+size = Vector3(1.8, 1.2, 1.8)
+material = SubResource("m_crate")
+
+[node name="River" type="CSGBox3D" parent="Scenery"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -7.5, 0)
+size = Vector3(10.2, 1, 60)
+material = SubResource("m_water")
+
+[node name="GirderN" type="CSGBox3D" parent="Scenery"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0, -1.6)
+size = Vector3(16, 2, 0.2)
+material = SubResource("m_steel")
+
+[node name="GirderS" type="CSGBox3D" parent="Scenery"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0, 1.6)
+size = Vector3(16, 2, 0.2)
+material = SubResource("m_steel")
+
+[node name="RailA" type="CSGBox3D" parent="Scenery"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.08, -0.7)
+size = Vector3(80, 0.16, 0.12)
+material = SubResource("m_rail")
+
+[node name="RailB" type="CSGBox3D" parent="Scenery"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.08, 0.7)
+size = Vector3(80, 0.16, 0.12)
+material = SubResource("m_rail")
+
+[node name="ExtractionPad" type="CSGBox3D" parent="Scenery"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 35, 0.02, 18)
+size = Vector3(6, 0.04, 6)
+material = SubResource("m_pad")
+
+[node name="GuardPostRoof" type="CSGBox3D" parent="Scenery"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 3.15, -14)
+size = Vector3(4.6, 0.3, 3.6)
+material = SubResource("m_crate")
+
+[node name="Specialist1" type="Marker3D" parent="SpecialistSpawns"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -36, 0, -2)
+
+[node name="Specialist2" type="Marker3D" parent="SpecialistSpawns"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -36, 0, 2)
+
+[node name="Guard1" type="Marker3D" parent="GuardSpawns"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14, 0, -6)
+
+[node name="Guard2" type="Marker3D" parent="GuardSpawns"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21, 0, -18)
+
+[node name="Guard3" type="Marker3D" parent="GuardSpawns"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0, -8)
+
+[node name="Route1" type="Path3D" parent="Routes"]
+curve = SubResource("Curve_1")
+
+[node name="Route2" type="Path3D" parent="Routes"]
+curve = SubResource("Curve_2")
+
+[node name="Route3" type="Path3D" parent="Routes"]
+curve = SubResource("Curve_3")
+
+[node name="BridgeTarget" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+
+[node name="Guards" type="Node3D" parent="."]
+
+[node name="Guard1" parent="Guards" instance=ExtResource("2_guard")]
+
+[node name="Guard2" parent="Guards" instance=ExtResource("2_guard")]
+
+[node name="Guard3" parent="Guards" instance=ExtResource("2_guard")]
+
+[node name="GuardPostLamp" type="OmniLight3D" parent="Scenery"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.6, 3.0, -12.2)
+light_color = Color(1, 0.7, 0.35, 1)
+light_energy = 2.2
+omni_range = 13.0
+
+[node name="GuardPostLampBulb" type="CSGSphere3D" parent="Scenery"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.6, 3.0, -12.2)
+radius = 0.18
+material = SubResource("m_lamp")

@@ -6,7 +6,7 @@ var noises: Array = []
 
 
 func before_each() -> void:
-	mission = load("res://scenes/missions/bridge.tscn").instantiate()
+	mission = load("res://tests/fixtures/flat_bridge.tscn").instantiate()
 	# These tests are about one unit; live guards could shoot it.
 	mission.get_node("Guards").process_mode = Node.PROCESS_MODE_DISABLED
 	add_child_autofree(mission)

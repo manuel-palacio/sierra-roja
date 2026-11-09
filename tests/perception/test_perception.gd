@@ -93,7 +93,7 @@ func test_polygon_clipped_by_wall() -> void:
 
 
 func test_bridge_csg_walls_are_on_world_layer() -> void:
-	var mission: Node3D = load("res://scenes/missions/bridge.tscn").instantiate()
+	var mission: Node3D = load("res://tests/fixtures/flat_bridge.tscn").instantiate()
 	add_child_autofree(mission)
 	guard.global_position = Vector3(-30, 0, 0)
 	target.global_position = Vector3(-22, 0, 0)

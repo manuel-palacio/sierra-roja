@@ -12,7 +12,7 @@ var restarts := 0
 
 func before_each() -> void:
 	restarts = 0
-	mission = load("res://scenes/missions/bridge.tscn").instantiate()
+	mission = load("res://tests/fixtures/flat_bridge.tscn").instantiate()
 	# Live guards would shoot the specialists; these tests are about the display.
 	mission.get_node("Guards").process_mode = Node.PROCESS_MODE_DISABLED
 	add_child_autofree(mission)
