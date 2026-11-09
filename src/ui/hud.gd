@@ -6,6 +6,8 @@ extends CanvasLayer
 ## playing are the only widgets that take the mouse; everything else ignores it so clicks and edge
 ## scrolling reach the game.
 
+const OBJECTIVE_BRIDGE := "Objective: Destroy the bridge"
+const OBJECTIVE_ESCAPE := "Objective: Reach the extraction point"
 const MESSAGE_SECONDS := 3.0
 const REFRESH_INTERVAL := 0.1
 
@@ -22,6 +24,8 @@ var top_bar: Control
 var bottom_bar: Control
 var alarm_label: Label
 var message_label: Label
+## What to do next; hidden once the mission has ended.
+var objective_label: Label
 ## "Fuse: 3s, 9s", soonest first; hidden with no charge planted.
 var fuse_label: Label
 var pause_box: Control
@@ -119,6 +123,8 @@ func refresh() -> void:
 	_refresh_fuse()
 	alarm_label.text = "Alarm: %d" % _rules.alarm_level
 	alarm_label.modulate = Color(1, 0.4, 0.3) if _rules.alarm_level > 0 else Color.WHITE
+	objective_label.text = OBJECTIVE_ESCAPE if _rules.bridge_destroyed else OBJECTIVE_BRIDGE
+	objective_label.visible = _rules.result == MissionRules.Result.RUNNING
 	pause_box.visible = _input.is_paused()
 
 
@@ -211,6 +217,9 @@ func _build_top() -> void:
 	top_bar.add_child(row)
 	alarm_label = _label("Alarm: 0")
 	row.add_child(alarm_label)
+	objective_label = _label("")
+	objective_label.modulate = Color(0.8, 0.92, 1.0)
+	row.add_child(objective_label)
 	fuse_label = _label("")
 	fuse_label.modulate = Color(1, 0.65, 0.3)
 	fuse_label.visible = false

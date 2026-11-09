@@ -279,3 +279,26 @@ func test_overlay_hides_when_guard_freed() -> void:
 	g.free()
 	overlay._process(0.2)
 	assert_false(overlay.visible)
+
+
+# --- Objective line ---
+
+func test_objective_line_follows_the_bridge() -> void:
+	hud.refresh()
+	assert_true(hud.objective_label.visible)
+	assert_eq(hud.objective_label.text, "Objective: Destroy the bridge")
+	rules.bridge_destroyed = true
+	hud.refresh()
+	assert_eq(hud.objective_label.text, "Objective: Reach the extraction point")
+	rules.bridge_destroyed = false  # a load back to before the blast
+	hud.refresh()
+	assert_eq(hud.objective_label.text, "Objective: Destroy the bridge")
+
+
+func test_objective_line_goes_when_the_mission_ends() -> void:
+	rules.result = MissionRules.Result.WON
+	hud.refresh()
+	assert_false(hud.objective_label.visible)
+	rules.result = MissionRules.Result.RUNNING
+	hud.refresh()
+	assert_true(hud.objective_label.visible)

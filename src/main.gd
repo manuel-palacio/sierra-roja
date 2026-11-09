@@ -12,6 +12,8 @@ var player_input: PlayerInput
 var overlay: VisionOverlay
 var charge_display: ChargeDisplay
 var hud: Hud
+## The opening screen while it is up, else null.
+var briefing: Briefing
 
 
 func _ready() -> void:
@@ -58,12 +60,29 @@ func _ready() -> void:
 	add_child(charge_display)
 	SaveGame.message.connect(hud.show_message)
 	SaveGame.restart_offered.connect(hud.offer_restart)
+	if Briefing.wanted():
+		open_briefing()
 	var errors := MissionValidator.validate(mission)
 	if not errors.is_empty():
 		for message in errors:
 			push_error("Invalid mission: " + message)
 		if OS.is_debug_build():
 			get_tree().quit(1)
+
+
+## Puts up the opening screen. No orders are taken and the view stays on the squad until it is
+## started; the mission itself runs on behind it, where the squad's starting place is out of
+## every guard's sight.
+func open_briefing() -> Briefing:
+	briefing = Briefing.new()
+	add_child(briefing)
+	player_input.orders_enabled = false
+	camera.edge_scroll_enabled = false
+	briefing.started.connect(func() -> void:
+		briefing = null
+		camera.edge_scroll_enabled = true
+		player_input.orders_enabled = rules.result == MissionRules.Result.RUNNING)
+	return briefing
 
 
 func _show_selection(chosen: Specialist) -> void:

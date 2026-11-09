@@ -22,7 +22,12 @@ camera, Godot 4.7 (Compatibility renderer, single-threaded web export). "Sierra 
 | `Z` / `X` | Turn the camera a quarter turn |
 | Mouse at the screen edge | Scroll the camera |
 
-Sound starts after your first click or key press (browser rule).
+The game opens on a briefing with the objectives and these controls; `Start`, `Enter` or `Space`
+begins. Sound starts after your first click or key press (browser rule).
+
+The map is authored as numbers in `tools/make_bridge_map.py`, which writes the land
+(`resources/missions/bridge_land.tres`) and the mission scene; `tools/map_preview.gd` draws the
+result from above. The uniforms come from `tools/recolour_uniforms.py`.
 
 ## Run it locally
 
