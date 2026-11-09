@@ -64,3 +64,27 @@ func test_the_model_stands_on_the_drawn_ground() -> void:
 	await wait_physics_frames(2)
 	await get_tree().process_frame
 	assert_almost_eq(model.position.y, 0.0, 0.001)
+
+
+func _materials(root: Node) -> Array[BaseMaterial3D]:
+	var out: Array[BaseMaterial3D] = []
+	for node in root.get_node("Model").find_children("*", "MeshInstance3D", true, false):
+		out.append((node as MeshInstance3D).get_active_material(0) as BaseMaterial3D)
+	return out
+
+
+func test_every_part_of_a_unit_shows_through_what_hides_it() -> void:
+	for scene in [GUARD, DYNAMITER, MARKSMAN]:
+		var materials := _materials(_unit(scene))
+		assert_eq(materials.size(), 6, "head, torso, two arms, two legs")
+		for material in materials:
+			assert_eq(material.stencil_mode, BaseMaterial3D.STENCIL_MODE_XRAY, "x-ray on %s" % scene)
+
+
+func test_guards_and_specialists_have_different_silhouettes() -> void:
+	var guard := _materials(_unit(GUARD))[0].stencil_color
+	var dynamiter := _materials(_unit(DYNAMITER))[0].stencil_color
+	var marksman := _materials(_unit(MARKSMAN))[0].stencil_color
+	assert_gt(guard.r, guard.b, "guards warm")
+	assert_gt(dynamiter.b, dynamiter.r, "specialists cool")
+	assert_eq(dynamiter, marksman)

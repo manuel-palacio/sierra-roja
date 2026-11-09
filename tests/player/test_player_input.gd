@@ -332,3 +332,96 @@ func test_picker_hits_unit_then_ground() -> void:
 	var off := Picker.pick(cam, center + Vector2(center.x * 0.4, 0))
 	assert_eq(off.get("collider"), ground)
 	assert_almost_eq((off["position"] as Vector3).y, 0.0, 0.01)
+
+
+# --- move_ordered: what the order marker listens to ---
+
+func _orders() -> Array:
+	var seen: Array = []
+	input.move_ordered.connect(func(pos: Vector3, run: bool) -> void: seen.append([pos, run]))
+	return seen
+
+
+func test_a_ground_click_announces_the_move_once() -> void:
+	var seen := _orders()
+	picked = _ground(Vector3(4, 0, 3))
+	input.handle_event(_click())
+	assert_eq(seen, [[Vector3(4, 0, 3), false]])
+
+
+func test_a_double_click_announces_a_run() -> void:
+	var seen := _orders()
+	picked = _ground(Vector3(4, 0, 3))
+	input.handle_event(_click())
+	now += 0.1
+	input.handle_event(_click())
+	assert_eq(seen.size(), 2)
+	assert_eq(seen[1], [Vector3(4, 0, 3), true])
+
+
+func test_no_move_is_announced_for_other_clicks() -> void:
+	var seen := _orders()
+	picked = { "collider": mark, "position": mark.global_position }
+	input.handle_event(_click())  # selects the Marksman
+	picked = { "collider": _guard(Vector3(9, 0, 0)), "position": Vector3(9, 0, 0) }
+	input.handle_event(_click())  # shows a guard's cone
+	input.select(dyn)
+	input.handle_event(_key(KEY_Q))  # arms the knife
+	picked = _ground(Vector3(4, 0, 3))
+	input.handle_event(_click())  # an armed click on bare ground is refused
+	input.handle_event(_key(KEY_ESCAPE))
+	input.orders_enabled = false
+	input.handle_event(_click())  # the mission is over
+	input.orders_enabled = true
+	input.set_paused(true)
+	input.handle_event(_click())  # paused
+	assert_eq(seen, [])
+
+
+# --- Picking a unit that stands behind something ---
+
+func _box(pos: Vector3, size: Vector3) -> StaticBody3D:
+	var body := StaticBody3D.new()
+	var shape := CollisionShape3D.new()
+	shape.shape = BoxShape3D.new()
+	(shape.shape as BoxShape3D).size = size
+	body.add_child(shape)
+	add_child_autofree(body)
+	body.global_position = pos
+	return body
+
+
+func test_a_guard_behind_a_wall_is_still_picked_through_it() -> void:
+	cam.current = true
+	_box(Vector3(0, -0.5, 0), Vector3(60, 1, 60))  # the ground
+	var guard := _guard(Vector3(20, 0, 0))
+	# A wall between the camera and the guard: the camera looks from +x, +z, above.
+	var toward_camera := Vector3(cam.global_basis.z.x, 0, cam.global_basis.z.z).normalized()
+	var wall := _box(guard.global_position + toward_camera * 2.0 + Vector3.UP * 2.0, Vector3(6, 4, 6))
+	await wait_physics_frames(2)
+	var on_guard := cam.unproject_position(guard.global_position + Vector3.UP * 0.85)
+	var hit := Picker.pick(cam, on_guard)
+	assert_eq(hit.get("collider"), guard, "the pointer is on the guard's shape, wall or no wall")
+	var beside := cam.unproject_position(wall.global_position + Vector3(0, 2.0, 0) + cam.global_basis.x * 2.5)
+	assert_eq(Picker.pick(cam, beside).get("collider"), wall, "beside the guard the wall is what is hit")
+	var open_ground := cam.unproject_position(Vector3(-10, 0, -10))
+	var ground_hit := Picker.pick(cam, open_ground)
+	assert_almost_eq(ground_hit["position"], Vector3(-10, 0, -10), Vector3.ONE * 0.05)
+	assert_eq(Picker.pick(cam, on_guard, Unit.LAYER_WORLD).get("collider"), wall, "a world-only pick ignores units")
+
+
+# --- Camera rotation keys ---
+
+func test_z_and_x_turn_the_camera_even_when_paused_or_after_the_mission() -> void:
+	input.handle_event(_key(KEY_X))
+	assert_eq(cam.quarter, 1)
+	input.handle_event(_key(KEY_Z))
+	input.handle_event(_key(KEY_Z))
+	assert_eq(cam.quarter, 3)
+	input.set_paused(true)
+	input.handle_event(_key(KEY_X))
+	assert_eq(cam.quarter, 0, "looking round while paused")
+	input.set_paused(false)
+	input.orders_enabled = false
+	input.handle_event(_key(KEY_X))
+	assert_eq(cam.quarter, 1)

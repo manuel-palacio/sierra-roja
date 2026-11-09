@@ -15,6 +15,8 @@ const MAX_GROUND_SHIFT := 0.5
 
 ## Replaces the texture the model came with.
 @export var uniform: Texture2D
+## The flat colour the unit shows in where something stands between it and the camera.
+@export var silhouette := Color(0.55, 0.75, 1.0, 0.75)
 
 var _unit: Unit
 var _player: AnimationPlayer
@@ -32,6 +34,7 @@ func _ready() -> void:
 	if _model != null:
 		_rest = _model.transform
 		dress(_model, uniform)
+		show_through(_model, silhouette)
 
 
 func _process(_delta: float) -> void:
@@ -67,6 +70,25 @@ static func dress(model: Node, texture: Texture2D) -> void:
 				copy.albedo_texture = texture
 				dressed[material] = copy
 			mesh.set_surface_override_material(i, dressed[material])
+
+
+## Makes every mesh under a model show in one flat colour wherever something stands between it
+## and the camera (the engine's stencil x-ray: the model marks its own pixels, so its own limbs
+## do not count as something in the way). Each material is copied once to carry the setting.
+static func show_through(model: Node, color: Color) -> void:
+	var copies := {}
+	for node in model.find_children("*", "MeshInstance3D", true, false):
+		var mesh := node as MeshInstance3D
+		for i in mesh.get_surface_override_material_count():
+			var material := mesh.get_active_material(i) as BaseMaterial3D
+			if material == null:
+				continue
+			if not copies.has(material):
+				var copy := material.duplicate() as BaseMaterial3D
+				copy.stencil_mode = BaseMaterial3D.STENCIL_MODE_XRAY
+				copy.stencil_color = color
+				copies[material] = copy
+			mesh.set_surface_override_material(i, copies[material])
 
 
 ## How far the drawn ground under the unit is above (or below) the height the unit stands at.

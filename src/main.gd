@@ -43,6 +43,11 @@ func _ready() -> void:
 	camera.edge_scroll_enabled = true
 	rules.result_changed.connect(func(r: MissionRules.Result) -> void:
 		player_input.orders_enabled = r == MissionRules.Result.RUNNING)
+	var order_marker := OrderMarker.new()
+	add_child(order_marker)
+	player_input.move_ordered.connect(order_marker.show_at)
+	player_input.selection_changed.connect(_show_selection)
+	_show_selection(player_input.selected)
 	overlay = VisionOverlay.new()
 	add_child(overlay)
 	hud = (load("res://scenes/ui/hud.tscn") as PackedScene).instantiate() as Hud
@@ -59,3 +64,10 @@ func _ready() -> void:
 			push_error("Invalid mission: " + message)
 		if OS.is_debug_build():
 			get_tree().quit(1)
+
+
+func _show_selection(chosen: Specialist) -> void:
+	for s in specialists:
+		var ring := s.get_node_or_null("Ring") as SelectionRing
+		if ring != null:
+			ring.selected = s == chosen

@@ -4,7 +4,8 @@ extends Node
 ## and the pause. Rules live in Unit and Ability; this only decides which order a click or key is.
 ##
 ## Hotkeys: 1/2 select, C stance, Q knife, E main ability (charge, else rifle), R pistol,
-## F pick up / drop, Space pause, Escape or right click disarm, O quick save, L quick load.
+## F pick up / drop, Space pause, Escape or right click disarm, O quick save, L quick load,
+## Z / X turn the camera a quarter turn.
 
 signal selection_changed(s: Specialist)
 signal paused_changed(paused: bool)
@@ -12,6 +13,8 @@ signal armed_changed(id: StringName)
 ## A guard was clicked with nothing armed (the vision cone is shown by whoever listens).
 signal guard_clicked(guard: Guard)
 signal order_refused(reason: String)
+## A move order was given: where on the ground, and whether to run. Display hooks listen.
+signal move_ordered(pos: Vector3, run: bool)
 
 const DOUBLE_CLICK_SEC := 0.3
 const DOUBLE_CLICK_SLOP := 12.0
@@ -39,6 +42,8 @@ const ABILITY_KEYS := {
 	KEY_F: [&"carry"],
 }
 const SELECT_KEYS := { KEY_1: 0, KEY_2: 1 }
+## Key -> quarter turns of the camera.
+const ROTATE_KEYS := { KEY_Z: -1, KEY_X: 1 }
 
 var selected: Specialist
 var armed_ability := &""
@@ -124,6 +129,9 @@ func _on_key(event: InputEventKey) -> void:
 		set_paused(not is_paused())
 	elif key == KEY_ESCAPE:
 		_set_armed(&"")
+	elif ROTATE_KEYS.has(key):
+		# Looking round is always allowed: paused, and after the mission has ended.
+		_camera.rotate_by(ROTATE_KEYS[key])
 	elif key == KEY_O:
 		# Saving works paused, but not after a result: that would overwrite the only save with the
 		# ended mission. Loading works any time, so a lost mission can go back to that save.
@@ -182,6 +190,7 @@ func _move_selected(target: Vector3, screen_pos: Vector2) -> void:
 	_last_click_time = -INF if double else now
 	_last_click_pos = screen_pos
 	selected.move_to(target, double)
+	move_ordered.emit(target, double)
 
 
 ## What pressing the ability's key does; the HUD's ability buttons call this.

@@ -2,7 +2,7 @@
 
 A real-time stealth tactics game for the desktop browser, set in the Spanish Civil War. You command two
 fictional Republican guerrillas, the Dynamiter and the Marksman, through one night mission: blow up the
-Nationalist railway bridge, then get both of them to the extraction pad. Low-poly 3D, fixed isometric
+Nationalist railway bridge, then get both of them to the extraction pad. Low-poly 3D, isometric
 camera, Godot 4.7 (Compatibility renderer, single-threaded web export). "Sierra Roja" is a working title.
 
 ## Controls
@@ -11,7 +11,7 @@ camera, Godot 4.7 (Compatibility renderer, single-threaded web export). "Sierra 
 |---|---|
 | Left click on ground | Move the selected specialist (double-click to run) |
 | Left click on a specialist | Select them (or press `1` / `2`) |
-| Left click on a guard | Show that guard's vision cones |
+| Left click on a guard | Show that guard's vision cones (red: seen even crawling; yellow: seen standing) |
 | `Q` Knife, `R` Pistol, `E` Rifle (Marksman) | Arm the ability, then click a guard; `Esc` or right click disarms |
 | `E` Charge (Dynamiter) | Plants a charge at your feet on the key press (10 s fuse) |
 | `F` Carry | On the key press, lifts the nearest body in reach, or drops the one you carry |
@@ -19,6 +19,7 @@ camera, Godot 4.7 (Compatibility renderer, single-threaded web export). "Sierra 
 | `Space` | Pause / resume |
 | `O` / `L` | Quick save (not once the mission has ended) / quick load |
 | Mouse wheel | Zoom |
+| `Z` / `X` | Turn the camera a quarter turn |
 | Mouse at the screen edge | Scroll the camera |
 
 Sound starts after your first click or key press (browser rule).

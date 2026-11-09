@@ -5,18 +5,14 @@
 
 [ext_resource type="PackedScene" path="res://assets/characters/character-b.glb" id="9_model"]
 [ext_resource type="Script" path="res://src/units/unit_visual.gd" id="10_visual"]
+[ext_resource type="Script" path="res://src/ui/selection_ring.gd" id="13_ring"]
 [ext_resource type="Texture2D" path="res://assets/characters/Textures/uniform-dynamiter.png" id="11_uniform"]
 
-[sub_resource type="CylinderMesh" id="Ring_1"]
-top_radius = 0.6
-bottom_radius = 0.6
-height = 0.02
-radial_segments = 24
-rings = 1
-
-[sub_resource type="StandardMaterial3D" id="m_ring"]
-shading_mode = 0
-albedo_color = Color(1, 0.25, 0.2, 1)
+[sub_resource type="TorusMesh" id="Ring_1"]
+inner_radius = 0.56
+outer_radius = 0.66
+rings = 24
+ring_segments = 4
 
 [sub_resource type="CapsuleShape3D" id="Capsule_1"]
 radius = 0.4
@@ -41,6 +37,7 @@ script = ExtResource("10_visual")
 uniform = ExtResource("11_uniform")
 
 [node name="Ring" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.04, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.06, 0)
 mesh = SubResource("Ring_1")
-surface_material_override/0 = SubResource("m_ring")
+script = ExtResource("13_ring")
+color = Color(0.35, 0.6, 1, 1)
