@@ -11,7 +11,7 @@ signal message(text: String)
 ## The save can't be used; whoever shows messages offers a restart.
 signal restart_offered()
 
-const VERSION := 1
+const VERSION := 2
 const SAVE_PATH := "user://quicksave.json"
 const BAD_SAVE_TEXT := "This save can't be loaded. Restart the mission?"
 

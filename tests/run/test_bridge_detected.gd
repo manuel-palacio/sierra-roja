@@ -2,8 +2,8 @@ extends GutTest
 ## The mission can be lost: being seen brings the alarm, and the alarm kills.
 
 const BridgeBot := preload("res://tests/run/bridge_bot.gd")
-## South face of the guard post.
-const GUARD_POST := Vector3(-12.0, 0.0, -11.5)
+## The yard in front of the checkpoint hut.
+const CHECKPOINT_YARD := Vector3(-33.0, -3.0, 13.0)
 
 var _bot: BridgeBot
 var _clock := BridgeBot.FastClock.new()
@@ -27,9 +27,9 @@ func _assert_caught() -> void:
 	assert_lt(_bot.elapsed, BridgeBot.CAP, "inside the 5-minute cap")
 
 
-func test_walking_at_the_guard_post_loses() -> void:
+func test_walking_into_the_checkpoint_loses() -> void:
 	_bot = await BridgeBot.start(self)
-	_bot.dynamiter.move_to(GUARD_POST)
+	_bot.dynamiter.move_to(CHECKPOINT_YARD)
 	await _assert_caught()
 
 

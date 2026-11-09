@@ -7,10 +7,10 @@
 script = ExtResource("2_feature")
 kind = 0
 mode = 0
-points = PackedVector2Array(-30, -24)
-width = 9.0
-falloff = 16.0
-height = 6.0
+points = PackedVector2Array(-34, -26)
+width = 8.0
+falloff = 14.0
+height = 5.5
 surface = -1
 
 [sub_resource type="Resource" id="f1"]
@@ -76,12 +76,11 @@ surface = 2
 [sub_resource type="Resource" id="f7"]
 script = ExtResource("2_feature")
 kind = 1
-mode = 1
-points = PackedVector2Array(-30, -11, -20, -12, -19, -17, -24, -19)
+mode = 0
+points = PackedVector2Array(-30, -11, -28.5, -16, -31, -20.5)
 width = 1.6
-falloff = 2.0
-height = -3.0
-end_height = 3.0
+falloff = 0.0
+height = 0.0
 surface = 2
 
 [sub_resource type="Resource" id="f8"]
@@ -173,7 +172,7 @@ surface = 1
 script = ExtResource("2_feature")
 kind = 1
 mode = 1
-points = PackedVector2Array(-14, -8, -7, -2.3)
+points = PackedVector2Array(-19, -8, -12, -2.3)
 width = 1.6
 falloff = 1.2
 height = -3.0
@@ -195,6 +194,17 @@ surface = 1
 script = ExtResource("2_feature")
 kind = 1
 mode = 1
+points = PackedVector2Array(44, 9, 38, 2.3)
+width = 1.6
+falloff = 1.2
+height = -3.0
+end_height = 0.0
+surface = 1
+
+[sub_resource type="Resource" id="f19"]
+script = ExtResource("2_feature")
+kind = 1
+mode = 1
 points = PackedVector2Array(-6, -110, -3, -30, 0, -9, 0, 9, 4, 30, 8, 110)
 width = 3.5
 falloff = 1.5
@@ -210,4 +220,4 @@ base_height = -3.0
 seed = 7
 noise_amplitude = 0.45
 noise_period = 28.0
-features = Array[ExtResource("2_feature")]([SubResource("f0"), SubResource("f1"), SubResource("f2"), SubResource("f3"), SubResource("f4"), SubResource("f5"), SubResource("f6"), SubResource("f7"), SubResource("f8"), SubResource("f9"), SubResource("f10"), SubResource("f11"), SubResource("f12"), SubResource("f13"), SubResource("f14"), SubResource("f15"), SubResource("f16"), SubResource("f17"), SubResource("f18")])
+features = Array[ExtResource("2_feature")]([SubResource("f0"), SubResource("f1"), SubResource("f2"), SubResource("f3"), SubResource("f4"), SubResource("f5"), SubResource("f6"), SubResource("f7"), SubResource("f8"), SubResource("f9"), SubResource("f10"), SubResource("f11"), SubResource("f12"), SubResource("f13"), SubResource("f14"), SubResource("f15"), SubResource("f16"), SubResource("f17"), SubResource("f18"), SubResource("f19")])

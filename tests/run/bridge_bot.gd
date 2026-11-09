@@ -10,23 +10,37 @@ extends RefCounted
 const CAP := 300.0
 ## Close enough to a waypoint; a unit stops within 0.3 m of it.
 const ARRIVE := 0.5
-## The north side of the crate beside the bank guard's route, hidden from the guard as it walks north.
-const BEHIND_CRATE := Vector3(-23.4, 0.0, 3.4)
-const SOUTH_GAP_WEST := Vector3(-28.0, 0.0, 9.5)
-## Just out of the bridge guard's sight for a crawler, and where the two wait for their moment.
-const WEST_OF_LOOP := Vector3(-21.5, 0.0, 2.5)
-const MARKSMAN_WEST_OF_LOOP := Vector3(-23.0, 0.0, 8.0)
-## 6 m or more from both the bridge guard's east leg and the east guard's west leg, so a crawler is safe.
-const PLANT_ON_DECK := Vector3(0.0, 0.0, 0.0)
-const MARKSMAN_ON_DECK := Vector3(-1.5, 0.0, 0.0)
-## South-east leg to extraction, around the east guard's loop.
-const EAST_BANK_SOUTH := Vector3(6.0, 0.0, 12.0)
-const EAST_BANK_FAR := Vector3(26.0, 0.0, 13.0)
-const PAD_A := Vector3(36.0, 0.0, 19.0)
-const PAD_B := Vector3(34.0, 0.0, 17.0)
-## The winning route's waypoints, in order, for the run that ignores stealth.
-const ROUTE: Array[Vector3] = [SOUTH_GAP_WEST, BEHIND_CRATE, WEST_OF_LOOP, PLANT_ON_DECK,
-		EAST_BANK_SOUTH, EAST_BANK_FAR, PAD_A]
+
+# The stealth play goes round by the west footpath and the north side, where no turning guard
+# ever looks (guards swing round through the south at each end of an east-west beat).
+
+## South of the west footpath, out of the track guard's sight even when it faces this way.
+const WAIT_WEST := Vector3(-53.5, 0.0, 12.5)
+const WAIT_WEST_M := Vector3(-52.0, 0.0, 13.5)
+## Over the railway by the footpath, then away from it: beyond 13 m to the side, a walker on the
+## track never has anyone both inside its cone and inside its range.
+const CROSS_TOP := Vector3(-49.5, 0.0, 0.0)
+const NORTH_FOOT := Vector3(-53.5, 0.0, -9.5)
+const NORTH_PLAIN := Vector3(-50.0, 0.0, -14.5)
+const NORTH_MID := Vector3(-33.0, 0.0, -15.0)
+## Lying here they are in the sentry's far zone at worst, which a crawler passes.
+const RAMP_FOOT := Vector3(-20.0, 0.0, -10.5)
+const RAMP_FOOT_M := Vector3(-21.5, 0.0, -12.0)
+const RAMP_TOP := Vector3(-12.0, 0.0, -1.9)
+## Just west of the crate beside the rails: it hides someone lying here from a guard coming west.
+const AMBUSH := Vector3(-11.0, 0.0, -1.9)
+const WEST_ABUTMENT := Vector3(-7.0, 0.0, 0.0)
+## 3.5 m from the bridge target, well inside the 8 m the charge needs.
+const PLANT_ON_DECK := Vector3(3.5, 0.0, 0.0)
+const MARKSMAN_ON_DECK := Vector3(6.5, 0.0, 0.0)
+## Along the track and down the east footpath: 30 m and more from the charge when it goes.
+const EAST_TRACK := Vector3(37.5, 0.0, 0.0)
+const EAST_FOOT := Vector3(44.5, 0.0, 10.0)
+const PAD_A := Vector3(46.5, 0.0, 28.5)
+const PAD_B := Vector3(45.0, 0.0, 27.0)
+## The road through the checkpoint and along the track, for the run that ignores stealth.
+const ROUTE: Array[Vector3] = [Vector3(-30, 0, 34), Vector3(-30, 0, 12), Vector3(-30, 0, 0), WEST_ABUTMENT,
+		PLANT_ON_DECK]
 
 ## Runs the game four times faster with the same simulation: more physics ticks per wall second, so
 ## each tick still covers 1/60 of a game second. Restore with release, even after a failure.
@@ -54,9 +68,8 @@ var mission: Mission
 var rules: MissionRules
 var dynamiter: Specialist
 var marksman: Specialist
-var bridge_guard: Guard
-var bank_guard: Guard
-var east_guard: Guard
+var track_guard: Guard
+var sentry: Guard
 
 var elapsed := 0.0
 ## Guard name -> closest either specialist came to it, in metres.
@@ -64,6 +77,8 @@ var closest: Dictionary = {}
 ## Guard state changes with where everyone stood.
 var events: PackedStringArray = []
 var alarm_seen := false
+## Any guard left PATROL at all before the charge went off (suspicion counts).
+var noticed_before_blast := false
 var knife_used := false
 var body_hidden := false
 
@@ -78,9 +93,8 @@ func _init(tree: SceneTree, m: Mission, r: MissionRules, specialists: Array[Spec
 	dynamiter = specialists[0]
 	marksman = specialists[1]
 	var guards := m.guards()
-	bridge_guard = guards[0]
-	bank_guard = guards[1]
-	east_guard = guards[2]
+	track_guard = guards[2]
+	sentry = guards[3]
 	for g in guards:
 		closest[String(g.name)] = INF
 		_states[g] = g.brain.state
@@ -92,6 +106,7 @@ static func start(test: GutTest) -> RefCounted:
 	var m: Mission = load("res://scenes/missions/bridge.tscn").instantiate()
 	test.add_child_autofree(m)
 	await test.get_tree().process_frame
+	await test.get_tree().physics_frame
 	m.build_nav()
 	var specialists := m.spawn_specialists()
 	var r := MissionRules.new()
@@ -111,8 +126,8 @@ func running() -> bool:
 
 
 func summary() -> String:
-	return "t=%.1f result=%d alarm=%s knife=%s hidden=%s closest=%s\n  %s" % [elapsed, rules.result,
-			alarm_seen, knife_used, body_hidden, closest, "\n  ".join(events)]
+	return "t=%.1f result=%d alarm=%s noticed=%s knife=%s hidden=%s closest=%s\n  %s" % [elapsed, rules.result,
+			alarm_seen, noticed_before_blast, knife_used, body_hidden, closest, "\n  ".join(events)]
 
 
 ## Waits until cond is true. False when the mission ended or the cap ran out first.
@@ -126,55 +141,87 @@ func wait_until(cond: Callable) -> bool:
 
 ## Orders the move and waits for it. The unit keeps whatever stance it has.
 func go(unit: Specialist, pos: Vector3) -> bool:
-	unit.move_to(pos)
+	unit.move_to(_grounded(pos))
 	return await wait_until(func() -> bool: return flat(unit.global_position, pos) <= ARRIVE)
+
+
+func at(unit: Specialist, pos: Vector3) -> bool:
+	return flat(unit.global_position, pos) <= ARRIVE
 
 
 ## The full stealth play. Returns when the mission has ended or the cap ran out.
 func play() -> void:
-	await _reach_the_crate()
-	await _knife_the_bank_guard()
+	await _cross_the_railway()
+	await _reach_the_ramp()
+	await _lie_in_wait()
+	await _knife_the_sentry()
 	await _hide_the_body()
-	await _cross_to_the_deck()
+	await _onto_the_deck()
 	await _plant_and_leave()
 	await wait_until(func() -> bool: return false)
 
 
-## Slips through the south gap just as the bank guard's back comes round, and is lying behind the
-## crate before the guard has turned at the south end of its route. The crate nearly touches the
-## wall, so the way there is along the guard's side of it, 1 m off the route.
-func _reach_the_crate() -> void:
-	await go(dynamiter, SOUTH_GAP_WEST)
+## Both wait south of the footpath until the track guard has turned east, then walk over the
+## railway behind its back and on to the north plain. It needs 23 m of walking; the guard gives
+## its back for 16 m of its own and is out of range for 3 m more.
+func _cross_the_railway() -> void:
+	_mark("cross the railway")
+	marksman.move_to(_grounded(WAIT_WEST_M))
+	await go(dynamiter, WAIT_WEST)
+	await wait_until(func() -> bool: return at(marksman, WAIT_WEST_M))
 	await wait_until(func() -> bool:
-		var z := bank_guard.global_position.z
-		return bank_guard.velocity.z > 0.0 and z > 4.5 and z < 9.0 and _bridge_guard_away_at_the_knife())
-	dynamiter.move_to(BEHIND_CRATE)
-	await wait_until(func() -> bool:
-		return bank_guard.global_position.z > 15.0 \
-				or flat(dynamiter.global_position, BEHIND_CRATE) <= ARRIVE)
+		return track_guard.velocity.x > 0.0 and track_guard.global_position.x > -42.0 \
+				and track_guard.global_position.x < -39.0)
+	_walk_route(marksman, [CROSS_TOP, NORTH_FOOT, NORTH_PLAIN])
+	await _walk_route(dynamiter, [CROSS_TOP, NORTH_FOOT, NORTH_PLAIN])
+	await wait_until(func() -> bool: return at(marksman, NORTH_PLAIN))
+
+
+## East along the hillside, well back from the track, then down on their bellies near the ramp.
+func _reach_the_ramp() -> void:
+	_mark("reach the ramp")
+	_walk_route(marksman, [NORTH_MID, RAMP_FOOT_M])
+	await _walk_route(dynamiter, [NORTH_MID, RAMP_FOOT])
 	dynamiter.set_stance(Unit.Stance.CRAWLING)
-	await wait_until(func() -> bool: return flat(dynamiter.global_position, BEHIND_CRATE) <= ARRIVE)
+	await wait_until(func() -> bool: return at(marksman, RAMP_FOOT_M))
+	marksman.set_stance(Unit.Stance.CRAWLING)
 
 
-## Waits for the bank guard to come level with the crate, then steps out behind its shoulder.
-func _knife_the_bank_guard() -> void:
+## Up the ramp behind the sentry's back as it starts east, and flat behind the crate before it
+## turns. 11 m of walking against the 32 m it walks before it is back. The foot of the ramp can
+## be seen from the last metre and a half of the track guard's beat, so that guard must be going
+## away, or still far from its east end.
+func _lie_in_wait() -> void:
+	_mark("lie in wait")
+	await wait_until(func() -> bool:
+		var x := sentry.global_position.x
+		var track_clear := track_guard.velocity.x < 0.0 or track_guard.global_position.x < -39.0
+		return sentry.velocity.x > 0.0 and x > -11.0 and x < -8.0 and track_clear)
+	dynamiter.set_stance(Unit.Stance.STANDING)
+	await _walk_route(dynamiter, [RAMP_TOP, AMBUSH])
+	dynamiter.set_stance(Unit.Stance.CRAWLING)
+
+
+## The sentry comes west past the crate; as it draws level the Dynamiter is at its shoulder.
+func _knife_the_sentry() -> void:
+	_mark("knife the sentry")
 	var knife: Ability = dynamiter.abilities["knife"]
 	await wait_until(func() -> bool:
-		return bank_guard.velocity.z < 0.0 and bank_guard.global_position.z < BEHIND_CRATE.z + 1.0)
+		return sentry.velocity.x < 0.0 and sentry.global_position.x < AMBUSH.x + 0.6)
 	dynamiter.set_stance(Unit.Stance.STANDING)
-	while running() and bank_guard.alive:
-		if knife.can_use(dynamiter, bank_guard):
-			knife.use(dynamiter, bank_guard)
+	while running() and sentry.alive:
+		if knife.can_use(dynamiter, sentry):
+			knife.use(dynamiter, sentry)
 			knife_used = true
 			break
-		dynamiter.move_to(bank_guard.global_position)
+		dynamiter.move_to(sentry.global_position)
 		await _tree.physics_frame
 	dynamiter.stop()
 
 
-## Carries the body behind the crate, then both wait lying down on the west side of the bridge
-## guard's loop.
+## The body goes behind the crate, off the rails.
 func _hide_the_body() -> void:
+	_mark("hide the body")
 	if not knife_used:
 		return
 	await _tree.physics_frame
@@ -182,53 +229,41 @@ func _hide_the_body() -> void:
 	var carry: Ability = dynamiter.abilities["carry"]
 	if not bodies.is_empty() and carry.can_use(dynamiter, bodies[0]):
 		carry.use(dynamiter, bodies[0])
-		await go(dynamiter, BEHIND_CRATE)
+		await go(dynamiter, AMBUSH)
 		carry.use(dynamiter, null)
 		body_hidden = true
 
 
-## West of the loop they are safe from the bridge guard only lying down, so they crawl the last
-## stretch. They stand and walk once it is on its east leg heading north: it will not look their
-## way for about 6 s.
-func _cross_to_the_deck() -> void:
-	dynamiter.set_stance(Unit.Stance.CRAWLING)
-	dynamiter.move_to(WEST_OF_LOOP)
-	await go(marksman, SOUTH_GAP_WEST)
-	marksman.set_stance(Unit.Stance.CRAWLING)
-	marksman.move_to(MARKSMAN_WEST_OF_LOOP)
-	await wait_until(func() -> bool:
-		return flat(marksman.global_position, MARKSMAN_WEST_OF_LOOP) <= ARRIVE \
-				and flat(dynamiter.global_position, WEST_OF_LOOP) <= ARRIVE)
-	await wait_until(_bridge_guard_leaving_the_mouth)
-	dynamiter.set_stance(Unit.Stance.STANDING)
+## With the sentry gone the bridge is clear: the Marksman comes up and both walk out onto it.
+func _onto_the_deck() -> void:
+	_mark("onto the deck")
 	marksman.set_stance(Unit.Stance.STANDING)
-	marksman.move_to(MARKSMAN_ON_DECK)
-	await go(dynamiter, PLANT_ON_DECK)
-	dynamiter.set_stance(Unit.Stance.CRAWLING)
-	await wait_until(func() -> bool:
-		return flat(marksman.global_position, MARKSMAN_ON_DECK) <= ARRIVE)
-	marksman.set_stance(Unit.Stance.CRAWLING)
+	_walk_route(marksman, [RAMP_TOP, WEST_ABUTMENT, MARKSMAN_ON_DECK])
+	await _walk_route(dynamiter, [WEST_ABUTMENT, PLANT_ON_DECK])
+	await wait_until(func() -> bool: return at(marksman, MARKSMAN_ON_DECK))
 
 
-## Plants as the east guard turns away along its south leg, then both go round behind it. The
-## 10 s fuse covers 30 m of walking, well clear of the 8 m blast.
+## The 10 s fuse covers 30 m of walking, well clear of the 8 m blast.
 func _plant_and_leave() -> void:
-	await wait_until(func() -> bool:
-		return _east_guard_turned_away() and not _bridge_guard_looking_east())
+	_mark("plant and leave")
 	var charge: Ability = dynamiter.abilities["charge"]
 	if not running() or not charge.can_use(dynamiter, null):
 		return
 	charge.use(dynamiter, null)
-	dynamiter.set_stance(Unit.Stance.STANDING)
-	marksman.set_stance(Unit.Stance.STANDING)
-	_walk_route(marksman, [EAST_BANK_SOUTH, EAST_BANK_FAR, PAD_B])
-	await _walk_route(dynamiter, [EAST_BANK_SOUTH, EAST_BANK_FAR, PAD_A])
+	_walk_route(marksman, [EAST_TRACK, EAST_FOOT, PAD_B])
+	await _walk_route(dynamiter, [EAST_TRACK, EAST_FOOT, PAD_A])
 
 
-## Both walk the winning route upright with no regard for the guards, the Dynamiter leading.
+## Both walk the road upright with no regard for the guards, the Dynamiter leading.
 func walk_upright() -> void:
 	_walk_route(marksman, ROUTE)
 	await _walk_route(dynamiter, ROUTE)
+
+
+## Notes the start of a stage of the play among the events, for reading a failed run.
+func _mark(stage: String) -> void:
+	events.append("%.1f -- %s; D %s M %s" % [elapsed, stage, dynamiter.global_position.snappedf(0.1),
+			marksman.global_position.snappedf(0.1)])
 
 
 func _walk_route(unit: Specialist, points: Array) -> void:
@@ -237,35 +272,9 @@ func _walk_route(unit: Specialist, points: Array) -> void:
 			return
 
 
-## Starting its east leg, walking north: the ground to the west stays behind it until it has come
-## round to its west leg, and that takes the Marksman's whole walk from the crate to the deck.
-func _bridge_guard_leaving_the_mouth() -> bool:
-	var p := bridge_guard.global_position
-	return bridge_guard.velocity.z < 0.0 and p.x > -9.0 and p.z > 4.0 and p.z < 5.5
-
-
-## Whether it will look along the deck within the next 6 s, which is how long the walk off the
-## bridge takes. North leg, then west leg, then the first stretch of the south leg is all clear.
-func _bridge_guard_looking_east() -> bool:
-	var p := bridge_guard.global_position
-	var heading_north := bridge_guard.velocity.z < 0.0
-	var heading_west := bridge_guard.velocity.x < 0.0
-	var early_south_leg := p.x < -13.0 and p.z < -3.0
-	return not (heading_north or heading_west or early_south_leg)
-
-
-## The knife means standing, 12 m from its west leg, 6 to 8 s from now. That must not fall in the
-## first stretch of the west leg, where it looks towards the crate, so it must not be on its south
-## leg or the start of its east leg now.
-func _bridge_guard_away_at_the_knife() -> bool:
-	var p := bridge_guard.global_position
-	return not (p.z > 0.0 and p.x > -13.5)
-
-
-## Just round the corner onto its south leg, walking east: next it goes north up its far leg.
-func _east_guard_turned_away() -> bool:
-	var p := east_guard.global_position
-	return east_guard.velocity.x > 0.0 and p.z > 7.0 and p.x > 12.5 and p.x < 17.0
+## The same point of the ground plane, at the height of the land there.
+func _grounded(p: Vector3) -> Vector3:
+	return Vector3(p.x, mission.ground_height(p.x, p.z) if absf(p.x) > Mission.BANK_EDGE_X else 0.0, p.z)
 
 
 static func flat(a: Vector3, b: Vector3) -> float:
@@ -287,3 +296,5 @@ func _observe() -> void:
 					marksman.global_position.snappedf(0.1)])
 		if g.brain.state == GuardBrain.State.ALARM:
 			alarm_seen = true
+		if g.brain.state != GuardBrain.State.PATROL and not rules.bridge_destroyed:
+			noticed_before_blast = true

@@ -18,7 +18,7 @@ ADD, SET = 0, 1
 # kind, mode, points, width, falloff, height, end_height, surface
 FEATURES = [
     # Hills and knolls.
-    (MOUND, ADD, [(-30, -24)], 9, 16, 6.0, None, -1),
+    (MOUND, ADD, [(-34, -26)], 8, 14, 5.5, None, -1),
     (MOUND, ADD, [(32, -24)], 5, 13, 5.0, None, -1),
     (MOUND, ADD, [(20, 37)], 5, 10, 2.0, None, -1),
     # Flat yards: the checkpoint and the extraction point. (The farmhouse has the hill's flat top.)
@@ -28,7 +28,8 @@ FEATURES = [
     (PATH, ADD, [(13, 13), (24, 12), (36, 13.5)], 0.4, 2.6, 2.6, None, -1),
     # The road: up from the south to the checkpoint, and on from the crossing to the farm.
     (PATH, SET, [(-28, 100), (-30, 40), (-30, 12)], 2.0, 2.5, PLAIN, None, ROAD),
-    (PATH, SET, [(-30, -11), (-20, -12), (-19, -17), (-24, -19)], 1.6, 2.0, PLAIN, 3.0, ROAD),
+    # The farm track is only painted on (ADD 0): it follows the hillside as it is.
+    (PATH, ADD, [(-30, -11), (-28.5, -16), (-31, -20.5)], 1.6, 0.0, 0.0, None, ROAD),
     # The railway embankment either side of the gorge.
     (PATH, SET, [(-110, 0), (-5, 0)], 2.5, 5.0, 0.0, None, BALLAST),
     (PATH, SET, [(5, 0), (110, 0)], 2.5, 5.0, 0.0, None, BALLAST),
@@ -40,8 +41,9 @@ FEATURES = [
     (PATH, SET, [(-54, 9), (-49, 2.4)], 1.6, 1.2, PLAIN, 0.0, EARTH),
     (PATH, SET, [(-49, -2.4), (-54, -9)], 1.6, 1.2, 0.0, PLAIN, EARTH),
     (PATH, SET, [(-14, 8), (-7, 2.3)], 1.6, 1.2, PLAIN, 0.0, EARTH),
-    (PATH, SET, [(-14, -8), (-7, -2.3)], 1.6, 1.2, PLAIN, 0.0, EARTH),
+    (PATH, SET, [(-19, -8), (-12, -2.3)], 1.6, 1.2, PLAIN, 0.0, EARTH),
     (PATH, SET, [(15, 8), (7, 2.3)], 1.6, 1.2, PLAIN, 0.0, EARTH),
+    (PATH, SET, [(44, 9), (38, 2.3)], 1.6, 1.2, PLAIN, 0.0, EARTH),
     # The gorge, cut last through everything.
     (PATH, SET, [(-6, -110), (-3, -30), (0, -9), (0, 9), (4, 30), (8, 110)], 3.5, 1.5, -12.0, None, ROCK),
 ]
@@ -51,7 +53,7 @@ SPECIALIST_SPAWNS = [(-50, 32), (-50, 35)]
 GUARDS = [
     ("Checkpoint", [(-32, 18), (-32, 10), (-25, 10), (-25, 18)]),
     ("Road", [(-30, 21), (-30, 30)]),
-    ("Track", [(-44, 0), (-26, 0)]),
+    ("Track", [(-44, 0), (-28, 0)]),
     ("Sentry", [(-12, 0), (4, 0)]),
     ("EastBank", [(14, 17), (14, 30), (28, 30), (28, 17)]),
 ]
@@ -63,21 +65,23 @@ WALLS = [
     [(-24, 26), (-13, 26), (-13, 18)],
     [(18, 23), (25, 23)],
     [(34, 20), (40, 24)],
-    [(-24, -9), (-17, -9.5)],
-    [(-38, -18), (-39, -28), (-31, -31)],
+    [(-9, -12), (-8.5, -21)],
+    [(-42, -21), (-42, -31), (-34, -33)],
 ]
 # name, x, z, rotation (radians), size, roof height, ruin
 BUILDINGS = [
     ("CheckpointHut", -37.5, 13, 0.0, (5, 2.8, 4), 1.3, False),
-    ("Farmhouse", -31, -25, 0.25, (7, 2.6, 6), 0.0, True),
+    ("Farmhouse", -36, -27, 0.25, (7, 2.6, 6), 0.0, True),
 ]
-# Crates: name, x, y of the ground they stand on, z.
+# Crates: name, x, y of the ground they stand on, z, size along x, size along z.
+# The two beside the track are long and close to the rails: each hides someone lying just west of
+# it from a guard walking the rails, all the way until the guard is level with them.
 CRATES = [
-    ("CrateTrackS", -9, 0.0, 1.7),
-    ("CrateTrackN", -9, 0.0, -1.7),
-    ("CrateYard1", -27, PLAIN, 14),
-    ("CrateYard2", -34.5, PLAIN, 17.5),
-    ("CrateYard3", -33, PLAIN, 8.5),
+    ("CrateTrackS", -9, 0.0, 1.5, 2.2, 1.4),
+    ("CrateTrackN", -9, 0.0, -1.5, 2.2, 1.4),
+    ("CrateYard1", -27, PLAIN, 14, 1.2, 1.2),
+    ("CrateYard2", -34.5, PLAIN, 17.5, 1.2, 1.2),
+    ("CrateYard3", -33, PLAIN, 8.5, 1.2, 1.2),
 ]
 
 
@@ -144,9 +148,9 @@ def write_scene():
           # The deck's top is a hair above the embankment's, which it overlaps at each end.
           '[node name="BridgeDeck" type="CSGBox3D" parent="Nav"]', "use_collision = true", at(0, -0.18, 0),
           "size = Vector3(10.8, 0.4, 3.4)", 'material = SubResource("m_steel")', ""]
-    for name, x, ground, z in CRATES:
+    for name, x, ground, z, length, depth in CRATES:
         o += [f'[node name="{name}" type="CSGBox3D" parent="Nav"]', "use_collision = true", at(x, ground + 0.4, z),
-              "size = Vector3(1.2, 1.6, 1.2)", 'material = SubResource("m_crate")', ""]
+              f"size = Vector3({length}, 1.6, {depth})", 'material = SubResource("m_crate")', ""]
     for i, points in enumerate(WALLS):
         o += [f'[node name="Wall{i + 1}" type="StaticBody3D" parent="Nav"]', 'script = ExtResource("5_wall")',
               f"points = {v2(points)}", ""]

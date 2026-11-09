@@ -6,7 +6,7 @@ const SCENE := "res://scenes/missions/bridge.tscn"
 const ROAD_ROUTE: Array[Vector2] = [Vector2(-30, 34), Vector2(-30, 12), Vector2(-30, 0), Vector2(-7, 0)]
 const GORGE_ROUTE: Array[Vector2] = [Vector2(-30, 36), Vector2(-11, 30), Vector2(-13, 9), Vector2(-7, 1.5)]
 const HILL_ROUTE: Array[Vector2] = [Vector2(-53, 8), Vector2(-49, 0), Vector2(-53, -8), Vector2(-40, -16),
-		Vector2(-24, -19), Vector2(-14, -9), Vector2(-7, -1.5)]
+		Vector2(-31, -20.5), Vector2(-19.5, -9), Vector2(-11, -1.5)]
 
 var mission: Mission
 
@@ -234,3 +234,23 @@ func test_broken_bridge_stubs_jut_over_the_gorge_without_collision() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 	assert_lt(_path_length(west, east), 200.0, "and whole again after a repair")
+
+
+func test_a_walker_caught_by_the_blast_order_stops_at_the_bank() -> void:
+	await _built()
+	var walker: Specialist = mission.spawn_specialists()[0]
+	walker.global_position = _on_ground(Vector2(-12, 0))
+	await wait_physics_frames(2)
+	walker.move_to(Vector3(12, 0, 0))
+	for i in 120:
+		await get_tree().physics_frame
+		if walker.global_position.x > -9.0:
+			break
+	assert_gt(walker.global_position.x, -9.5, "on the approach, heading for the bridge")
+	mission.break_bridge()
+	await wait_seconds(4.0)
+	var p := walker.global_position
+	assert_eq(walker.velocity, Vector3.ZERO, "stopped")
+	assert_lte(p.x, -Mission.BANK_EDGE_X + 0.3, "on the west bank, not out over the gorge")
+	assert_gt(p.x, -9.5, "at the edge, having gone as far as it could")
+	assert_almost_eq(p.y, 0.0, 0.25, "standing on the abutment")

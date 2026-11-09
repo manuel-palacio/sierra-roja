@@ -24,7 +24,7 @@ test('runs at 30 fps or better with all guards patrolling', async ({ page }) => 
   console.log(`WebGL renderer: ${renderer}`);
   console.log(`fps: ${perf.fps.toFixed(1)} over ${perf.frames} frames`);
   console.log(`guards: ${perf.guards}, displacement over window: ${perf.displacement.toFixed(2)} m`);
-  expect(perf.guards).toBe(3);
+  expect(perf.guards).toBe(5);
   expect(perf.displacement).toBeGreaterThan(0);
   expect(perf.fps).toBeGreaterThanOrEqual(30);
 });

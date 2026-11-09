@@ -556,7 +556,7 @@ func test_browser_shortcuts_are_left_alone() -> void:
 func test_save_is_json_at_the_set_path_with_version() -> void:
 	_save()
 	assert_eq(SaveGame.SAVE_PATH, "user://quicksave.json")
-	assert_eq(int(_read_save()["version"]), 1)
+	assert_eq(int(_read_save()["version"]), 2)
 
 
 # --- Guards come and go ---
