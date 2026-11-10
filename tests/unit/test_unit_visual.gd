@@ -199,3 +199,88 @@ func test_guards_and_specialists_have_different_silhouettes() -> void:
 	assert_gt(guard.r, guard.b, "guards warm")
 	assert_gt(dynamiter.b, dynamiter.r, "specialists cool")
 	assert_eq(dynamiter, colour.call(MARKSMAN))
+
+
+# --- Weapons in use ---
+
+func _pieces(unit: Node, when: StringName) -> Array[MeshInstance3D]:
+	var out: Array[MeshInstance3D] = []
+	for piece in _gear(unit):
+		if piece.get_meta("when", &"") == when:
+			out.append(piece)
+	return out
+
+
+func test_weapons_are_slung_until_used() -> void:
+	var guard := _unit(GUARD)
+	assert_gt(_pieces(guard, &"slung").size(), 0, "a rifle on the back")
+	assert_gt(_pieces(guard, &"rifle").size(), 0, "and the same rifle for the hands")
+	for piece in _pieces(guard, &"slung"):
+		assert_true(piece.visible)
+	for piece in _pieces(guard, &"rifle"):
+		assert_false(piece.visible)
+	var marksman := _unit(MARKSMAN)
+	assert_gt(_pieces(marksman, &"rifle").size(), 0)
+	assert_gt(_pieces(marksman, &"pistol").size(), 0)
+	assert_gt(_pieces(_unit(DYNAMITER), &"pistol").size(), 0)
+	assert_gt(_pieces(_unit(DYNAMITER), &"knife").size(), 0)
+
+
+func test_a_shot_is_shown_weapon_in_hand_then_put_away() -> void:
+	var unit := _unit(MARKSMAN)
+	var visual := unit.get_node("UnitVisual") as UnitVisual
+	visual._process(0.0)
+	unit.acted.emit(&"rifle", Vector3(0, 0, -10))
+	visual._process(0.0)
+	assert_eq(visual.current_animation(), UnitVisual.SHOOT)
+	for piece in _pieces(unit, &"rifle"):
+		assert_true(piece.visible, "rifle in the hands")
+	for piece in _pieces(unit, &"slung"):
+		assert_false(piece.visible, "not on the back at the same time")
+	for piece in _pieces(unit, &"pistol"):
+		assert_false(piece.visible)
+	visual._process(UnitVisual.ACTION_SECONDS + 0.05)
+	visual._process(0.0)
+	assert_eq(visual.current_animation(), UnitVisual.IDLE)
+	for piece in _pieces(unit, &"rifle"):
+		assert_false(piece.visible)
+	for piece in _pieces(unit, &"slung"):
+		assert_true(piece.visible)
+
+
+func test_a_knife_is_shown_as_a_stab() -> void:
+	var unit := _unit(DYNAMITER)
+	var visual := unit.get_node("UnitVisual") as UnitVisual
+	unit.acted.emit(&"knife", Vector3(1, 0, 0))
+	visual._process(0.0)
+	assert_eq(visual.current_animation(), UnitVisual.STAB)
+	for piece in _pieces(unit, &"knife"):
+		assert_true(piece.visible)
+
+
+func test_a_unit_lying_down_fires_from_where_it_lies() -> void:
+	var unit := _unit(MARKSMAN)
+	var visual := unit.get_node("UnitVisual") as UnitVisual
+	unit.set_stance(Unit.Stance.CRAWLING)
+	visual._process(0.0)
+	unit.acted.emit(&"rifle", Vector3(0, 0, -10))
+	visual._process(0.0)
+	assert_eq(visual.current_animation(), UnitVisual.CRAWL, "it does not spring to its feet")
+	for piece in _pieces(unit, &"rifle"):
+		assert_true(piece.visible, "but the rifle is out")
+
+
+func test_a_guard_killed_now_is_seen_to_fall() -> void:
+	var guard := _unit(GUARD)
+	var holder := guard.get_parent()
+	guard.take_damage(1000)
+	var bodies := get_tree().get_nodes_in_group(Body.GROUP)
+	assert_eq(bodies.size(), 1)
+	var body := bodies[0] as Body
+	await get_tree().process_frame
+	var player := body.find_children("*", "AnimationPlayer", true, false)[0] as AnimationPlayer
+	assert_true(player.is_playing(), "falling, from the start of its death")
+	assert_lt(player.current_animation_position, 0.3)
+	assert_gt(_head_height(body), 1.0, "still on the way down")
+	assert_eq(body.get_parent(), holder)
+	body.free()

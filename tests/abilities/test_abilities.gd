@@ -363,3 +363,63 @@ func test_marksman_scene_has_exactly_rifle_and_pistol() -> void:
 	assert_true(s.has_ability("rifle"))
 	assert_true(s.has_ability("pistol"))
 	assert_eq(s.stats.resource_path, "res://resources/marksman.tres")
+
+
+# --- Using a weapon is something others can see: the unit turns to its target and says so ---
+
+func _acts(unit: Unit) -> Array:
+	var seen: Array = []
+	unit.acted.connect(func(what: StringName, at: Vector3) -> void: seen.append([what, at]))
+	return seen
+
+
+func test_a_shot_turns_the_shooter_to_the_target_and_announces_it() -> void:
+	var marksman := _spawn_specialist(PackedStringArray(["rifle", "pistol"]), Vector3(20, 0, 0))
+	marksman.rotation.y = 1.0
+	var guard := _guard(Vector3(20, 0, -12))
+	var at := guard.global_position
+	await wait_physics_frames(2)
+	var seen := _acts(marksman)
+	marksman.abilities["rifle"].use(marksman, guard)
+	assert_eq(seen, [[&"rifle", at]])
+	assert_almost_eq((-marksman.global_basis.z).normalized(), Vector3(0, 0, -1), Vector3.ONE * 0.001, "facing the guard")
+	assert_false(guard.alive)
+
+
+func test_a_pistol_shot_and_a_knife_announce_themselves_too() -> void:
+	var guard := _guard(Vector3(1.2, 0, 0))
+	var at := guard.global_position
+	await wait_physics_frames(2)
+	var seen := _acts(user)
+	user.abilities["pistol"].use(user, guard)
+	assert_eq(seen, [[&"pistol", at]])
+	assert_true(guard.alive, "a pistol takes two shots")
+	user.abilities["knife"].use(user, guard)
+	assert_eq(seen.size(), 2)
+	assert_eq(seen[1], [&"knife", at])
+	assert_almost_eq((-user.global_basis.z).normalized(), Vector3(1, 0, 0), Vector3.ONE * 0.001)
+
+
+func test_a_refused_shot_announces_nothing_and_turns_nobody() -> void:
+	var guard := _guard(Vector3(0, 0, -10))
+	_wall(Vector3(0, 1.5, -5), Vector3(6, 3, 0.5))
+	await wait_physics_frames(2)
+	user.rotation.y = 0.7
+	var seen := _acts(user)
+	user.abilities["pistol"].use(user, guard)
+	assert_eq(seen, [])
+	assert_almost_eq(user.rotation.y, 0.7, 0.0001)
+
+
+func test_a_guard_firing_announces_its_shot() -> void:
+	var guard := _guard(Vector3(0, 0, 0))
+	user.global_position = Vector3(0, 0, -6)
+	await wait_physics_frames(2)
+	var seen := _acts(guard)
+	guard.brain.on_alarm(user.global_position)
+	for i in 40:
+		guard.advance(guard.tuning.vision_interval)
+	assert_gt(seen.size(), 0, "it fired within 4 s of the alarm")
+	if seen.size() > 0:
+		assert_eq(seen[0][0], &"rifle")
+		assert_almost_eq(seen[0][1] as Vector3, user.global_position, Vector3.ONE * 0.01)

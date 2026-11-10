@@ -9,15 +9,26 @@ const WOOD := Color(0.30, 0.20, 0.12)
 const GUNMETAL := Color(0.13, 0.13, 0.14)
 const CANVAS := Color(0.55, 0.50, 0.36)
 
+const BLADE := Color(0.72, 0.74, 0.78)
+## The bones of the arm that holds a weapon.
+const HAND := "DEF-hand.R"
+const FOREARM := "DEF-forearm.R"
+
 ## Kit name -> pieces. A piece: the bone it rides on, "sphere" or "box", its size, where its
 ## centre is, how it is turned (degrees), and its colour.
+## "when" says when it is shown: always if absent; &"slung" until the rifle is in use; or the
+## name of the action that brings it out (&"rifle", &"pistol", &"knife").
+## A "held" piece is a weapon in the hand instead: its length, thickness, and how far from its
+## near end the hand grips it. It lies along the forearm, so it points where the arm points.
 const KITS := {
 	&"guard": [
 		# Steel helmet with a slight brim, and a rifle slung across the back.
 		{ "bone": "DEF-head", "shape": "sphere", "size": Vector3(0.31, 0.20, 0.34), "at": Vector3(0, 1.775, 0.01), "color": STEEL },
 		{ "bone": "DEF-head", "shape": "sphere", "size": Vector3(0.37, 0.05, 0.40), "at": Vector3(0, 1.725, 0.01), "color": STEEL },
-		{ "bone": "DEF-spine.003", "shape": "box", "size": Vector3(0.05, 1.05, 0.07), "at": Vector3(0.02, 1.28, -0.17), "turn": Vector3(0, 0, 28), "color": WOOD },
-		{ "bone": "DEF-spine.003", "shape": "box", "size": Vector3(0.03, 0.45, 0.03), "at": Vector3(-0.19, 1.66, -0.17), "turn": Vector3(0, 0, 28), "color": GUNMETAL },
+		{ "bone": "DEF-spine.003", "shape": "box", "size": Vector3(0.05, 1.05, 0.07), "at": Vector3(0.02, 1.28, -0.17), "turn": Vector3(0, 0, 28), "color": WOOD, "when": &"slung" },
+		{ "bone": "DEF-spine.003", "shape": "box", "size": Vector3(0.03, 0.45, 0.03), "at": Vector3(-0.19, 1.66, -0.17), "turn": Vector3(0, 0, 28), "color": GUNMETAL, "when": &"slung" },
+		{ "held": 1.05, "thick": 0.06, "grip": 0.38, "color": WOOD, "when": &"rifle" },
+		{ "held": 0.42, "thick": 0.03, "grip": -0.66, "color": GUNMETAL, "when": &"rifle" },
 		{ "bone": "DEF-spine.002", "shape": "box", "size": Vector3(0.30, 0.10, 0.06), "at": Vector3(0, 1.12, 0.13), "color": Color(0.36, 0.24, 0.14) },
 	],
 	&"dynamiter": [
@@ -25,13 +36,18 @@ const KITS := {
 		{ "bone": "DEF-head", "shape": "sphere", "size": Vector3(0.33, 0.11, 0.34), "at": Vector3(0.02, 1.81, 0.0), "turn": Vector3(0, 0, -8), "color": Color(0.10, 0.10, 0.12) },
 		{ "bone": "DEF-neck", "shape": "box", "size": Vector3(0.20, 0.07, 0.19), "at": Vector3(0, 1.51, 0.02), "color": Color(0.75, 0.13, 0.10) },
 		{ "bone": "DEF-hips", "shape": "box", "size": Vector3(0.12, 0.26, 0.30), "at": Vector3(-0.21, 0.93, 0.0), "color": CANVAS },
+		{ "held": 0.24, "thick": 0.05, "grip": 0.05, "color": GUNMETAL, "when": &"pistol" },
+		{ "held": 0.30, "thick": 0.03, "grip": 0.08, "color": BLADE, "when": &"knife" },
 		{ "bone": "DEF-spine.002", "shape": "box", "size": Vector3(0.05, 0.56, 0.02), "at": Vector3(0.0, 1.27, 0.125), "turn": Vector3(0, 0, 38), "color": Color(0.42, 0.37, 0.26) },
 	],
 	&"marksman": [
 		# Flat cap and the long rifle across the back.
 		{ "bone": "DEF-head", "shape": "sphere", "size": Vector3(0.31, 0.09, 0.36), "at": Vector3(0, 1.80, 0.03), "color": Color(0.33, 0.28, 0.22) },
-		{ "bone": "DEF-spine.003", "shape": "box", "size": Vector3(0.05, 1.25, 0.07), "at": Vector3(0.02, 1.30, -0.17), "turn": Vector3(0, 0, -30), "color": WOOD },
-		{ "bone": "DEF-spine.003", "shape": "box", "size": Vector3(0.035, 0.30, 0.035), "at": Vector3(0.12, 1.50, -0.215), "turn": Vector3(0, 0, -30), "color": GUNMETAL },
+		{ "bone": "DEF-spine.003", "shape": "box", "size": Vector3(0.05, 1.25, 0.07), "at": Vector3(0.02, 1.30, -0.17), "turn": Vector3(0, 0, -30), "color": WOOD, "when": &"slung" },
+		{ "bone": "DEF-spine.003", "shape": "box", "size": Vector3(0.035, 0.30, 0.035), "at": Vector3(0.12, 1.50, -0.215), "turn": Vector3(0, 0, -30), "color": GUNMETAL, "when": &"slung" },
+		{ "held": 1.25, "thick": 0.06, "grip": 0.42, "color": WOOD, "when": &"rifle" },
+		{ "held": 0.50, "thick": 0.03, "grip": -0.82, "color": GUNMETAL, "when": &"rifle" },
+		{ "held": 0.24, "thick": 0.05, "grip": 0.05, "color": GUNMETAL, "when": &"pistol" },
 		{ "bone": "DEF-spine.002", "shape": "box", "size": Vector3(0.05, 0.56, 0.02), "at": Vector3(0.0, 1.27, 0.125), "turn": Vector3(0, 0, -38), "color": Color(0.30, 0.20, 0.12) },
 	],
 }
@@ -55,23 +71,45 @@ static func equip(model: Node3D, kit: StringName) -> Array[MeshInstance3D]:
 		node = node.get_parent() as Node3D
 	to_skeleton = to_skeleton.affine_inverse()
 	for piece: Dictionary in KITS[kit]:
-		var bone := skeleton.find_bone(piece["bone"])
+		var bone_name: String = HAND if piece.has("held") else piece["bone"]
+		var bone := skeleton.find_bone(bone_name)
 		if bone < 0:
 			continue
 		var attachment := BoneAttachment3D.new()
-		attachment.bone_name = piece["bone"]
+		attachment.bone_name = bone_name
 		skeleton.add_child(attachment)
 		var mesh := MeshInstance3D.new()
-		mesh.mesh = _shape(piece["shape"], piece["size"])
 		mesh.material_override = _material(piece["color"])
-		var turn: Vector3 = piece.get("turn", Vector3.ZERO)
-		var in_model := Transform3D(Basis.from_euler(Vector3(deg_to_rad(turn.x), deg_to_rad(turn.y), deg_to_rad(turn.z))),
-				piece["at"])
-		# Where the piece sits relative to its bone when the model is at rest.
-		mesh.transform = skeleton.get_bone_global_rest(bone).affine_inverse() * to_skeleton * in_model
+		var rest := skeleton.get_bone_global_rest(bone)
+		if piece.has("held"):
+			mesh.mesh = _shape("box", Vector3(piece["held"], piece["thick"], piece["thick"]))
+			mesh.transform = rest.affine_inverse() * _held(skeleton, piece)
+		else:
+			mesh.mesh = _shape(piece["shape"], piece["size"])
+			var turn: Vector3 = piece.get("turn", Vector3.ZERO)
+			var in_model := Transform3D(Basis.from_euler(Vector3(deg_to_rad(turn.x), deg_to_rad(turn.y), deg_to_rad(turn.z))),
+					piece["at"])
+			# Where the piece sits relative to its bone when the model is at rest.
+			mesh.transform = rest.affine_inverse() * to_skeleton * in_model
+		var when: StringName = piece.get("when", &"")
+		mesh.set_meta("when", when)
+		mesh.visible = when == &"" or when == &"slung"
 		attachment.add_child(mesh)
 		made.append(mesh)
 	return made
+
+
+## Where a held weapon lies in the skeleton's space at rest: along the line from forearm to hand,
+## with the hand `grip` metres from its near end.
+static func _held(skeleton: Skeleton3D, piece: Dictionary) -> Transform3D:
+	var hand := skeleton.get_bone_global_rest(skeleton.find_bone(HAND)).origin
+	var forearm := skeleton.get_bone_global_rest(skeleton.find_bone(FOREARM)).origin
+	var along := (hand - forearm).normalized()
+	var side := along.cross(Vector3.UP).normalized()
+	var up := side.cross(along).normalized()
+	var length: float = piece["held"]
+	var centre := hand + along * (0.08 + length / 2.0 - float(piece["grip"])) + up * 0.04
+	return Transform3D(Basis(along, up, side), centre)
 
 
 static func _shape(kind: String, size: Vector3) -> Mesh:

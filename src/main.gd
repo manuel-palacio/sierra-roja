@@ -59,6 +59,7 @@ func _ready() -> void:
 	add_child(hud)
 	hud.setup(player_input, rules, specialists, overlay)
 	add_child(SoundEffects.new())
+	add_child(ShotDisplay.new())
 	charge_display = ChargeDisplay.new()
 	add_child(charge_display)
 	SaveGame.message.connect(hud.show_message)

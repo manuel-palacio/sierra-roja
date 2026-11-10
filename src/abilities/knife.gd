@@ -15,4 +15,5 @@ func can_use(user: Specialist, target: Variant) -> bool:
 func use(user: Specialist, target: Variant) -> void:
 	if not can_use(user, target):
 		return
+	_announce(user, (target as Unit).global_position)
 	(target as Unit).take_damage(tuning.knife_damage)

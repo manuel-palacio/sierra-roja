@@ -55,6 +55,12 @@ func _can_reach(user: Specialist, target: Variant, range_m: float) -> bool:
 			unit.global_position + Vector3.UP * tuning.shot_target_height)
 
 
+## The user turns to where it is striking and lets it be seen and heard.
+func _announce(user: Specialist, at: Vector3) -> void:
+	user.face(at)
+	user.acted.emit(id, at)
+
+
 func _spend_ammo() -> void:
 	if ammo > 0:
 		ammo -= 1

@@ -51,7 +51,11 @@ func _ready() -> void:
 			(unit as Unit).velocity = Vector3(0, 0, -3.0)
 		elif animation == "run" and unit is Unit:
 			(unit as Unit).velocity = Vector3(0, 0, -6.0)
-		elif animation != "" and unit is Unit:
+		elif animation == "shoot" and unit is Unit:
+			(unit as Unit).acted.emit(&"pistol" if i == 1 else &"rifle", Vector3.ZERO)
+		elif animation == "stab" and unit is Unit:
+			(unit as Unit).acted.emit(&"knife" if i == 1 else &"pistol", Vector3.ZERO)
+		elif animation != "" and animation != "idle" and unit is Unit:
 			unit.get_node("UnitVisual").set_process(false)
 			for player in unit.find_children("*", "AnimationPlayer", true, false):
 				(player as AnimationPlayer).play(animation)

@@ -10,6 +10,9 @@ const KIT := &"guard"
 ## The uniform the guard wore.
 @export var uniform: Texture2D
 
+## Set before it enters the tree when the guard has only just been killed: it is then seen to
+## fall. Otherwise (a load) it is already lying there.
+var fell_now := false
 var found := false
 ## The carrier, or null.
 var carried_by: Specialist
@@ -24,13 +27,14 @@ func _ready() -> void:
 		return
 	UnitVisual.dress(model, uniform)
 	SoldierGear.equip(model, KIT)
-	# The guard as it fell: the last frame of its death, held.
+	# The guard falling, or as it fell: the last frame of its death, held.
 	for node in model.find_children("*", "AnimationPlayer", true, false):
 		var player := node as AnimationPlayer
 		if player.has_animation(UnitVisual.DIE):
 			player.play(UnitVisual.DIE)
-			player.seek(player.current_animation_length, true)
-			player.pause()
+			if not fell_now:
+				player.seek(player.current_animation_length, true)
+				player.pause()
 
 
 func _physics_process(_delta: float) -> void:

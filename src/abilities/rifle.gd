@@ -18,5 +18,6 @@ func use(user: Specialist, target: Variant) -> void:
 	if not can_use(user, target):
 		return
 	_spend_ammo()
+	_announce(user, (target as Unit).global_position)
 	NoiseBus.emit_noise(user.global_position, tuning.rifle_noise_radius)
 	(target as Unit).take_damage(tuning.rifle_damage)

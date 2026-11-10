@@ -5,6 +5,9 @@ extends CharacterBody3D
 
 signal died(unit: Unit)
 signal arrived(unit: Unit)
+## The unit used a weapon (an ability id, or &"rifle" for a guard's shot) at a place. For whoever
+## shows or sounds it; the rules are already done when this fires.
+signal acted(what: StringName, at: Vector3)
 
 enum Stance { STANDING, CRAWLING }
 
@@ -67,6 +70,13 @@ func move_to(target: Vector3, run := false) -> void:
 	_moving = true
 	_noise_timer = 0.0
 	_agent.target_position = target
+
+
+## Turns on the spot to look at a place.
+func face(pos: Vector3) -> void:
+	var to := pos - global_position
+	if Vector2(to.x, to.z).length() > 0.01:
+		rotation.y = atan2(-to.x, -to.z)
 
 
 func stop() -> void:

@@ -12,6 +12,11 @@ const DIE := &"Death01"
 ## Lying flat and moving on the belly. The library's swimming clip is a body stretched out face
 ## down with the arms working, which on the ground is a crawl; held still, it is lying in wait.
 const CRAWL := &"Swim_Fwd"
+## One arm out with the weapon: the library's free clips have a pistol's aim but not a rifle's.
+const SHOOT := &"Pistol_Shoot"
+const STAB := &"Sword_Attack"
+## How long a shot or a stab is shown before the weapon is put away.
+const ACTION_SECONDS := 0.7
 const LOOPING: Array[StringName] = [IDLE, WALK, RUN, CRAWL]
 ## The swimming clip holds the body this far above the model's origin; a crawling model is
 ## lowered by it (times the model's own scale) so the body lies on the ground.
@@ -35,6 +40,10 @@ var _player: AnimationPlayer
 var _model: Node3D
 var _rest := Transform3D.IDENTITY
 var _current := &""
+## What the unit is being shown doing with a weapon (&"rifle", &"pistol", &"knife"), or &"".
+var _action := &""
+var _action_left := 0.0
+var _gear: Array[MeshInstance3D] = []
 ## Seconds since the animation last changed.
 var _since_change := 0.0
 
@@ -48,8 +57,9 @@ func _ready() -> void:
 	if _model != null:
 		_rest = _model.transform
 		dress(_model, uniform)
-		SoldierGear.equip(_model, kit)
+		_gear = SoldierGear.equip(_model, kit)
 		show_through(_model, silhouette)
+	_unit.acted.connect(_on_acted)
 	if _player != null:
 		for clip in LOOPING:
 			if _player.has_animation(clip):
@@ -61,6 +71,11 @@ func _process(delta: float) -> void:
 	if _unit == null:
 		return
 	_since_change += delta
+	if _action != &"":
+		_action_left -= delta
+		if _action_left <= 0.0 or not _unit.alive:
+			_action = &""
+			_show_gear()
 	var crawling := _unit.stance == Unit.Stance.CRAWLING and _unit.alive
 	if _model != null:
 		var pose := _rest
@@ -147,10 +162,28 @@ func _wanted(crawling: bool) -> StringName:
 		return DIE
 	if crawling:
 		return CRAWL
+	if _action != &"":
+		return STAB if _action == &"knife" else SHOOT
 	var speed := _ground_speed()
 	if speed < MOVING:
 		return IDLE
 	return RUN if speed > _unit.stats.walk_speed * 1.2 else WALK
+
+
+func _on_acted(what: StringName, _at: Vector3) -> void:
+	_action = what
+	_action_left = ACTION_SECONDS
+	_show_gear()
+
+
+## Weapons are on the back or put away until the action that uses them.
+func _show_gear() -> void:
+	for piece in _gear:
+		var when: StringName = piece.get_meta("when", &"")
+		if when == &"slung":
+			piece.visible = _action != &"rifle"
+		elif when != &"":
+			piece.visible = _action == when
 
 
 func _ground_speed() -> float:

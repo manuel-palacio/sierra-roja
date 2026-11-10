@@ -179,6 +179,7 @@ func _act_in_alarm(spec: Specialist, elapsed: float) -> void:
 			_fire_timer = tuning.fire_interval
 			spec.take_damage(tuning.rifle_damage)
 			fired.emit(spec)
+			acted.emit(&"rifle", spec.global_position)
 			NoiseBus.emit_noise(global_position, tuning.rifle_noise_radius)
 	elif _alarm_dest.distance_to(brain.goal_pos) > 1.0:
 		_alarm_dest = brain.goal_pos
@@ -205,6 +206,7 @@ func _on_died(_unit: Unit) -> void:
 	if parent != null:
 		var body := (load(Body.SCENE) as PackedScene).instantiate() as Body
 		body.save_id = String(name)
+		body.fell_now = true
 		parent.add_child(body)
 		body.global_position = global_position
 		body.rotation.y = rotation.y
@@ -266,8 +268,7 @@ func _on_peer_alarm(pos: Vector3) -> void:
 
 
 func _face(pos: Vector3) -> void:
-	var to := pos - global_position
-	rotation.y = atan2(-to.x, -to.z)
+	face(pos)
 
 
 func _flat_distance(pos: Vector3) -> float:
