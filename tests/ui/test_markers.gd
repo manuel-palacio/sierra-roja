@@ -150,6 +150,7 @@ func test_the_game_lights_the_selected_ring_and_marks_an_order() -> void:
 		rings.append(s.get_node("Ring") as SelectionRing)
 	assert_almost_eq(main.camera.focus.y, main.specialists[0].global_position.y, 0.3,
 			"the camera turns about a point on the ground the squad stands on, not 3 m above it")
+	assert_eq(main.camera.size, IsoCamera.ZOOM_START, "opens zoomed in enough to tell the soldiers apart")
 	assert_true(rings[0].selected, "the Dynamiter starts selected")
 	assert_false(rings[1].selected)
 	main.player_input.select(main.specialists[1])

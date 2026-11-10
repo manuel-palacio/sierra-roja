@@ -6,7 +6,7 @@ extends Label3D
 
 const NOTICED_COLOR := Color(1.0, 0.85, 0.2)
 const ALARM_COLOR := Color(1.0, 0.25, 0.2)
-const HEIGHT := 2.35
+const HEIGHT := 2.75
 
 var _guard: Guard
 

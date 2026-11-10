@@ -1,20 +1,32 @@
 class_name UnitVisual
 extends Node
-## Display only. Dresses the parent Unit's model in its uniform, plays its idle, walk, sprint and
-## die animations to match what the unit is doing, lays it face down while it crawls, and sets
-## its feet on the drawn ground (the unit itself stands on the navmesh, which runs a little above
-## or below). It reads the unit and never writes to it, and collision stays as it is.
+## Display only. Dresses the parent Unit's soldier model in its uniform and kit, plays the
+## animation that matches what the unit is doing (standing, walking, running, crawling, dead),
+## and sets its feet on the drawn ground (the unit itself stands on the navmesh, which runs a
+## little above or below). It reads the unit and never writes to it, and collision stays as it is.
 
-## A lying model is this high off the ground at its middle, and this far back so it is centred
-## on the unit instead of stretching out ahead of it.
-const PRONE_HEIGHT := 0.3
-const PRONE_BACK := 0.85
-const CRAWL_ANIMATION_SPEED := 0.5
-## The model is never moved further than this from the unit's own height.
+const IDLE := &"Idle"
+const WALK := &"Walk"
+const RUN := &"Sprint"
+const DIE := &"Death01"
+## Lying flat and moving on the belly. The library's swimming clip is a body stretched out face
+## down with the arms working, which on the ground is a crawl; held still, it is lying in wait.
+const CRAWL := &"Swim_Fwd"
+const LOOPING: Array[StringName] = [IDLE, WALK, RUN, CRAWL]
+## The swimming clip holds the body this far above the model's origin; a crawling model is
+## lowered by it (times the model's own scale) so the body lies on the ground.
+const CRAWL_DROP := 0.74
+const CRAWL_ANIMATION_SPEED := 0.7
+const BLEND := 0.2
+## Metres per second from which a unit counts as moving.
+const MOVING := 0.1
+## The model is never moved further than this from the unit's own height to meet the ground.
 const MAX_GROUND_SHIFT := 0.5
 
-## Replaces the texture the model came with.
+## The palette the model's body parts are coloured from (tools/make_soldier.py).
 @export var uniform: Texture2D
+## What it wears and carries: a key of SoldierGear.KITS.
+@export var kit := &""
 ## The flat colour the unit shows in where something stands between it and the camera.
 @export var silhouette := Color(0.55, 0.75, 1.0, 0.75)
 
@@ -23,6 +35,8 @@ var _player: AnimationPlayer
 var _model: Node3D
 var _rest := Transform3D.IDENTITY
 var _current := &""
+## Seconds since the animation last changed.
+var _since_change := 0.0
 
 
 func _ready() -> void:
@@ -34,33 +48,51 @@ func _ready() -> void:
 	if _model != null:
 		_rest = _model.transform
 		dress(_model, uniform)
+		SoldierGear.equip(_model, kit)
 		show_through(_model, silhouette)
+	if _player != null:
+		for clip in LOOPING:
+			if _player.has_animation(clip):
+				_player.get_animation(clip).loop_mode = Animation.LOOP_LINEAR
+		_play(_wanted(false))
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if _unit == null:
 		return
+	_since_change += delta
 	var crawling := _unit.stance == Unit.Stance.CRAWLING and _unit.alive
 	if _model != null:
 		var pose := _rest
 		if crawling:
-			# Tipped forward about the unit's side-to-side axis, head toward where it faces (-z).
-			pose = Transform3D(Basis(Vector3.RIGHT, -PI / 2.0) * _rest.basis,
-					_rest.origin + Vector3(0.0, PRONE_HEIGHT, PRONE_BACK))
+			pose.origin.y -= CRAWL_DROP * _rest.basis.get_scale().y
 		pose.origin.y += _ground_shift()
 		_model.transform = pose
 	if _player != null:
-		_player.speed_scale = CRAWL_ANIMATION_SPEED if crawling else 1.0
 		_play(_wanted(crawling))
+		_player.speed_scale = 1.0
+		if crawling:
+			# Lying still holds the clip where it is, but only once the change of pose has blended
+			# in: a stopped player would stop the blend too, half way down.
+			var still := _ground_speed() < MOVING and _since_change > BLEND
+			_player.speed_scale = 0.0 if still else CRAWL_ANIMATION_SPEED
 
 
-## Gives every mesh under a model a copy of its material with this texture. Used for bodies too.
+## The animation playing now.
+func current_animation() -> StringName:
+	return _current
+
+
+## Colours a soldier model from a uniform palette: every skinned mesh gets a copy of its material
+## with the palette as its texture. Used for bodies too.
 static func dress(model: Node, texture: Texture2D) -> void:
 	if texture == null:
 		return
 	var dressed := {}
 	for node in model.find_children("*", "MeshInstance3D", true, false):
 		var mesh := node as MeshInstance3D
+		if mesh.skin == null:
+			continue
 		for i in mesh.get_surface_override_material_count():
 			var material := mesh.get_active_material(i) as BaseMaterial3D
 			if material == null:
@@ -68,6 +100,9 @@ static func dress(model: Node, texture: Texture2D) -> void:
 			if not dressed.has(material):
 				var copy := material.duplicate() as BaseMaterial3D
 				copy.albedo_texture = texture
+				# Each body part reads one flat square of the palette.
+				copy.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+				copy.roughness = 1.0
 				dressed[material] = copy
 			mesh.set_surface_override_material(i, dressed[material])
 
@@ -88,7 +123,10 @@ static func show_through(model: Node, color: Color) -> void:
 				copy.stencil_mode = BaseMaterial3D.STENCIL_MODE_XRAY
 				copy.stencil_color = color
 				copies[material] = copy
-			mesh.set_surface_override_material(i, copies[material])
+			if mesh.material_override != null:
+				mesh.material_override = copies[material]
+			else:
+				mesh.set_surface_override_material(i, copies[material])
 
 
 ## How far the drawn ground under the unit is above (or below) the height the unit stands at.
@@ -106,21 +144,25 @@ func _ground_shift() -> float:
 
 func _wanted(crawling: bool) -> StringName:
 	if not _unit.alive:
-		return &"die"
-	var speed := Vector2(_unit.velocity.x, _unit.velocity.z).length()
+		return DIE
 	if crawling:
-		# The legs and arms work while it moves and hold still while it lies.
-		return &"walk" if speed >= 0.1 else &"static"
-	if speed < 0.1:
-		return &"idle"
-	return &"sprint" if speed > _unit.stats.walk_speed * 1.2 else &"walk"
+		return CRAWL
+	var speed := _ground_speed()
+	if speed < MOVING:
+		return IDLE
+	return RUN if speed > _unit.stats.walk_speed * 1.2 else WALK
+
+
+func _ground_speed() -> float:
+	return Vector2(_unit.velocity.x, _unit.velocity.z).length()
 
 
 func _play(anim: StringName) -> void:
 	if anim == _current or not _player.has_animation(anim):
 		return
 	_current = anim
-	_player.play(anim, 0.15)
+	_since_change = 0.0
+	_player.play(anim, BLEND)
 
 
 func _find_player(node: Node) -> AnimationPlayer:

@@ -174,7 +174,7 @@ func test_marksman_resource() -> void:
 	assert_eq(s.max_hp, 100)
 
 
-func test_crawling_lays_the_model_down_and_nothing_else() -> void:
+func test_crawling_changes_what_is_seen_and_nothing_else() -> void:
 	var model := unit.get_node("Model") as Node3D
 	var collider := unit.get_node("CollisionShape3D") as CollisionShape3D
 	await get_tree().process_frame
@@ -185,11 +185,7 @@ func test_crawling_lays_the_model_down_and_nothing_else() -> void:
 	unit.set_stance(Unit.Stance.CRAWLING)
 	await get_tree().process_frame
 	await get_tree().process_frame
-	var up := model.basis.y.normalized()
-	assert_lt(absf(up.y), sin(deg_to_rad(10.0)), "the model's up axis is within 10 degrees of flat")
-	assert_lt(up.z, -0.9, "head first, along the way the unit faces")
-	assert_almost_eq(model.basis.y.length(), 1.0, 0.001, "laid down, not squashed")
-	assert_lt(model.position.y, 0.6, "low on the ground")
+	assert_ne(model.transform, rest, "the model is set down for the crawl")
 	assert_eq((collider.shape as CapsuleShape3D).height, height, "collision stays as it was")
 	assert_eq(collider.position, collider_at)
 	assert_eq(unit.global_position, unit_at)

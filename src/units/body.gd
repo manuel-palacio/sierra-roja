@@ -5,6 +5,7 @@ extends Node3D
 
 const GROUP := "bodies"
 const SCENE := "res://scenes/units/body.tscn"
+const KIT := &"guard"
 
 ## The uniform the guard wore.
 @export var uniform: Texture2D
@@ -22,11 +23,12 @@ func _ready() -> void:
 	if model == null:
 		return
 	UnitVisual.dress(model, uniform)
+	SoldierGear.equip(model, KIT)
 	# The guard as it fell: the last frame of its death, held.
 	for node in model.find_children("*", "AnimationPlayer", true, false):
 		var player := node as AnimationPlayer
-		if player.has_animation("die"):
-			player.play("die")
+		if player.has_animation(UnitVisual.DIE):
+			player.play(UnitVisual.DIE)
 			player.seek(player.current_animation_length, true)
 			player.pause()
 

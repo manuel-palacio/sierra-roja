@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://d3ho8u2j4o07h"
-path="res://.godot/imported/uniform-marksman.png-d3c2934fa81645a6b8301ee16a150fe5.ctex"
+uid="uid://bgr2m0ulefpr2"
+path="res://.godot/imported/uniform-dynamiter.png-f3b2c038abfb5504ffda765f8518513d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/characters/Textures/uniform-marksman.png"
-dest_files=["res://.godot/imported/uniform-marksman.png-d3c2934fa81645a6b8301ee16a150fe5.ctex"]
+source_file="res://assets/characters/soldier/uniform-dynamiter.png"
+dest_files=["res://.godot/imported/uniform-dynamiter.png-f3b2c038abfb5504ffda765f8518513d.ctex"]
 
 [params]
 

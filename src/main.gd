@@ -25,6 +25,7 @@ func _ready() -> void:
 	add_child(mission)
 	camera = IsoCamera.new()
 	camera.bounds = mission.bounds_rect
+	camera.size = IsoCamera.ZOOM_START
 	add_child(camera)
 	var start := mission.specialist_spawns()
 	if not start.is_empty():

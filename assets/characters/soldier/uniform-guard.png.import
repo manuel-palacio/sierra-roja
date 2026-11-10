@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dqja4wq0lgxyc"
-path="res://.godot/imported/texture-p.png-9b6ec32c0379573c7a3d00fafb835ef1.ctex"
+uid="uid://djlj1mipr8fw3"
+path="res://.godot/imported/uniform-guard.png-ea96244256e977eda853156af6ef4fcb.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/characters/Textures/texture-p.png"
-dest_files=["res://.godot/imported/texture-p.png-9b6ec32c0379573c7a3d00fafb835ef1.ctex"]
+source_file="res://assets/characters/soldier/uniform-guard.png"
+dest_files=["res://.godot/imported/uniform-guard.png-ea96244256e977eda853156af6ef4fcb.ctex"]
 
 [params]
 

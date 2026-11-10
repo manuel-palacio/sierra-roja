@@ -8,6 +8,8 @@ const YAW_DEG := 45.0
 const PITCH_DEG := -35.0
 const ZOOM_MIN := 15.0
 const ZOOM_MAX := 40.0
+## Where a mission opens: close enough to tell the soldiers apart, with room to zoom out.
+const ZOOM_START := 27.5
 const ZOOM_STEP := 2.5
 const DISTANCE := 60.0
 const EDGE_MARGIN := 16.0

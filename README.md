@@ -27,7 +27,9 @@ begins. Sound starts after your first click or key press (browser rule).
 
 The map is authored as numbers in `tools/make_bridge_map.py`, which writes the land
 (`resources/missions/bridge_land.tres`) and the mission scene; `tools/map_preview.gd` draws the
-result from above. The uniforms come from `tools/recolour_uniforms.py`.
+result from above. The soldier model and its uniforms come from
+`tools/make_soldier.py`; helmets, caps, rifles and bags are in `src/units/soldier_gear.gd`, and
+`tools/unit_preview.gd` renders the units close up.
 
 ## Run it locally
 
