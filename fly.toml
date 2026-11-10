@@ -1,0 +1,14 @@
+# Fly.io hosting for the exported game. Deploy with ops/deploy-fly.sh.
+app = "sierra-roja"
+primary_region = "arn"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"

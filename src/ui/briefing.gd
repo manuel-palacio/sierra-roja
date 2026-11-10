@@ -104,7 +104,7 @@ func _init() -> void:
 	gap.custom_minimum_size = Vector2(0, 6)
 	column.add_child(gap)
 	column.add_child(start_button)
-	var hint := _text("Enter or Space also start", 13, Color(0.6, 0.63, 0.7))
+	var hint := _text("Enter or Space also start  ·  Credits and licences: /credits.txt", 13, Color(0.6, 0.63, 0.7))
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	column.add_child(hint)
 

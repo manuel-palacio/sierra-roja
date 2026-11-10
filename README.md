@@ -51,6 +51,13 @@ The game only starts in a secure context: over plain HTTP the browser has no aud
 page says so instead of starting. `localhost` counts as secure, so to play from another machine, put
 the build behind HTTPS.
 
+## Host it on Fly.io
+
+`ops/deploy-fly.sh` builds the game and deploys it as a static site (`Dockerfile`, `ops/nginx.conf`,
+`fly.toml`). It needs the [fly CLI](https://fly.io/docs/flyctl/), logged in, and an app with the name in
+`fly.toml` (`fly apps create <name>` once). The site is public, served over HTTPS, and its one machine
+stops while nobody is playing.
+
 ## Test
 
 Install the browser test tools once with `npm install`, then:
