@@ -7,7 +7,7 @@ extends CanvasLayer
 signal started()
 
 const TITLE := "Sierra Roja"
-const SUBTITLE := "The bridge at night"
+const SUBTITLE := "The bridge at dawn"
 const OBJECTIVES: Array[String] = [
 	"Destroy the railway bridge with the Dynamiter's charge.",
 	"Get both of them to the extraction point on the far bank.",

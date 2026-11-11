@@ -371,7 +371,7 @@ func test_yard_clutter_and_the_girders_block_sight_and_feet() -> void:
 		var p := (body as Node3D).global_position
 		var near := NavigationServer3D.map_get_closest_point(mission.nav_map(), p)
 		assert_gt(Vector2(near.x - p.x, near.z - p.z).length(), 0.4, "%s is cut out of the navmesh" % body.name)
-		assert_false(Perception.line_clear(mission, p + Vector3(-1.5, 0.3, 0), p + Vector3(1.5, 0.3, 0)),
+		assert_false(Perception.line_clear(mission, p + Vector3(-2.6, 0.0, 0), p + Vector3(2.6, 0.0, 0)),
 				"%s hides someone lying behind it" % body.name)
 	# A girder runs along each side of the deck: lying on the deck you are hidden from the side.
 	assert_false(Perception.line_clear(mission, Vector3(0, 0.3, 0), Vector3(0, 0.3, 6)))

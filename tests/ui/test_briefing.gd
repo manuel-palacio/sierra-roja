@@ -38,7 +38,7 @@ func test_it_says_what_to_do_and_how() -> void:
 	var b := _briefing()
 	var text := _all_text(b)
 	assert_eq(b.title_label.text, "Sierra Roja")
-	assert_string_contains(text, "The bridge at night")
+	assert_string_contains(text, "The bridge at dawn")
 	assert_string_contains(text, "Destroy the railway bridge")
 	assert_string_contains(text, "Get both of them to the extraction point")
 	for needle in ["Left click", "Double-click", "Crawl", "Knife", "Charge", "Rifle", "Pistol", "Carry",

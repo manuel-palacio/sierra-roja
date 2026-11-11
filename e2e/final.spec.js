@@ -3,7 +3,10 @@ const { test, expect } = require('@playwright/test');
 // The art, night look and sound in the real build: a user gesture unlocks audio, nothing may log
 // an error, and a screenshot is kept for a human to look at (build/e2e/final.png, with a charge
 // planted and the Dynamiter crawling beside it, then build/e2e/flash.png of its detonation).
-test('night scene renders, audio unlocks on a click, no console errors', async ({ page }) => {
+// Headless Chromium draws in software, where the full scene runs well below real time: the 10 s
+// fuse can take half a minute, hence the long waits.
+test('the scene renders, audio unlocks on a click, no console errors', async ({ page }) => {
+  test.setTimeout(120000);
   const errors = [];
   page.on('console', (msg) => { if (msg.type() === 'error') errors.push(msg.text()); });
   page.on('pageerror', (err) => errors.push(err.message));
@@ -36,7 +39,7 @@ test('night scene renders, audio unlocks on a click, no console errors', async (
   await page.waitForFunction(() => {
     window.sierraProbe();
     return window.sierraState.message === 'The charge was too far from the bridge';
-  }, null, { polling: 16, timeout: 15000 });
+  }, null, { polling: 16, timeout: 80000 });
   await page.screenshot({ path: 'build/e2e/flash.png' });
   expect(errors).toEqual([]);
 });

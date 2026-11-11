@@ -11,16 +11,21 @@ const ATTEMPTS := 12
 ## The kit's materials by name, recoloured from its pastel palette to a dry Spanish hillside.
 ## A material not listed keeps its own colour.
 const PALETTE := {
-	"leafsDark": Color(0.13, 0.26, 0.15),
-	"grass": Color(0.37, 0.40, 0.21),
-	"dirt": Color(0.46, 0.42, 0.37),
-	"_defaultMat": Color(0.52, 0.48, 0.43),
-	"stone": Color(0.50, 0.47, 0.43),
-	"woodBarkDark": Color(0.27, 0.19, 0.13),
-	"woodBark": Color(0.38, 0.27, 0.18),
-	"woodInner": Color(0.62, 0.50, 0.36),
-	"wood": Color(0.45, 0.33, 0.20),
-	"woodDark": Color(0.33, 0.24, 0.15),
+	"leafsDark": Color(0.17, 0.33, 0.16),
+	"leafsGreen": Color(0.30, 0.44, 0.18),
+	"grass": Color(0.42, 0.47, 0.20),
+	"dirt": Color(0.56, 0.50, 0.43),
+	"_defaultMat": Color(0.62, 0.57, 0.50),
+	"stone": Color(0.60, 0.56, 0.50),
+	"woodBarkDark": Color(0.30, 0.21, 0.14),
+	"woodBark": Color(0.42, 0.30, 0.20),
+	"woodInner": Color(0.70, 0.56, 0.40),
+	"wood": Color(0.50, 0.37, 0.22),
+	"woodDark": Color(0.36, 0.26, 0.16),
+	"colorRed": Color(0.82, 0.10, 0.08),
+	"colorYellow": Color(0.93, 0.76, 0.14),
+	"colorPurple": Color(0.52, 0.32, 0.68),
+	"colorWhite": Color(0.92, 0.90, 0.84),
 }
 
 @export var models: Array[PackedScene] = []
@@ -188,7 +193,7 @@ func _add_multimeshes(model: int) -> void:
 			walker = walker.get_parent()
 		var multi := MultiMesh.new()
 		multi.transform_format = MultiMesh.TRANSFORM_3D
-		multi.mesh = _in_palette(source.mesh)
+		multi.mesh = in_palette(source.mesh)
 		multi.instance_count = places.size()
 		for i in places.size():
 			multi.set_instance_transform(i, places[i] * inner)
@@ -199,7 +204,7 @@ func _add_multimeshes(model: int) -> void:
 
 
 ## The mesh with each palette material swapped for its recoloured twin.
-static func _in_palette(mesh: Mesh) -> Mesh:
+static func in_palette(mesh: Mesh) -> Mesh:
 	var copy: Mesh = null
 	for i in mesh.get_surface_count():
 		var material := mesh.surface_get_material(i) as BaseMaterial3D
@@ -209,6 +214,7 @@ static func _in_palette(mesh: Mesh) -> Mesh:
 			var twin := material.duplicate() as BaseMaterial3D
 			twin.albedo_color = PALETTE[material.resource_name]
 			twin.roughness = 1.0
+			twin.metallic = 0.0
 			twin.metallic_specular = 0.1
 			_recoloured[material.resource_name] = twin
 		if copy == null:

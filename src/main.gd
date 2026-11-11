@@ -58,6 +58,7 @@ func _ready() -> void:
 	hud = (load("res://scenes/ui/hud.tscn") as PackedScene).instantiate() as Hud
 	add_child(hud)
 	hud.setup(player_input, rules, specialists, overlay)
+	add_child(_vignette())
 	var objective_marker := ObjectiveMarker.new()
 	add_child(objective_marker)
 	objective_marker.setup(camera, mission, rules)
@@ -99,3 +100,17 @@ func _show_selection(chosen: Specialist) -> void:
 		var ring := s.get_node_or_null("Ring") as SelectionRing
 		if ring != null:
 			ring.selected = s == chosen
+
+
+## A soft darkening of the view's corners, under the HUD.
+func _vignette() -> CanvasLayer:
+	var layer := CanvasLayer.new()
+	layer.layer = 0
+	var rect := ColorRect.new()
+	rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var material := ShaderMaterial.new()
+	material.shader = preload("res://assets/shaders/vignette.gdshader")
+	rect.material = material
+	layer.add_child(rect)
+	return layer

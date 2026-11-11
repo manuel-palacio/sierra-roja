@@ -1,36 +1,39 @@
 class_name Terrain
 extends StaticBody3D
-## The ground of a mission: draws a HeightField as a flat-shaded, vertex-coloured mesh and gives it
-## collision made of the same triangles, so sight rays, mouse picking and the navmesh bake all meet
-## the land the player sees. The mesh is cut into chunks so lamps (eight lights per mesh in the
+## The ground of a mission: draws a HeightField as a textured mesh and gives it collision made of
+## the same triangles, so sight rays, mouse picking and the navmesh bake all meet the land the
+## player sees. Grass, dry earth, road and ballast are textures blended by weights at each vertex;
+## rock shows on steep faces. The mesh is cut into chunks so lamps (eight lights per mesh in the
 ## Compatibility renderer) and culling work per chunk.
 
 ## Quads per chunk side.
 const CHUNK := 32
-## Faces steeper than this are drawn as rock.
-const ROCK_SLOPE_DEG := 38.0
 ## Collision covers the playable bounds plus this many metres.
 const COLLISION_MARGIN := 6.0
-const COLORS := {
-	HeightField.Surface.GRASS: Color(0.31, 0.35, 0.19),
-	HeightField.Surface.EARTH: Color(0.47, 0.40, 0.27),
-	HeightField.Surface.ROAD: Color(0.56, 0.48, 0.34),
-	HeightField.Surface.BALLAST: Color(0.40, 0.38, 0.36),
-	HeightField.Surface.ROCK: Color(0.45, 0.40, 0.35),
+const SHADER := preload("res://assets/shaders/terrain.gdshader")
+const TEXTURES := {
+	"grass": preload("res://assets/textures/grass.jpg"),
+	"earth": preload("res://assets/textures/earth.jpg"),
+	"road": preload("res://assets/textures/road.jpg"),
+	"ballast": preload("res://assets/textures/ballast.jpg"),
+	"rock": preload("res://assets/textures/rock.jpg"),
 }
-## Each face is lighter or darker by up to this share, so the facets read.
-const SHADE_JITTER := 0.07
-## Grass gives way to bare earth where this noise is high.
+## What the land dissolves into past the edge of the map: the morning haze. main.tscn's
+## background is the same colour.
+const MIST := Color(0.56, 0.60, 0.64)
+## Grass gives way to dry earth where this noise is high.
 const EARTH_PERIOD := 17.0
-const EARTH_THRESHOLD := 0.28
-## Land beyond the playable bounds darkens to nothing over this share of the skirt, so the map
+const EARTH_FROM := 0.12
+const EARTH_FULL := 0.42
+## Land beyond the playable bounds fades into the mist over this share of the skirt, so the map
 ## has no visible end.
 const FADE_SHARE := 0.75
 
 @export var spec: TerrainSpec
 var field: HeightField
 
-var _material: StandardMaterial3D
+var _material: ShaderMaterial
+var _earth: FastNoiseLite
 
 
 func _ready() -> void:
@@ -51,16 +54,20 @@ func build() -> void:
 	if spec == null:
 		return
 	field = TerrainGenerator.build(spec)
-	_material = StandardMaterial3D.new()
-	_material.vertex_color_use_as_albedo = true
-	_material.roughness = 1.0
-	_material.metallic_specular = 0.0
-	var earth := FastNoiseLite.new()
-	earth.seed = spec.seed + 1
-	earth.frequency = 1.0 / EARTH_PERIOD
+	_material = ShaderMaterial.new()
+	_material.shader = SHADER
+	for key in TEXTURES:
+		_material.set_shader_parameter(key, TEXTURES[key])
+	var b := spec.bounds
+	_material.set_shader_parameter("bounds", Vector4(b.position.x, b.position.y, b.end.x, b.end.y))
+	_material.set_shader_parameter("fade_distance", maxf(spec.skirt * FADE_SHARE, 0.001))
+	_material.set_shader_parameter("mist", MIST)
+	_earth = FastNoiseLite.new()
+	_earth.seed = spec.seed + 1
+	_earth.frequency = 1.0 / EARTH_PERIOD
 	for row in range(0, field.rows - 1, CHUNK):
 		for col in range(0, field.cols - 1, CHUNK):
-			add_child(_chunk(col, row, earth))
+			add_child(_chunk(col, row))
 	var shape := ConcavePolygonShape3D.new()
 	shape.backface_collision = true
 	shape.set_faces(faces(spec.bounds.grow(COLLISION_MARGIN)))
@@ -99,40 +106,30 @@ func faces(area: Rect2) -> PackedVector3Array:
 	return out
 
 
-func _chunk(col0: int, row0: int, earth: FastNoiseLite) -> MeshInstance3D:
+func _chunk(col0: int, row0: int) -> MeshInstance3D:
 	var col1 := mini(col0 + CHUNK, field.cols - 1)
 	var row1 := mini(row0 + CHUNK, field.rows - 1)
-	var count := (col1 - col0) * (row1 - row0) * 6
+	var wide := col1 - col0 + 1
 	var verts := PackedVector3Array()
 	var normals := PackedVector3Array()
 	var colors := PackedColorArray()
-	verts.resize(count)
-	normals.resize(count)
-	colors.resize(count)
-	var i := 0
-	for r in range(row0, row1):
-		for c in range(col0, col1):
-			var v00 := field.vertex(c, r)
-			var v10 := field.vertex(c + 1, r)
-			var v11 := field.vertex(c + 1, r + 1)
-			var v01 := field.vertex(c, r + 1)
-			var base := _surface_of(c, r, earth)
-			for tri in 2:
-				var a := v00
-				var b := v10 if tri == 0 else v11
-				var d := v11 if tri == 0 else v01
-				var normal := (d - a).cross(b - a).normalized()
-				var color := _shade(base, normal, c, r, tri)
-				for v in [a, b, d]:
-					verts[i] = v
-					normals[i] = normal
-					colors[i] = color.darkened(edge_fade(v.x, v.z))
-					i += 1
+	for r in range(row0, row1 + 1):
+		for c in range(col0, col1 + 1):
+			verts.append(field.vertex(c, r))
+			normals.append(_normal(c, r))
+			colors.append(_weights(c, r))
+	var indices := PackedInt32Array()
+	for r in row1 - row0:
+		for c in col1 - col0:
+			var i := r * wide + c
+			# The same split as HeightField.height_at and faces(): (c, r) to (c + 1, r + 1).
+			indices.append_array([i, i + 1, i + wide + 1, i, i + wide + 1, i + wide])
 	var arrays := []
 	arrays.resize(Mesh.ARRAY_MAX)
 	arrays[Mesh.ARRAY_VERTEX] = verts
 	arrays[Mesh.ARRAY_NORMAL] = normals
 	arrays[Mesh.ARRAY_COLOR] = colors
+	arrays[Mesh.ARRAY_INDEX] = indices
 	var mesh := ArrayMesh.new()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
 	mesh.surface_set_material(0, _material)
@@ -142,26 +139,33 @@ func _chunk(col0: int, row0: int, earth: FastNoiseLite) -> MeshInstance3D:
 	return instance
 
 
+## The land's normal at a vertex, from its neighbours' heights.
+func _normal(c: int, r: int) -> Vector3:
+	var dx := field.get_h(c + 1, r) - field.get_h(c - 1, r)
+	var dz := field.get_h(c, r + 1) - field.get_h(c, r - 1)
+	return Vector3(-dx, 2.0 * field.cell, -dz).normalized()
+
+
+## How much of each ground texture a vertex shows, as (grass, earth, road, ballast). Rock is the
+## absence of all four. Untagged land is grass with patches of dry earth.
+func _weights(c: int, r: int) -> Color:
+	match field.get_surface(c, r):
+		HeightField.Surface.EARTH:
+			return Color(0, 1, 0, 0)
+		HeightField.Surface.ROAD:
+			return Color(0, 0, 1, 0)
+		HeightField.Surface.BALLAST:
+			return Color(0, 0, 0, 1)
+		HeightField.Surface.ROCK:
+			return Color(0, 0, 0, 0)
+	var p := field.vertex(c, r)
+	var dry := smoothstep(EARTH_FROM, EARTH_FULL, _earth.get_noise_2d(p.x, p.z))
+	return Color(1.0 - dry, dry, 0, 0)
+
+
 ## 0 inside the bounds, rising to 1 out across the skirt.
 func edge_fade(x: float, z: float) -> float:
 	var b := spec.bounds
 	var outside := Vector2(maxf(maxf(b.position.x - x, x - b.end.x), 0.0),
 			maxf(maxf(b.position.y - z, z - b.end.y), 0.0)).length()
 	return smoothstep(0.0, maxf(spec.skirt * FADE_SHARE, 0.001), outside)
-
-
-## A quad's surface: what the generator tagged, else earth in patches over the grass.
-func _surface_of(c: int, r: int, earth: FastNoiseLite) -> HeightField.Surface:
-	var tagged := field.get_surface(c, r)
-	if tagged != HeightField.Surface.GRASS:
-		return tagged
-	var p := field.vertex(c, r)
-	return HeightField.Surface.EARTH if earth.get_noise_2d(p.x, p.z) > EARTH_THRESHOLD \
-			else HeightField.Surface.GRASS
-
-
-func _shade(surface: HeightField.Surface, normal: Vector3, c: int, r: int, tri: int) -> Color:
-	var steep := rad_to_deg(acos(clampf(normal.y, -1.0, 1.0))) > ROCK_SLOPE_DEG
-	var color: Color = COLORS[HeightField.Surface.ROCK if steep else surface]
-	var jitter := float(hash(Vector3i(c, r, tri)) % 1000) / 999.0 * 2.0 - 1.0
-	return color.lightened(jitter * SHADE_JITTER) if jitter > 0.0 else color.darkened(-jitter * SHADE_JITTER)

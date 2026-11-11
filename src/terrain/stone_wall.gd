@@ -4,7 +4,8 @@ extends StaticBody3D
 ## hide someone crawling, low enough to see a standing head over. Goes under Nav/ so the navmesh
 ## bake cuts it out. The node stays at the origin; `points` are world positions.
 
-const COLOR := Color(0.50, 0.46, 0.40)
+## Tint over the stone texture.
+const COLOR := Color(0.92, 0.88, 0.82)
 ## Longest single block, in metres.
 const BLOCK_LENGTH := 1.6
 ## Blocks reach this far into the ground, so a slope shows no gap under them.
@@ -14,9 +15,6 @@ const SINK := 0.4
 @export var points := PackedVector2Array()
 @export var wall_height := 1.0
 @export var thickness := 0.6
-
-static var _material: StandardMaterial3D
-
 
 ## ground.call(x, z) gives the ground height. Mission calls this before the navmesh bake.
 func build(ground: Callable) -> void:
@@ -60,8 +58,4 @@ func _add_block(a: Vector2, c: Vector2, ground: Callable, rng: RandomNumberGener
 
 
 static func _stone() -> StandardMaterial3D:
-	if _material == null:
-		_material = StandardMaterial3D.new()
-		_material.albedo_color = COLOR
-		_material.roughness = 1.0
-	return _material
+	return Surfaces.material(&"stone", COLOR)

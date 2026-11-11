@@ -89,7 +89,7 @@ CRATES = [
 
 # Scattered kit models. Blocking ones go under Nav/ and stop feet and eyes.
 NATURE = "res://assets/props/nature/"
-PINES = ["tree_pineTallA", "tree_pineTallB", "tree_pineRoundA", "tree_pineRoundC"]
+PINES = ["tree_pineTallA", "tree_pineTallB", "tree_pineRoundA", "tree_pineRoundC", "tree_pineTallC", "tree_pineRoundE"]
 WHOLE_MAP = [(-54, -39), (54, -39), (54, 39), (-54, 39)]
 HILL = [(-54, -39), (-10, -39), (-10, -24), (-20, -17), (-44, -17), (-54, -20)]
 NORTH_EAST = [(8, -39), (54, -39), (54, -10), (12, -10)]
@@ -102,14 +102,18 @@ CLEAR = [(-53.5, 12.5), (-52, 13.5), (-53.5, -9.5), (-50, -14.5), (-42, -15), (-
 SCATTERS = [
     ("HillPines", True, PINES, HILL, 36, 11, 4.5, (3.2, 4.4), 3.0, (0.5, 3.0, 0.5), 32),
     ("NorthEastPines", True, PINES, NORTH_EAST, 24, 12, 5.0, (3.2, 4.4), 3.0, (0.5, 3.0, 0.5), 32),
-    ("SouthWestTrees", True, ["tree_oak_dark", "tree_pineRoundA"], SOUTH_WEST, 9, 13, 8.0, (3.6, 4.6), 3.5, (0.6, 3.0, 0.6), 25),
-    ("SouthEastTrees", True, ["tree_oak_dark", "tree_pineRoundA"], SOUTH_EAST, 8, 14, 8.0, (3.6, 4.6), 3.5, (0.6, 3.0, 0.6), 25),
+    ("SouthWestTrees", True, ["tree_oak_dark", "tree_oak", "tree_detailed"], SOUTH_WEST, 9, 13, 8.0, (3.6, 4.6), 3.5, (0.6, 3.0, 0.6), 25),
+    ("SouthEastTrees", True, ["tree_oak_dark", "tree_oak", "tree_detailed"], SOUTH_EAST, 8, 14, 8.0, (3.6, 4.6), 3.5, (0.6, 3.0, 0.6), 25),
     ("TallRocks", True, ["rock_tallA", "rock_tallB"], WHOLE_MAP, 14, 15, 9.0, (2.0, 2.6), 3.5, (1.4, 2.0, 1.4), 28),
     ("FlatRocks", True, ["rock_largeA", "rock_largeB", "rock_largeC"], WHOLE_MAP, 20, 16, 7.0, (2.2, 2.8), 3.5, (1.8, 0.9, 1.8), 28),
-    ("Bushes", False, ["plant_bush", "plant_bushLarge", "plant_bushSmall"], WHOLE_MAP, 110, 17, 2.5, (2.2, 3.2), 1.5, None, 34),
-    ("Grass", False, ["grass", "grass_large"], WHOLE_MAP, 260, 18, 1.2, (2.5, 3.5), 1.0, None, 34),
-    ("Deadwood", False, ["stump_round", "log_stack"], HILL, 9, 20, 6.0, (2.6, 3.4), 2.0, None, 30),
-    ("Pebbles", False, ["rock_smallA", "rock_smallB", "rock_smallC"], WHOLE_MAP, 70, 19, 1.5, (1.5, 2.5), 1.0, None, 40),
+    ("Bushes", False, ["plant_bush", "plant_bushLarge", "plant_bushSmall", "plant_bushDetailed"], WHOLE_MAP, 190, 17, 2.2, (2.4, 3.8), 1.5, None, 34),
+    ("Grass", False, ["grass", "grass_large", "grass_leafs", "grass_leafsLarge"], WHOLE_MAP, 1000, 18, 0.7, (2.0, 3.2), 0.9, None, 36),
+    ("Poppies", False, ["flower_redA", "flower_redB", "flower_redC"], WHOLE_MAP, 300, 21, 0.6, (1.3, 2.0), 1.0, None, 30),
+    ("Broom", False, ["flower_yellowA", "flower_yellowB", "flower_yellowC"], WHOLE_MAP, 170, 22, 0.8, (1.3, 2.1), 1.0, None, 34),
+    ("Thistles", False, ["flower_purpleA", "flower_purpleB"], WHOLE_MAP, 80, 23, 1.0, (1.3, 2.0), 1.0, None, 34),
+    ("Saplings", False, ["tree_thin", "tree_small", "tree_default"], WHOLE_MAP, 26, 24, 6.0, (2.2, 3.0), 3.0, None, 30),
+    ("Deadwood", False, ["stump_round", "log_stack", "log", "stump_old"], WHOLE_MAP, 22, 20, 5.0, (2.6, 3.4), 2.0, None, 30),
+    ("Pebbles", False, ["rock_smallA", "rock_smallB", "rock_smallC", "stone_smallA", "stone_smallB"], WHOLE_MAP, 160, 19, 1.2, (1.5, 2.6), 1.0, None, 40),
 ]
 # Single props: model, x, ground height, z, scale, turn in radians, and the size of the box that
 # makes it solid (None for something too thin to hide behind). What looks like cover is cover.
@@ -122,6 +126,10 @@ PLACED = [
     ("box", -27.9, PLAIN, 15.4, 4.4, 0.5, (1.1, 1.1, 1.1)),
     ("signpost", -27.4, PLAIN, 21.5, 4.0, 1.6, None),
     ("tent", -40.5, PLAIN, 8.5, 5.0, 0.4, (2.5, 1.9, 2.5)),
+    # The camp at the extraction point.
+    ("tent", 50.2, PLAIN, 30.5, 5.0, 2.4, (2.5, 1.9, 2.5)),
+    ("box-large", 49.5, PLAIN, 25.2, 4.4, 0.9, (1.3, 1.1, 2.1)),
+    ("barrel", 50.6, PLAIN, 26.6, 4.2, 0.0, (1.0, 1.4, 1.0)),
 ]
 # Lamps: x, z, height of the ground there. Warm pools of light at the checkpoint and the bridge.
 LAMPS = [(-28.2, 9.5, PLAIN), (-35, 16, PLAIN), (-26, 17, PLAIN), (-6.3, 2.2, 0.0), (6.3, -2.2, 0.0)]
@@ -167,13 +175,16 @@ def write_scene():
          '[ext_resource type="Script" path="res://src/terrain/building.gd" id="6_building"]',
          '[ext_resource type="Script" path="res://src/terrain/prop_scatter.gd" id="7_scatter"]',
          '[ext_resource type="Script" path="res://src/terrain/sleepers.gd" id="8_sleepers"]',
-         '[ext_resource type="Shader" path="res://assets/shaders/water.gdshader" id="9_water"]']
+         '[ext_resource type="Shader" path="res://assets/shaders/water.gdshader" id="9_water"]',
+         '[ext_resource type="Script" path="res://src/terrain/campfire.gd" id="10_campfire"]']
     model_ids = {}
     for scatter in SCATTERS:
         for model in scatter[2]:
             if model not in model_ids:
                 model_ids[model] = f"m_{model}"
                 o.append(f'[ext_resource type="PackedScene" path="{NATURE}{model}.glb" id="m_{model}"]')
+    for texture in ("steel", "planks", "stone_wall"):
+        o.append(f'[ext_resource type="Texture2D" path="res://assets/textures/{texture}.jpg" id="t_{texture}"]')
     for model in sorted({entry[0] for entry in PLACED}):
         model_ids[model] = f"m_{model}"
         o.append(f'[ext_resource type="PackedScene" path="{SURVIVAL}{model}.glb" id="m_{model}"]')
@@ -184,10 +195,17 @@ def write_scene():
          "detail_sample_distance = 8.0", "detail_sample_max_error = 0.3",
          # The gorge floor is left out: nobody can get there.
          f"filter_baking_aabb = AABB({bx - 1}, -6, {bz - 1}, {bw + 2}, 30, {bd + 2})", ""]
-    materials = {"m_steel": (0.22, 0.24, 0.27), "m_crate": (0.45, 0.30, 0.16), "m_stone": (0.40, 0.38, 0.35),
-                 "m_rail": (0.15, 0.15, 0.17), "m_pad": (0.2, 0.7, 0.3), "m_post": (0.12, 0.12, 0.13), "m_barrier": (0.75, 0.2, 0.15)}
-    for name, (r, g, b) in materials.items():
-        o += [f'[sub_resource type="StandardMaterial3D" id="{name}"]', f"albedo_color = Color({r}, {g}, {b}, 1)", ""]
+    # name -> (colour or tint, texture or None, texture repeats per metre)
+    materials = {"m_steel": ((0.55, 0.57, 0.62), "steel", 0.5), "m_crate": ((0.95, 0.85, 0.72), "planks", 0.8),
+                 "m_stone": ((0.9, 0.86, 0.8), "stone_wall", 0.4), "m_rail": ((0.2, 0.2, 0.22), None, 0),
+                 "m_pad": ((0.2, 0.7, 0.3), None, 0), "m_post": ((0.12, 0.12, 0.13), None, 0),
+                 "m_barrier": ((0.8, 0.2, 0.15), None, 0)}
+    for name, ((r, g, b), texture, tiling) in materials.items():
+        o += [f'[sub_resource type="StandardMaterial3D" id="{name}"]', f"albedo_color = Color({r}, {g}, {b}, 1)"]
+        if texture:
+            o += [f'albedo_texture = ExtResource("t_{texture}")', "uv1_triplanar = true", "uv1_world_triplanar = true",
+                  f"uv1_scale = Vector3({tiling}, {tiling}, {tiling})"]
+        o += ["roughness = 1.0", ""]
     for i, (_, points) in enumerate(GUARDS):
         flat = ", ".join(f"0, 0, 0, 0, 0, 0, {x}, 0.0, {z}" for x, z in points)
         tilts = ", ".join("0" for _ in points)
@@ -280,7 +298,7 @@ def write_scene():
     for i, (x, z, ground) in enumerate(LAMPS):
         top = ground + LAMP_HEIGHT
         o += [f'[node name="Lamp{i + 1}" type="OmniLight3D" parent="Scenery"]', at(x, top, z),
-              "light_color = Color(1, 0.72, 0.38, 1)", "light_energy = 1.9", "omni_range = 12.0", "omni_attenuation = 1.3", "",
+              "light_color = Color(1, 0.72, 0.38, 1)", "light_energy = 1.1", "omni_range = 10.0", "omni_attenuation = 1.3", "",
               f'[node name="Bulb" type="MeshInstance3D" parent="Scenery/Lamp{i + 1}"]', 'mesh = SubResource("Mesh_bulb")', "",
               f'[node name="Post" type="MeshInstance3D" parent="Scenery/Lamp{i + 1}"]', at(0, -LAMP_HEIGHT / 2.0, 0),
               'mesh = SubResource("Mesh_post")', ""]
@@ -288,8 +306,9 @@ def write_scene():
         o += [f'[node name="{name}" type="CSGBox3D" parent="Scenery"]', at(0, 0.19, z), "size = Vector3(200, 0.14, 0.1)",
               'material = SubResource("m_rail")', ""]
     ex, ez = EXTRACTION
-    o += ['[node name="ExtractionPad" type="CSGBox3D" parent="Scenery"]', at(ex, PLAIN + 0.03, ez),
-          "size = Vector3(6, 0.06, 6)", 'material = SubResource("m_pad")', ""]
+    # The extraction point is a camp: a fire to walk to, a tent and stores beside it.
+    o += ['[node name="ExtractionFire" type="Node3D" parent="Scenery"]', 'script = ExtResource("10_campfire")',
+          at(ex, PLAIN, ez), ""]
 
     o += ['[node name="SpecialistSpawns" type="Node3D" parent="."]', ""]
     for i, (x, z) in enumerate(SPECIALIST_SPAWNS):

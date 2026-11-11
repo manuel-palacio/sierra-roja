@@ -1,11 +1,13 @@
 shader_type spatial;
-// The river in the gorge: dark water with pale streaks drifting downstream (+z). Unshaded, with no
-// screen or depth reads, so it costs next to nothing in the Compatibility renderer.
+// The river in the gorge: green-brown water running downstream (+z), with pale streaks of
+// current and broken light on it. Unshaded, with no screen or depth reads, so it costs next to
+// nothing in the Compatibility renderer.
 render_mode unshaded;
 
-uniform vec3 deep : source_color = vec3(0.025, 0.06, 0.11);
-uniform vec3 glint : source_color = vec3(0.42, 0.52, 0.70);
-uniform float speed = 0.9;
+uniform vec3 deep : source_color = vec3(0.07, 0.17, 0.17);
+uniform vec3 shallow : source_color = vec3(0.16, 0.30, 0.26);
+uniform vec3 glint : source_color = vec3(0.80, 0.86, 0.84);
+uniform float speed = 1.1;
 
 varying vec3 world;
 
@@ -27,8 +29,11 @@ void vertex() {
 
 void fragment() {
 	float flow = TIME * speed;
-	float broad = noise(vec2(world.x * 0.9, world.z * 0.3 - flow));
-	float fine = noise(vec2(world.x * 2.3 + 3.0, world.z * 0.8 - flow * 1.7));
-	float streak = smoothstep(0.60, 0.82, broad * 0.6 + fine * 0.4);
-	ALBEDO = mix(deep, glint, streak * 0.5);
+	float broad = noise(vec2(world.x * 0.7, world.z * 0.22 - flow));
+	float fine = noise(vec2(world.x * 2.6 + 3.0, world.z * 0.9 - flow * 1.8));
+	float ripple = noise(vec2(world.x * 6.0 - flow * 0.3, world.z * 3.0 - flow * 2.6));
+	vec3 colour = mix(deep, shallow, broad);
+	float streak = smoothstep(0.58, 0.80, broad * 0.55 + fine * 0.45);
+	float sparkle = smoothstep(0.80, 0.95, ripple) * smoothstep(0.35, 0.7, fine);
+	ALBEDO = mix(colour, glint, streak * 0.45 + sparkle * 0.6);
 }
