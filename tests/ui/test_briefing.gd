@@ -137,3 +137,34 @@ func test_once_started_it_is_not_put_up_again_on_a_restart() -> void:
 	b.begin()
 	assert_true(Briefing.seen, "remembered for the rest of the session, across mission restarts")
 	assert_false(Briefing.wanted())
+
+
+func test_a_pause_from_losing_focus_on_the_briefing_is_lifted_by_the_start() -> void:
+	var main := await _game()
+	var b: Briefing = main.open_briefing()
+	main.player_input.set_paused(true)  # what losing the window focus does
+	b.start_button.pressed.emit()
+	assert_false(get_tree().paused, "Start means start")
+
+
+func test_a_click_on_ground_nobody_can_reach_is_refused_not_walked_round_to() -> void:
+	var main := await _game()
+	var refused: Array = []
+	var ordered: Array = []
+	main.player_input.order_refused.connect(func(text: String) -> void: refused.append(text))
+	main.player_input.move_ordered.connect(func(pos: Vector3, _run: bool) -> void: ordered.append(pos))
+	var click := InputEventMouseButton.new()
+	click.button_index = MOUSE_BUTTON_LEFT
+	click.pressed = true
+	# The middle of the river, far below both banks.
+	main.player_input.picker = func(_pos: Vector2) -> Dictionary:
+		return { "collider": null, "position": Vector3(1.0, -10.4, 25.0) }
+	main.player_input.handle_event(click)
+	assert_eq(refused, [PlayerInput.NO_WAY_TEXT])
+	assert_eq(ordered, [])
+	assert_eq(main.specialists[0].velocity, Vector3.ZERO)
+	# A step off the edge of walkable ground is still taken as the nearest spot.
+	var spot: Vector3 = main.specialists[0].global_position + Vector3(4, 0, 0)
+	main.player_input.picker = func(_pos: Vector2) -> Dictionary: return { "collider": null, "position": spot }
+	main.player_input.handle_event(click)
+	assert_eq(ordered.size(), 1)

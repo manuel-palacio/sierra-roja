@@ -11,6 +11,8 @@ extends Node3D
 
 ## The load has been applied. Anything holding on to game state should re-check it now.
 signal state_loaded()
+## The navmesh has just been baked again (the bridge broke, or was put back by a load).
+signal nav_rebaked()
 
 const GUARD_SCENE := "res://scenes/units/guard.tscn"
 ## The bake leaves its surface this many cells above the real ground.
@@ -201,6 +203,7 @@ func rebake_nav() -> bool:
 	_lower_to_ground(region.navigation_mesh)
 	NavigationServer3D.region_set_navigation_mesh(region.get_rid(), region.navigation_mesh)
 	NavigationServer3D.map_force_update(region.get_navigation_map())
+	nav_rebaked.emit()
 	return true
 
 
@@ -403,6 +406,9 @@ func _show_span(shown: bool) -> void:
 		var node := get_node_or_null("Scenery/" + node_name) as Node3D
 		if node:
 			node.visible = shown
+			# A girder that blocks sight stops doing so when it is gone.
+			if node is CSGShape3D and node_name.begins_with("Girder"):
+				(node as CSGShape3D).use_collision = shown
 
 
 func _route_points(route: Path3D) -> PackedVector3Array:

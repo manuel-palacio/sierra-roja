@@ -77,10 +77,10 @@ func setup(input: PlayerInput, rules: MissionRules, specialists: Array[Specialis
 	input.paused_changed.connect(func(_p: bool) -> void: refresh())
 	input.order_refused.connect(show_message)
 	input.guard_clicked.connect(func(g: Guard) -> void: overlay.show_for(g))
-	rules.result_changed.connect(func(r: MissionRules.Result) -> void: end_screen.show_result(r))
+	rules.result_changed.connect(func(r: MissionRules.Result) -> void: end_screen.show_result(r, rules.loss_reason()))
 	rules.bridge_blown.connect(func() -> void: show_message("Bridge destroyed"))
 	rules.charge_too_far.connect(func() -> void: show_message("The charge was too far from the bridge"))
-	end_screen.show_result(rules.result)
+	end_screen.show_result(rules.result, rules.loss_reason())
 	refresh()
 
 

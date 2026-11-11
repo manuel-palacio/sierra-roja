@@ -142,6 +142,13 @@ func set_ground_level(y: float) -> void:
 	_apply()
 
 
+## Brings a place on the ground to the middle of the view.
+func centre_on(pos: Vector3) -> void:
+	focus.x = pos.x
+	focus.z = pos.z
+	_apply()
+
+
 ## Positive steps zoom in, negative zoom out.
 func zoom_by(step: int) -> void:
 	size = clampf(size - step * ZOOM_STEP, ZOOM_MIN, ZOOM_MAX)

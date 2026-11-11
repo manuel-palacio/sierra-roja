@@ -303,3 +303,87 @@ func test_whoever_stands_on_the_span_when_it_blows_goes_down_with_it() -> void:
 	assert_false(is_instance_valid(sentry) and sentry.alive, "the sentry on the span fell with it")
 	assert_true(specialists[0].alive, "the abutment holds")
 	assert_true(track_guard.alive)
+
+
+# --- Cut off: the bridge is down and someone can no longer reach the extraction ---
+
+func _rules_for(specialists: Array[Specialist]) -> MissionRules:
+	var rules := MissionRules.new()
+	add_child_autofree(rules)
+	rules.setup(mission, specialists)
+	return rules
+
+
+func _blow(at: Vector3) -> void:
+	var charge := PlantedCharge.new()
+	charge.fuse_left = 0.0
+	mission.add_child(charge)
+	charge.global_position = at
+	charge.advance(0.1)
+	await wait_physics_frames(4)
+
+
+func test_blowing_the_bridge_with_someone_left_behind_fails_the_mission() -> void:
+	await _built()
+	var specialists := mission.spawn_specialists()
+	var rules := _rules_for(specialists)
+	specialists[0].global_position = _on_ground(Vector2(20, 0))    # across
+	specialists[1].global_position = _on_ground(Vector2(-30, 30))  # still on the west bank
+	await wait_physics_frames(2)
+	assert_eq(rules.loss_reason(), "", "nothing lost yet")
+	await _blow(Vector3(-4.5, 0, 0))
+	assert_true(rules.bridge_destroyed)
+	assert_eq(rules.result, MissionRules.Result.LOST)
+	assert_eq(rules.loss_reason(), MissionRules.CUT_OFF_TEXT)
+	assert_true(specialists[0].alive and specialists[1].alive, "nobody died; they are just stranded")
+
+
+func test_blowing_the_bridge_with_both_across_plays_on() -> void:
+	await _built()
+	var specialists := mission.spawn_specialists()
+	var rules := _rules_for(specialists)
+	specialists[0].global_position = _on_ground(Vector2(20, 0))
+	specialists[1].global_position = _on_ground(Vector2(24, 0))
+	await wait_physics_frames(2)
+	await _blow(Vector3(-4.5, 0, 0))
+	assert_true(rules.bridge_destroyed)
+	assert_eq(rules.result, MissionRules.Result.RUNNING)
+	assert_eq(rules.loss_reason(), "")
+
+
+func test_a_death_is_named_as_the_reason_for_a_loss() -> void:
+	await _built()
+	var specialists := mission.spawn_specialists()
+	var rules := _rules_for(specialists)
+	specialists[1].take_damage(1000)
+	rules.evaluate()
+	assert_eq(rules.result, MissionRules.Result.LOST)
+	assert_eq(rules.loss_reason(), MissionRules.DEATH_TEXT)
+
+
+# --- Props that look solid are solid ---
+
+func test_yard_clutter_and_the_girders_block_sight_and_feet() -> void:
+	await _built()
+	var blockers := mission.get_node("Nav").find_children("PropBlocker*", "StaticBody3D", true, false)
+	assert_gte(blockers.size(), 5, "barrels, boxes and the tent")
+	for body in blockers:
+		var p := (body as Node3D).global_position
+		var near := NavigationServer3D.map_get_closest_point(mission.nav_map(), p)
+		assert_gt(Vector2(near.x - p.x, near.z - p.z).length(), 0.4, "%s is cut out of the navmesh" % body.name)
+		assert_false(Perception.line_clear(mission, p + Vector3(-1.5, 0.3, 0), p + Vector3(1.5, 0.3, 0)),
+				"%s hides someone lying behind it" % body.name)
+	# A girder runs along each side of the deck: lying on the deck you are hidden from the side.
+	assert_false(Perception.line_clear(mission, Vector3(0, 0.3, 0), Vector3(0, 0.3, 6)))
+	assert_false(Perception.line_clear(mission, Vector3(0, 0.3, 0), Vector3(0, 0.3, -6)))
+	assert_true(Perception.line_clear(mission, Vector3(0, 1.5, 0), Vector3(0, 1.5, 6)), "standing, you show over it")
+	mission.break_bridge()
+	await wait_physics_frames(3)
+	assert_true(Perception.line_clear(mission, Vector3(0, 0.3, 0), Vector3(0, 0.3, 6)), "gone with the span")
+
+
+func test_every_quarter_of_the_map_can_be_walked_to() -> void:
+	await _built()
+	var start := mission.specialist_spawns()[0].global_position
+	for corner in [Vector2(-45, -30), Vector2(40, -30), Vector2(40, 30), Vector2(-20, 34)]:
+		assert_lt(_path_length(start, _on_ground(corner)), 400.0, "from the start to %s" % corner)

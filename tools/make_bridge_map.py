@@ -44,6 +44,7 @@ FEATURES = [
     (PATH, SET, [(-14, 8), (-7, 2.3)], 1.6, 1.2, PLAIN, 0.0, EARTH),
     (PATH, SET, [(-19, -8), (-12, -2.3)], 1.6, 1.2, PLAIN, 0.0, EARTH),
     (PATH, SET, [(15, 8), (7, 2.3)], 1.6, 1.2, PLAIN, 0.0, EARTH),
+    (PATH, SET, [(15, -8), (7, -2.3)], 1.6, 1.2, PLAIN, 0.0, EARTH),
     (PATH, SET, [(44, 9), (38, 2.3)], 1.6, 1.2, PLAIN, 0.0, EARTH),
     # The gorge, cut last through everything.
     (PATH, SET, [(-6, -110), (-3, -30), (0, -9), (0, 9), (4, 30), (8, 110)], 3.5, 1.5, -12.0, None, ROCK),
@@ -110,16 +111,17 @@ SCATTERS = [
     ("Deadwood", False, ["stump_round", "log_stack"], HILL, 9, 20, 6.0, (2.6, 3.4), 2.0, None, 30),
     ("Pebbles", False, ["rock_smallA", "rock_smallB", "rock_smallC"], WHOLE_MAP, 70, 19, 1.5, (1.5, 2.5), 1.0, None, 40),
 ]
-# Single decorative props (no collision): model, x, ground height, z, scale, turn in radians.
+# Single props: model, x, ground height, z, scale, turn in radians, and the size of the box that
+# makes it solid (None for something too thin to hide behind). What looks like cover is cover.
 SURVIVAL = "res://assets/props/survival/"
 PLACED = [
-    ("barrel", -34.4, PLAIN, 11.2, 4.2, 0.0),
-    ("barrel", -34.2, PLAIN, 12.4, 4.2, 1.0),
-    ("box-large", -39.0, PLAIN, 16.0, 4.4, 0.3),
-    ("box", -38.2, PLAIN, 17.2, 4.4, 1.2),
-    ("box", -25.6, PLAIN, 13.0, 4.4, 0.5),
-    ("signpost", -27.4, PLAIN, 21.5, 4.0, 1.6),
-    ("tent", -40.5, PLAIN, 8.5, 5.0, 0.4),
+    ("barrel", -34.4, PLAIN, 11.2, 4.2, 0.0, (1.0, 1.4, 1.0)),
+    ("barrel", -34.2, PLAIN, 12.4, 4.2, 1.0, (1.0, 1.4, 1.0)),
+    ("box-large", -39.0, PLAIN, 16.0, 4.4, 0.3, (1.3, 1.1, 2.1)),
+    ("box", -38.2, PLAIN, 17.6, 4.4, 1.2, (1.1, 1.1, 1.1)),
+    ("box", -27.9, PLAIN, 15.4, 4.4, 0.5, (1.1, 1.1, 1.1)),
+    ("signpost", -27.4, PLAIN, 21.5, 4.0, 1.6, None),
+    ("tent", -40.5, PLAIN, 8.5, 5.0, 0.4, (2.5, 1.9, 2.5)),
 ]
 # Lamps: x, z, height of the ground there. Warm pools of light at the checkpoint and the bridge.
 LAMPS = [(-28.2, 9.5, PLAIN), (-35, 16, PLAIN), (-26, 17, PLAIN), (-6.3, 2.2, 0.0), (6.3, -2.2, 0.0)]
@@ -192,6 +194,9 @@ def write_scene():
         o += [f'[sub_resource type="Curve3D" id="Curve_{i + 1}"]', "_data = {",
               f'"points": PackedVector3Array({flat}),', f'"tilts": PackedFloat32Array({tilts})', "}",
               f"point_count = {len(points)}", ""]
+    for i, entry in enumerate(PLACED):
+        if entry[6]:
+            o += [f'[sub_resource type="BoxShape3D" id="Box_prop{i + 1}"]', "size = Vector3(%s, %s, %s)" % entry[6], ""]
     o += ['[sub_resource type="BoxShape3D" id="Box_extraction"]', "size = Vector3(6, 3, 6)", "",
           '[sub_resource type="ShaderMaterial" id="m_water"]', 'shader = ExtResource("9_water")', "",
           '[sub_resource type="PlaneMesh" id="Mesh_water"]', 'material = SubResource("m_water")', "size = Vector2(44, 260)", "",
@@ -237,14 +242,25 @@ def write_scene():
         if entry[1]:
             o += scatter_node("Nav", entry)
 
+    for i, (model, x, ground, z, scale, turn, solid) in enumerate(PLACED):
+        if solid:
+            c, sn = math.cos(turn), math.sin(turn)
+            o += [f'[node name="PropBlocker{i + 1}" type="StaticBody3D" parent="Nav"]',
+                  f"transform = Transform3D({c:.4f}, 0, {-sn:.4f}, 0, 1, 0, {sn:.4f}, 0, {c:.4f}, {x}, {ground + solid[1] / 2.0}, {z})", "",
+                  f'[node name="Shape" type="CollisionShape3D" parent="Nav/PropBlocker{i + 1}"]',
+                  f'shape = SubResource("Box_prop{i + 1}")', ""]
+
     o += ['[node name="Scenery" type="Node3D" parent="."]', "",
           '[node name="River" type="MeshInstance3D" parent="Scenery"]', at(1, -10.4, 0), 'mesh = SubResource("Mesh_water")', ""]
     for entry in SCATTERS:
         if not entry[1]:
             o += scatter_node("Scenery", entry)
     # A plate-girder bridge on two stone abutments.
+    # (The girders are solid: lying on the deck you are hidden from the side. They are not under
+    # Nav/, so the navmesh bake does not see them; the deck's own edge keeps feet on it.)
     for name, z in (("GirderN", -1.75), ("GirderS", 1.75)):
-        o += [f'[node name="{name}" type="CSGBox3D" parent="Scenery"]', at(0, 0.35, z), "size = Vector3(11.2, 1.5, 0.22)",
+        o += [f'[node name="{name}" type="CSGBox3D" parent="Scenery"]', "use_collision = true", at(0, 0.35, z),
+              "size = Vector3(11.2, 1.5, 0.22)",
               'material = SubResource("m_steel")', ""]
     for name, x in (("AbutmentW", -5.75), ("AbutmentE", 5.75)):
         o += [f'[node name="{name}" type="CSGBox3D" parent="Scenery"]', at(x, -6.3, 0), "size = Vector3(1.9, 12, 5.4)",
@@ -257,7 +273,7 @@ def write_scene():
           'material = SubResource("m_barrier")', "",
           '[node name="BarrierPost" type="CSGBox3D" parent="Scenery"]', at(-32.8, PLAIN + 0.95, 8.2), "size = Vector3(0.3, 1.9, 0.3)",
           'material = SubResource("m_post")', ""]
-    for i, (model, x, ground, z, scale, turn) in enumerate(PLACED):
+    for i, (model, x, ground, z, scale, turn, _solid) in enumerate(PLACED):
         c, sn = math.cos(turn) * scale, math.sin(turn) * scale
         o += [f'[node name="Prop{i + 1}" parent="Scenery" instance=ExtResource("{model_ids[model]}")]',
               f"transform = Transform3D({c:.4f}, 0, {-sn:.4f}, 0, {scale}, 0, {sn:.4f}, 0, {c:.4f}, {x}, {ground}, {z})", ""]

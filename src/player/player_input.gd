@@ -3,7 +3,7 @@ extends Node
 ## Turns mouse and keyboard into orders for the selected specialist, and drives the camera zoom
 ## and the pause. Rules live in Unit and Ability; this only decides which order a click or key is.
 ##
-## Hotkeys: 1/2 select, C stance, Q knife, E main ability (charge, else rifle), R pistol,
+## Hotkeys: 1/2 select (again: centre the camera on them), C stance, Q knife, E main ability (charge, else rifle), R pistol,
 ## F pick up / drop, Space pause, Escape or right click disarm, O quick save, L quick load,
 ## Z / X turn the camera a quarter turn.
 
@@ -19,6 +19,10 @@ signal move_ordered(pos: Vector3, run: bool)
 const DOUBLE_CLICK_SEC := 0.3
 const DOUBLE_CLICK_SLOP := 12.0
 const SAVE_REFUSED_TEXT := "Can't save after the mission has ended"
+const NO_WAY_TEXT := "Can't get there"
+## A click this far (on the ground plane) from anywhere a unit can stand is refused, instead of
+## sending the unit to the nearest such place, which may be a long walk round.
+const OFF_GROUND_SLACK := 1.5
 
 enum Mode {
 	GUARD,  ## Arms; the next click must hit a guard.
@@ -143,11 +147,18 @@ func _on_key(event: InputEventKey) -> void:
 	elif key == KEY_L:
 		if _mission != null:
 			SaveGame.quick_load(_mission)
+	elif SELECT_KEYS.has(key) and is_paused() and SELECT_KEYS[key] < _specialists.size() \
+			and _specialists[SELECT_KEYS[key]] == selected:
+		# Finding the selected specialist is looking, not ordering: allowed while paused.
+		_camera.centre_on(selected.global_position)
 	elif SELECT_KEYS.has(key):
 		if _can_order():
 			var index: int = SELECT_KEYS[key]
 			if index < _specialists.size():
-				select(_specialists[index])
+				if _specialists[index] == selected:
+					_camera.centre_on(selected.global_position)
+				else:
+					select(_specialists[index])
 	elif key == KEY_C:
 		if _can_order():
 			selected.set_stance(Unit.Stance.CRAWLING if selected.stance == Unit.Stance.STANDING
@@ -184,6 +195,9 @@ func _on_left_click(pos: Vector2) -> void:
 
 
 func _move_selected(target: Vector3, screen_pos: Vector2) -> void:
+	if not _can_stand_near(target):
+		_refuse(NO_WAY_TEXT)
+		return
 	var now: float = clock.call()
 	var double := now - _last_click_time <= DOUBLE_CLICK_SEC \
 			and screen_pos.distance_to(_last_click_pos) <= DOUBLE_CLICK_SLOP
@@ -191,6 +205,16 @@ func _move_selected(target: Vector3, screen_pos: Vector2) -> void:
 	_last_click_pos = screen_pos
 	selected.move_to(target, double)
 	move_ordered.emit(target, double)
+
+
+func _can_stand_near(target: Vector3) -> bool:
+	if _mission == null:
+		return true
+	var map := _mission.nav_map()
+	if not map.is_valid() or NavigationServer3D.map_get_iteration_id(map) == 0:
+		return true
+	var nearest := NavigationServer3D.map_get_closest_point(map, target)
+	return Vector2(nearest.x - target.x, nearest.z - target.z).length() <= OFF_GROUND_SLACK
 
 
 ## What pressing the ability's key does; the HUD's ability buttons call this.

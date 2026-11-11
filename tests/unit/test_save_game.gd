@@ -474,6 +474,8 @@ func test_orders_enabled_follows_the_mission_result() -> void:
 	assert_false(input.orders_enabled, "lost")
 	_key(KEY_L)
 	assert_true(input.orders_enabled, "the load is running again")
+	specs[0].global_position = Vector3(20, mission.ground_height(20, 20), 20)
+	specs[1].global_position = Vector3(22, mission.ground_height(22, 20), 20)
 	await _blow_bridge()
 	_to_extraction(specs[0])
 	_to_extraction(specs[1])
@@ -894,7 +896,9 @@ func test_a_load_with_no_bridge_change_does_not_rebake() -> void:
 
 
 func test_no_false_win_from_stale_extraction_tracking() -> void:
-	# In the save: bridge down, nobody at extraction. Live: bridge up, both at extraction.
+	# In the save: bridge down, both across but nobody at extraction. Live: bridge up, both at extraction.
+	specs[0].global_position = Vector3(20, mission.ground_height(20, 20), 20)
+	specs[1].global_position = Vector3(22, mission.ground_height(22, 20), 20)
 	await _blow_bridge()
 	await _idle()
 	_save()

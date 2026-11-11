@@ -58,6 +58,9 @@ func _ready() -> void:
 	hud = (load("res://scenes/ui/hud.tscn") as PackedScene).instantiate() as Hud
 	add_child(hud)
 	hud.setup(player_input, rules, specialists, overlay)
+	var objective_marker := ObjectiveMarker.new()
+	add_child(objective_marker)
+	objective_marker.setup(camera, mission, rules)
 	add_child(SoundEffects.new())
 	add_child(ShotDisplay.new())
 	charge_display = ChargeDisplay.new()
@@ -85,6 +88,8 @@ func open_briefing() -> Briefing:
 	briefing.started.connect(func() -> void:
 		briefing = null
 		camera.edge_scroll_enabled = true
+		# Losing the window's focus pauses the game; Start means start.
+		player_input.set_paused(false)
 		player_input.orders_enabled = rules.result == MissionRules.Result.RUNNING)
 	return briefing
 

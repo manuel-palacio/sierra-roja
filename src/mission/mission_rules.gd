@@ -1,8 +1,9 @@
 class_name MissionRules
 extends Node
 ## Win and loss for the bridge mission. Win: the bridge is destroyed and both specialists are
-## alive inside Mission.extraction(). Loss: either specialist dies. The result is evaluated once
-## per physics frame, loss first, and is final once it leaves RUNNING.
+## alive inside Mission.extraction(). Loss: either specialist dies, or the bridge goes down with
+## one of them still unable to reach the extraction. The result is evaluated once per physics
+## frame, loss first, and is final once it leaves RUNNING.
 ##
 ## Charges are created at runtime, so rules hook them through SceneTree.node_added (plus any
 ## already in the "charges" group). Neither the planting code nor save/load has to know about
@@ -17,6 +18,10 @@ enum Result { RUNNING, WON, LOST }
 
 ## A charge destroys the bridge when it goes off this close to Mission.bridge_target().
 const BRIDGE_BLAST_RANGE := 8.0
+const DEATH_TEXT := "A specialist was killed"
+const CUT_OFF_TEXT := "The bridge is down and the squad is cut off from the extraction point"
+## A path that ends this close to the extraction (on the ground plane) reaches it.
+const REACH_TOLERANCE := 3.0
 
 var result := Result.RUNNING
 var bridge_destroyed := false
@@ -24,6 +29,8 @@ var bridge_destroyed := false
 var _mission: Mission
 var _specialists: Array[Specialist] = []
 var _in_extraction: Dictionary = {}  # Specialist -> true
+## The bridge is down and a living specialist has no way to the extraction.
+var _cut_off := false
 
 
 ## Guards currently in ALARM; dead guards do not count.
@@ -40,6 +47,7 @@ func setup(mission: Mission, specialists: Array[Specialist]) -> void:
 	_mission = mission
 	_specialists = specialists
 	mission.rules = self
+	mission.nav_rebaked.connect(_on_nav_rebaked)
 	for s in specialists:
 		s.died.connect(_on_specialist_died)
 	var area := mission.extraction()
@@ -69,12 +77,25 @@ func evaluate() -> void:
 		if not s.alive:
 			_set_result(Result.LOST)
 			return
+	if _cut_off:
+		_set_result(Result.LOST)
+		return
 	if not bridge_destroyed or _specialists.is_empty():
 		return
 	for s in _specialists:
 		if not at_extraction(s):
 			return
 	_set_result(Result.WON)
+
+
+## Why the mission was lost, for the player; "" unless it has been.
+func loss_reason() -> String:
+	if result != Result.LOST:
+		return ""
+	for s in _specialists:
+		if not s.alive:
+			return DEATH_TEXT
+	return CUT_OFF_TEXT
 
 
 func save_state() -> Dictionary:
@@ -94,6 +115,7 @@ func load_state(d: Dictionary) -> void:
 			_mission.break_bridge()
 		else:
 			_mission.repair_bridge()
+	_cut_off = false
 	_in_extraction.clear()
 	for s in _specialists:
 		if d["at_extraction"].has(String(s.name)):
@@ -102,6 +124,22 @@ func load_state(d: Dictionary) -> void:
 	if loaded != result:
 		result = loaded
 		result_changed.emit(result)
+
+
+## The navmesh changes when the bridge breaks. From then on, anyone who cannot walk to the
+## extraction never will.
+func _on_nav_rebaked() -> void:
+	if not bridge_destroyed or result != Result.RUNNING or _mission.extraction() == null:
+		return
+	var goal := _mission.extraction().global_position
+	var map := _mission.nav_map()
+	for s in _specialists:
+		if not s.alive or at_extraction(s):
+			continue
+		var path := NavigationServer3D.map_get_path(map, s.global_position, goal, true)
+		if path.is_empty() or Vector2(path[-1].x - goal.x, path[-1].z - goal.z).length() > REACH_TOLERANCE:
+			_cut_off = true
+			return
 
 
 func _set_result(r: Result) -> void:

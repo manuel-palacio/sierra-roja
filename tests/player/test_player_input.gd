@@ -425,3 +425,18 @@ func test_z_and_x_turn_the_camera_even_when_paused_or_after_the_mission() -> voi
 	input.orders_enabled = false
 	input.handle_event(_key(KEY_X))
 	assert_eq(cam.quarter, 1)
+
+
+# --- Bringing the camera to a specialist ---
+
+func test_pressing_the_selected_specialists_key_again_centres_the_camera_on_them() -> void:
+	mark.global_position = Vector3(18, 0, -7)
+	input.handle_event(_key(KEY_2))
+	assert_eq(input.selected, mark)
+	assert_ne(Vector2(cam.focus.x, cam.focus.z), Vector2(18, -7), "selecting alone leaves the view where it is")
+	input.handle_event(_key(KEY_2))
+	assert_almost_eq(Vector2(cam.focus.x, cam.focus.z), Vector2(18, -7), Vector2.ONE * 0.001)
+	input.set_paused(true)
+	cam.pan(Vector2(5, 5))
+	input.handle_event(_key(KEY_2))
+	assert_almost_eq(Vector2(cam.focus.x, cam.focus.z), Vector2(18, -7), Vector2.ONE * 0.001, "also while paused")

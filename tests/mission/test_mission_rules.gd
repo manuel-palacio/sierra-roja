@@ -63,7 +63,15 @@ func test_spawn_specialists_at_spawns_with_nav() -> void:
 	assert_gt(specs[0].global_position.x, spawns[0].global_position.x + 1.0, "walks on the navmesh")
 
 
+## On the far bank, clear of the extraction: with the bridge down, a specialist left on the near
+## bank is cut off and the mission is lost.
+func _across(s: Specialist, z := 0.0) -> void:
+	s.global_position = Vector3(20, 0, z)
+
+
 func test_win_needs_bridge_and_both_at_extraction() -> void:
+	_across(specs[0])
+	_across(specs[1], 2.0)
 	_blow_bridge()
 	_to_extraction(specs[0])
 	await _frames()
@@ -96,7 +104,7 @@ func test_leaving_extraction_clears_presence() -> void:
 	_to_extraction(specs[1])
 	await _frames()
 	assert_true(rules.at_extraction(specs[1]))
-	specs[1].global_position = mission.specialist_spawns()[1].global_position
+	_across(specs[1])
 	await _frames()
 	assert_false(rules.at_extraction(specs[1]))
 	assert_true(rules.at_extraction(specs[0]))
