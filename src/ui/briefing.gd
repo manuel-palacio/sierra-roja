@@ -18,6 +18,7 @@ const CONTROLS: Array[Array] = [
 	["Left click", "Move the selected specialist"],
 	["Double-click", "Run (the Dynamiter's boots are heard)"],
 	["1 / 2, or click one", "Select the Dynamiter / the Marksman (again: find them)"],
+	["3", "Select both: they move and crawl together"],
 	["Click a guard", "Show what it can see: red even crawling, yellow standing"],
 	["C", "Crawl / stand"],
 	["Q", "Knife (Dynamiter), then click a guard"],

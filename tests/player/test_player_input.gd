@@ -440,3 +440,66 @@ func test_pressing_the_selected_specialists_key_again_centres_the_camera_on_them
 	cam.pan(Vector2(5, 5))
 	input.handle_event(_key(KEY_2))
 	assert_almost_eq(Vector2(cam.focus.x, cam.focus.z), Vector2(18, -7), Vector2.ONE * 0.001, "also while paused")
+
+
+# --- Ordering both specialists at once ---
+
+func test_3_selects_both_and_1_goes_back_to_one() -> void:
+	var changes := [0]
+	input.selection_changed.connect(func(_s: Specialist) -> void: changes[0] += 1)
+	assert_eq(input.selected_units(), [dyn] as Array[Specialist])
+	input.handle_event(_key(KEY_3))
+	assert_eq(input.selected_units(), [dyn, mark] as Array[Specialist])
+	assert_eq(input.selected, dyn, "the first is still the one abilities belong to")
+	assert_eq(changes[0], 1)
+	input.handle_event(_key(KEY_2))
+	assert_eq(input.selected_units(), [mark] as Array[Specialist])
+	input.handle_event(_key(KEY_3))
+	input.handle_event(_key(KEY_1))
+	assert_eq(input.selected_units(), [dyn] as Array[Specialist])
+
+
+func test_a_move_order_goes_to_both_side_by_side() -> void:
+	input.handle_event(_key(KEY_3))
+	var seen := _orders()
+	picked = _ground(Vector3(12, 0, -6))
+	input.handle_event(_click())
+	var a := _target(dyn)
+	var b := _target(mark)
+	assert_lt(a.distance_to(Vector3(12, 0, -6)), 0.01, "the first goes to the spot")
+	assert_between(b.distance_to(a), 0.9, 2.0, "the second stops beside it, not on top")
+	assert_eq(seen.size(), 1, "one order, one marker")
+	now += 0.1
+	input.handle_event(_click())
+	assert_eq(seen[1][1], true, "a double-click runs them both")
+
+
+func test_c_puts_both_down_and_up_together() -> void:
+	input.handle_event(_key(KEY_3))
+	mark.set_stance(Unit.Stance.CRAWLING)  # one already down
+	input.handle_event(_key(KEY_C))
+	assert_eq(dyn.stance, Unit.Stance.CRAWLING)
+	assert_eq(mark.stance, Unit.Stance.CRAWLING, "the first sets the stance for both")
+	input.handle_event(_key(KEY_C))
+	assert_eq(dyn.stance, Unit.Stance.STANDING)
+	assert_eq(mark.stance, Unit.Stance.STANDING)
+
+
+func test_an_ability_key_with_both_selected_goes_to_whoever_has_it() -> void:
+	input.handle_event(_key(KEY_3))
+	input.handle_event(_key(KEY_Q))  # only the Dynamiter has a knife
+	assert_eq(input.selected_units(), [dyn] as Array[Specialist])
+	assert_eq(input.armed_ability, &"knife")
+	input.handle_event(_key(KEY_ESCAPE))
+	input.handle_event(_key(KEY_3))
+	input.handle_event(_key(KEY_E))  # both have something on E: the first one's
+	assert_eq(input.selected, dyn)
+	input.select(mark)
+	input.handle_event(_key(KEY_3))
+	assert_eq(input.selected, mark, "selecting both keeps whoever was selected as the first")
+
+
+func test_selecting_both_with_one_dead_selects_the_living_one() -> void:
+	mark.take_damage(1000)
+	input.handle_event(_key(KEY_3))
+	assert_eq(input.selected_units(), [dyn] as Array[Specialist])

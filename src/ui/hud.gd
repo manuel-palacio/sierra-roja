@@ -118,7 +118,7 @@ func refresh() -> void:
 		health_bars[i].max_value = s.stats.max_hp
 		health_bars[i].value = s.hp
 		stance_labels[i].visible = s.stance == Unit.Stance.CRAWLING
-		_portraits[i].modulate = Color.WHITE if s == _input.selected else Color(1, 1, 1, 0.6)
+		_portraits[i].modulate = Color.WHITE if s in _input.selected_units() else Color(1, 1, 1, 0.6)
 	_refresh_abilities()
 	_refresh_fuse()
 	alarm_label.text = "Alarm: %d" % _rules.alarm_level

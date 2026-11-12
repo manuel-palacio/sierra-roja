@@ -19,7 +19,8 @@ const FOREARM := "DEF-forearm.R"
 ## "when" says when it is shown: always if absent; &"slung" until the rifle is in use; or the
 ## name of the action that brings it out (&"rifle", &"pistol", &"knife").
 ## A "held" piece is a weapon in the hand instead: its length, thickness, and how far from its
-## near end the hand grips it. It lies along the forearm, so it points where the arm points.
+## near end the hand grips it. It lies along the forearm, so it points where the arm points; a
+## rifle is gripped well forward, which puts its butt back at the shoulder of the outstretched arm.
 const KITS := {
 	&"guard": [
 		# Steel helmet with a slight brim, and a rifle slung across the back.
@@ -27,8 +28,8 @@ const KITS := {
 		{ "bone": "DEF-head", "shape": "sphere", "size": Vector3(0.37, 0.05, 0.40), "at": Vector3(0, 1.725, 0.01), "color": STEEL },
 		{ "bone": "DEF-spine.003", "shape": "box", "size": Vector3(0.05, 1.05, 0.07), "at": Vector3(0.02, 1.28, -0.17), "turn": Vector3(0, 0, 28), "color": WOOD, "when": &"slung" },
 		{ "bone": "DEF-spine.003", "shape": "box", "size": Vector3(0.03, 0.45, 0.03), "at": Vector3(-0.19, 1.66, -0.17), "turn": Vector3(0, 0, 28), "color": GUNMETAL, "when": &"slung" },
-		{ "held": 1.05, "thick": 0.06, "grip": 0.38, "color": WOOD, "when": &"rifle" },
-		{ "held": 0.42, "thick": 0.03, "grip": -0.66, "color": GUNMETAL, "when": &"rifle" },
+		{ "held": 1.05, "thick": 0.06, "grip": 0.60, "color": WOOD, "when": &"rifle" },
+		{ "held": 0.42, "thick": 0.03, "grip": -0.37, "color": GUNMETAL, "when": &"rifle" },
 		{ "bone": "DEF-spine.002", "shape": "box", "size": Vector3(0.30, 0.10, 0.06), "at": Vector3(0, 1.12, 0.13), "color": Color(0.36, 0.24, 0.14) },
 	],
 	&"dynamiter": [
@@ -45,8 +46,8 @@ const KITS := {
 		{ "bone": "DEF-head", "shape": "sphere", "size": Vector3(0.31, 0.09, 0.36), "at": Vector3(0, 1.80, 0.03), "color": Color(0.33, 0.28, 0.22) },
 		{ "bone": "DEF-spine.003", "shape": "box", "size": Vector3(0.05, 1.25, 0.07), "at": Vector3(0.02, 1.30, -0.17), "turn": Vector3(0, 0, -30), "color": WOOD, "when": &"slung" },
 		{ "bone": "DEF-spine.003", "shape": "box", "size": Vector3(0.035, 0.30, 0.035), "at": Vector3(0.12, 1.50, -0.215), "turn": Vector3(0, 0, -30), "color": GUNMETAL, "when": &"slung" },
-		{ "held": 1.25, "thick": 0.06, "grip": 0.42, "color": WOOD, "when": &"rifle" },
-		{ "held": 0.50, "thick": 0.03, "grip": -0.82, "color": GUNMETAL, "when": &"rifle" },
+		{ "held": 1.25, "thick": 0.06, "grip": 0.60, "color": WOOD, "when": &"rifle" },
+		{ "held": 0.50, "thick": 0.03, "grip": -0.57, "color": GUNMETAL, "when": &"rifle" },
 		{ "held": 0.24, "thick": 0.05, "grip": 0.05, "color": GUNMETAL, "when": &"pistol" },
 		{ "bone": "DEF-spine.002", "shape": "box", "size": Vector3(0.05, 0.56, 0.02), "at": Vector3(0.0, 1.27, 0.125), "turn": Vector3(0, 0, -38), "color": Color(0.30, 0.20, 0.12) },
 	],
@@ -108,7 +109,7 @@ static func _held(skeleton: Skeleton3D, piece: Dictionary) -> Transform3D:
 	var side := along.cross(Vector3.UP).normalized()
 	var up := side.cross(along).normalized()
 	var length: float = piece["held"]
-	var centre := hand + along * (0.08 + length / 2.0 - float(piece["grip"])) + up * 0.04
+	var centre := hand + along * (0.08 + length / 2.0 - float(piece["grip"])) + up * 0.07
 	return Transform3D(Basis(along, up, side), centre)
 
 

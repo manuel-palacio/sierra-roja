@@ -3,7 +3,7 @@ extends Node
 ## Turns mouse and keyboard into orders for the selected specialist, and drives the camera zoom
 ## and the pause. Rules live in Unit and Ability; this only decides which order a click or key is.
 ##
-## Hotkeys: 1/2 select (again: centre the camera on them), C stance, Q knife, E main ability (charge, else rifle), R pistol,
+## Hotkeys: 1/2 select (again: centre the camera on them), 3 select both, C stance, Q knife, E main ability (charge, else rifle), R pistol,
 ## F pick up / drop, Space pause, Escape or right click disarm, O quick save, L quick load,
 ## Z / X turn the camera a quarter turn.
 
@@ -46,10 +46,16 @@ const ABILITY_KEYS := {
 	KEY_F: [&"carry"],
 }
 const SELECT_KEYS := { KEY_1: 0, KEY_2: 1 }
+const SELECT_BOTH_KEY := KEY_3
+## How far apart two specialists ordered to the same spot end up.
+const SIDE_BY_SIDE := 1.4
 ## Key -> quarter turns of the camera.
 const ROTATE_KEYS := { KEY_Z: -1, KEY_X: 1 }
 
+## The specialist abilities belong to; with both selected, the one selected first.
 var selected: Specialist
+## Move and stance orders go to every living specialist, not only `selected`.
+var both_selected := false
 var armed_ability := &""
 ## Set by main from MissionRules.result_changed; false after a win or loss.
 var orders_enabled := true
@@ -86,11 +92,33 @@ func bind_mission(mission: Mission) -> void:
 	mission.state_loaded.connect(_on_state_loaded)
 
 
+## Everyone a move or stance order goes to now.
+func selected_units() -> Array[Specialist]:
+	var out: Array[Specialist] = []
+	if selected == null:
+		return out
+	out.append(selected)
+	if both_selected:
+		for s in _specialists:
+			if s != selected and s.alive:
+				out.append(s)
+	return out
+
+
+## Puts every living specialist under the same move and stance orders.
+func select_both() -> void:
+	if selected == null or both_selected:
+		return
+	both_selected = true
+	selection_changed.emit(selected)
+
+
 func select(s: Specialist) -> void:
 	if s != null and not s.alive:
 		return
-	if s == selected:
+	if s == selected and not both_selected:
 		return
+	both_selected = false
 	selected = s
 	_set_armed(&"")
 	selection_changed.emit(s)
@@ -155,14 +183,19 @@ func _on_key(event: InputEventKey) -> void:
 		if _can_order():
 			var index: int = SELECT_KEYS[key]
 			if index < _specialists.size():
-				if _specialists[index] == selected:
+				if _specialists[index] == selected and not both_selected:
 					_camera.centre_on(selected.global_position)
 				else:
 					select(_specialists[index])
+	elif key == SELECT_BOTH_KEY:
+		if _can_order():
+			select_both()
 	elif key == KEY_C:
 		if _can_order():
-			selected.set_stance(Unit.Stance.CRAWLING if selected.stance == Unit.Stance.STANDING
-					else Unit.Stance.STANDING)
+			var stance := Unit.Stance.CRAWLING if selected.stance == Unit.Stance.STANDING \
+					else Unit.Stance.STANDING
+			for unit in selected_units():
+				unit.set_stance(stance)
 	elif ABILITY_KEYS.has(key):
 		_press_ability(ABILITY_KEYS[key])
 
@@ -203,7 +236,12 @@ func _move_selected(target: Vector3, screen_pos: Vector2) -> void:
 			and screen_pos.distance_to(_last_click_pos) <= DOUBLE_CLICK_SLOP
 	_last_click_time = -INF if double else now
 	_last_click_pos = screen_pos
-	selected.move_to(target, double)
+	var units := selected_units()
+	# The others stop beside the first, across the way it is going.
+	var way := target - selected.global_position
+	var across := Vector3(-way.z, 0.0, way.x).normalized() if Vector2(way.x, way.z).length() > 0.1 else Vector3.RIGHT
+	for i in units.size():
+		units[i].move_to(target + across * SIDE_BY_SIDE * i, double)
 	move_ordered.emit(target, double)
 
 
@@ -230,6 +268,15 @@ func _press_ability(ids: Array) -> void:
 		if selected.has_ability(candidate):
 			id = candidate
 			break
+	if id == &"" and both_selected:
+		# With both selected the key goes to whoever has something on it.
+		for unit in selected_units():
+			for candidate in ids:
+				if id == &"" and unit.has_ability(candidate):
+					id = candidate
+					select(unit)
+	if both_selected and id != &"":
+		select(selected)
 	if id == &"":
 		_refuse("no ability on this key")
 		return
@@ -302,6 +349,7 @@ func _refuse(reason: String) -> void:
 ## Keeps the selection if its specialist lives in the loaded state, else picks a living one.
 func _on_state_loaded() -> void:
 	_set_armed(&"")
+	both_selected = false
 	if selected != null and selected.alive:
 		return
 	selected = null
@@ -313,7 +361,9 @@ func _on_state_loaded() -> void:
 
 
 func _on_specialist_died(unit: Unit) -> void:
+	both_selected = false
 	if unit != selected:
+		selection_changed.emit(selected)
 		return
 	selected = null
 	for s in _specialists:

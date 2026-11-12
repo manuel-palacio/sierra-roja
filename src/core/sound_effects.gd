@@ -1,7 +1,8 @@
 class_name SoundEffects
 extends Node
-## Display only: plays the placeholder sounds. It listens to NoiseBus and to each guard's alarm
-## signal and never changes game state. Browsers keep audio locked until the first click or key;
+## Display only: plays the sounds. It listens to NoiseBus, to each guard's alarm signal, to
+## every unit's `acted` (the knife) and for bodies falling, keeps a quiet morning going underneath,
+## and never changes game state. Browsers keep audio locked until the first click or key;
 ## Godot starts it then, so earlier sounds are simply silent.
 
 enum Kind { FOOTSTEP, SHOT, EXPLOSION }
@@ -19,6 +20,15 @@ const FOOTSTEPS: Array[AudioStream] = [
 const SHOT: AudioStream = preload("res://assets/audio/gunshot.wav")
 const EXPLOSION: AudioStream = preload("res://assets/audio/explosion.mp3")
 const ALARM: AudioStream = preload("res://assets/audio/alarm.ogg")
+const KNIFE: AudioStream = preload("res://assets/audio/knife.ogg")
+const BODY_FALL: AudioStream = preload("res://assets/audio/body_fall.ogg")
+const AMBIENCE: AudioStream = preload("res://assets/audio/birds.ogg")
+const AMBIENCE_DB := -13.0
+## How long a killed guard takes to reach the ground.
+const FALL_SECONDS := 0.55
+
+## The birdsong under everything.
+var ambience: AudioStreamPlayer
 
 var _voices := 0
 var _last_alarm_msec := -ALARM_COOLDOWN_MSEC
@@ -36,6 +46,26 @@ func _ready() -> void:
 	get_tree().node_added.connect(_on_node_added)
 	for node in get_tree().get_nodes_in_group(Guard.GROUP):
 		_hook(node as Guard)
+	for group in [Guard.GROUP, Specialist.GROUP]:
+		for node in get_tree().get_nodes_in_group(group):
+			_hook_unit(node as Unit)
+	(AMBIENCE as AudioStreamOggVorbis).loop = true
+	ambience = AudioStreamPlayer.new()
+	ambience.name = "Ambience"
+	ambience.stream = AMBIENCE
+	ambience.volume_db = AMBIENCE_DB
+	ambience.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(ambience)
+	ambience.play()
+
+
+## The one-shot sounds playing now.
+func voices() -> Array[Node]:
+	var out: Array[Node] = []
+	for child in get_children():
+		if child != ambience and not child is Timer:
+			out.append(child)
+	return out
 
 
 func _on_noise(pos: Vector3, radius: float) -> void:
@@ -51,6 +81,29 @@ func _on_noise(pos: Vector3, radius: float) -> void:
 func _on_node_added(node: Node) -> void:
 	if node is Guard:
 		_hook.call_deferred(node)  # its brain exists once it is ready
+	if node is Unit:
+		_hook_unit(node as Unit)
+	elif node is Body and (node as Body).fell_now:
+		var body := node as Body
+		var timer := Timer.new()
+		timer.one_shot = true
+		timer.wait_time = FALL_SECONDS
+		add_child(timer)
+		timer.timeout.connect(func() -> void:
+			timer.queue_free()
+			if is_instance_valid(body) and body.is_inside_tree():
+				_play_at(BODY_FALL, body.global_position, -2.0, randf_range(0.85, 1.0)))
+		timer.start()
+
+
+func _hook_unit(unit: Unit) -> void:
+	if unit == null or _hooked.has(-unit.get_instance_id()):
+		return
+	_hooked[-unit.get_instance_id()] = true
+	unit.acted.connect(func(what: StringName, _at: Vector3) -> void:
+		# Shots are heard through their noise; the knife makes none.
+		if what == &"knife" and is_instance_valid(unit):
+			_play_at(KNIFE, unit.global_position, -3.0, randf_range(0.95, 1.05)))
 
 
 func _hook(guard: Guard) -> void:

@@ -95,11 +95,12 @@ func open_briefing() -> Briefing:
 	return briefing
 
 
-func _show_selection(chosen: Specialist) -> void:
+func _show_selection(_chosen: Specialist) -> void:
+	var chosen := player_input.selected_units()
 	for s in specialists:
 		var ring := s.get_node_or_null("Ring") as SelectionRing
 		if ring != null:
-			ring.selected = s == chosen
+			ring.selected = s in chosen
 
 
 ## A soft darkening of the view's corners, under the HUD.
