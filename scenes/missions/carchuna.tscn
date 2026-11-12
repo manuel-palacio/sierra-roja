@@ -368,7 +368,7 @@ kind = &"washing_line"
 [node name="Watchtower1" type="StaticBody3D" parent="Nav"]
 script = ExtResource("12_tower")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.5, 0, -7.5)
-aim_deg = 250.0
+aim_deg = -110.0
 arc_deg = 60.0
 reach = 17.0
 

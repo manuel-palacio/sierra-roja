@@ -156,6 +156,4 @@ if __name__ == "__main__":
         BUILDINGS=BUILDINGS, CRATES=CRATES, SCATTERS=SCATTERS, CLEAR=CLEAR, PLACED=PLACED, LAMPS=LAMPS,
         POLE_LINES=POLE_LINES, TOWERS=TOWERS, CARTS=CARTS, RIVER_COURSE=RIVER_COURSE, SETTLEMENT=SETTLEMENT,
     )
-    write(mission(NAME="bridge", **tables))
-    # The same place at night, with the tower's searchlight on.
-    write(mission(NAME="bridge_night", LAND="bridge", NIGHT=True, TEXTS={"title": "The bridge by night"}, **tables))
+    write(mission(NAME="bridge", TEXTS={"title": "The bridge in the Guadarrama"}, **tables))

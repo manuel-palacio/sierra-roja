@@ -43,6 +43,7 @@ test('an error while loading is put on the page with the browser it happened in'
 });
 
 test('keys and clicks in the real build raise no console errors', async ({ page }) => {
+  test.setTimeout(60000); // 20 s alone; more when the perf runs share the machine
   const errors = [];
   page.on('console', (msg) => {
     if (msg.type() === 'error') errors.push(msg.text());
@@ -97,6 +98,7 @@ function collectErrors(page) {
 }
 
 test('quick save survives a move, a load and a page reload', async ({ page }) => {
+  test.setTimeout(60000); // 20 s alone; more when the perf runs share the machine
   const errors = collectErrors(page);
   await bootWithProbe(page);
   const box = await page.locator('canvas').boundingBox();

@@ -23,7 +23,7 @@ func _game() -> Node:
 
 
 func test_the_list_names_missions_that_exist() -> void:
-	assert_gt(Missions.LIST.size(), 2)
+	assert_eq(Missions.LIST.size(), 3, "the bridge, the powder store, Carchuna")
 	var ids := {}
 	for entry: Dictionary in Missions.LIST:
 		assert_true(ResourceLoader.exists(entry["path"]), entry["path"])
@@ -132,8 +132,12 @@ func test_losing_is_not_remembered_as_a_win() -> void:
 func test_old_ids_open_the_reframed_missions() -> void:
 	assert_eq(Missions.index_of("guadarrama"), 0)
 	assert_eq(Missions.index_of("bridge"), Missions.index_of("guadarrama"))
+	assert_eq(Missions.index_of("bridge_night"), Missions.index_of("guadarrama"))
+	assert_eq(Missions.index_of("powder_store_night"), Missions.index_of("powder_store"))
 	assert_eq(Missions.index_of("nowhere"), -1)
 	assert_eq(Missions.id_at(0), "guadarrama")
+	for entry: Dictionary in Missions.LIST:
+		assert_false(String(entry["id"]).ends_with("_night"), "night is not a mission of its own")
 
 
 func test_each_mission_says_where_and_when_or_neither() -> void:

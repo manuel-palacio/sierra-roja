@@ -38,7 +38,7 @@ test('the scene renders, audio unlocks on a click, no console errors', async ({ 
   await page.mouse.dblclick(box.x + box.width * 0.23, box.y + box.height * 0.75);
   await page.waitForFunction(() => {
     window.sierraProbe();
-    return window.sierraState.message === 'The charge was too far from the bridge';
+    return window.sierraState.message === 'The charge was too far from the target';
   }, null, { polling: 16, timeout: 80000 });
   await page.screenshot({ path: 'build/e2e/flash.png' });
   expect(errors).toEqual([]);

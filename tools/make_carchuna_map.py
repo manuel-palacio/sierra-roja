@@ -75,7 +75,7 @@ WALLS = [
 ]
 # A tower in the north-west corner sweeping the road, and one in the south-west over the breach.
 # x, z, the searchlight's aim in degrees (0 east, 90 south), its swing and its reach.
-TOWERS = [(10.5, -7.5, 250, 60, 17), (10.6, 11.0, 150, 50, 13)]
+TOWERS = [(10.5, -7.5, -110, 60, 17), (10.6, 11.0, 150, 50, 13)]
 CARTS = [(17.0, 5.0, 1.2)]
 SETTLEMENT = [
     ("launch", -37.5, 30.2, 0.35),

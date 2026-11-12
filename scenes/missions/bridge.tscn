@@ -227,6 +227,10 @@ shader_parameter/course_points = 6
 material = SubResource("m_water")
 size = Vector2(44, 260)
 
+[sub_resource type="PlaneMesh" id="Mesh_sea"]
+material = SubResource("m_water")
+size = Vector2(400, 160)
+
 [sub_resource type="StandardMaterial3D" id="m_lamp"]
 shading_mode = 0
 albedo_color = Color(1, 0.86, 0.55, 1)
@@ -249,6 +253,7 @@ rings = 1
 [node name="Bridge" type="Node3D"]
 script = ExtResource("1_mission")
 bounds_rect = Rect2(-55, -40, 110, 80)
+title = "The bridge in the Guadarrama"
 
 [node name="Nav" type="NavigationRegion3D" parent="."]
 navigation_mesh = SubResource("NavMesh_bridge")

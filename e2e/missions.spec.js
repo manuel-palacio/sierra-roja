@@ -26,3 +26,34 @@ test('the powder store mission loads and plays', async ({ page }) => {
   await page.screenshot({ path: 'build/e2e/powder-store.png' });
   expect(errors).toEqual([]);
 });
+
+// Addresses from before the campaign still open the missions they have become, and the new
+// mission loads from its own.
+const title = async (page, query) => {
+  const errors = [];
+  page.on('console', (msg) => { if (msg.type() === 'error') errors.push(msg.text()); });
+  page.on('pageerror', (err) => errors.push(err.message));
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.goto('/?probe=1&' + query);
+  await page.waitForFunction(() => window.sierraStarted === true);
+  await page.waitForFunction(() => typeof window.sierraProbe === 'function');
+  await page.waitForTimeout(1200);
+  const state = await page.evaluate(() => { window.sierraProbe(); return window.sierraState; });
+  expect(errors).toEqual([]);
+  return state;
+};
+
+for (const [query, id, shown] of [
+  ['mission=bridge', 'guadarrama', 'The bridge in the Guadarrama'],
+  ['mission=bridge_night', 'guadarrama', 'The bridge in the Guadarrama'],
+  ['mission=powder_store_night', 'powder_store', 'The powder store'],
+  ['mission=carchuna', 'carchuna', 'Fort Carchuna'],
+  ['mission=no_such_place', 'guadarrama', 'The bridge in the Guadarrama'],
+]) {
+  test(`?${query} opens ${shown}`, async ({ page }) => {
+    test.setTimeout(90000);
+    const state = await title(page, query);
+    expect(state.mission).toBe(id);
+    expect(state.title).toBe(shown);
+  });
+}

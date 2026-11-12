@@ -138,6 +138,3 @@ if __name__ == "__main__":
         SETTLEMENT=SETTLEMENT,
     )
     write(mission(NAME="powder_store", TEXTS=TEXTS, **tables))
-    # The same place at night, with the tower's searchlight on.
-    write(mission(NAME="powder_store_night", LAND="powder_store", NIGHT=True,
-                  TEXTS={**TEXTS, "title": "The powder store by night"}, **tables))

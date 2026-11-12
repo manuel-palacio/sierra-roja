@@ -7,24 +7,26 @@ const { test, expect } = require('@playwright/test');
 // bar on the mini). The renderer string is logged so the figure can be read in context.
 test.use({ headless: process.env.PERF_HEADLESS === '1' });
 
-test('runs at 30 fps or better with all guards patrolling', async ({ page }) => {
-  test.setTimeout(60000);
-  await page.goto('/?perf=1') // serve redirects /index.html and drops the query;
-  await page.waitForFunction(() => window.sierraStarted === true);
-  await page.waitForTimeout(20000); // guards patrol the whole time
+for (const [mission, guards] of [['guadarrama', 5], ['powder_store', 6], ['carchuna', 7]]) {
+  test(`${mission} runs at 30 fps or better with all guards patrolling`, async ({ page }) => {
+    test.setTimeout(60000);
+    await page.goto(`/?perf=1&mission=${mission}`);
+    await page.waitForFunction(() => window.sierraStarted === true);
+    await page.waitForTimeout(20000); // guards patrol the whole time
 
-  const renderer = await page.evaluate(() => {
-    const gl = document.createElement('canvas').getContext('webgl2');
-    const ext = gl.getExtension('WEBGL_debug_renderer_info');
-    return ext
-      ? `${gl.getParameter(ext.UNMASKED_VENDOR_WEBGL)} / ${gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)}`
-      : gl.getParameter(gl.RENDERER);
+    const renderer = await page.evaluate(() => {
+      const gl = document.createElement('canvas').getContext('webgl2');
+      const ext = gl.getExtension('WEBGL_debug_renderer_info');
+      return ext
+        ? `${gl.getParameter(ext.UNMASKED_VENDOR_WEBGL)} / ${gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)}`
+        : gl.getParameter(gl.RENDERER);
+    });
+    const perf = await page.evaluate(() => window.sierraPerf());
+    console.log(`WebGL renderer: ${renderer}`);
+    console.log(`${mission} fps: ${perf.fps.toFixed(1)} over ${perf.frames} frames`);
+    console.log(`guards: ${perf.guards}, displacement over window: ${perf.displacement.toFixed(2)} m`);
+    expect(perf.guards).toBe(guards);
+    expect(perf.displacement).toBeGreaterThan(0);
+    expect(perf.fps).toBeGreaterThanOrEqual(30);
   });
-  const perf = await page.evaluate(() => window.sierraPerf());
-  console.log(`WebGL renderer: ${renderer}`);
-  console.log(`fps: ${perf.fps.toFixed(1)} over ${perf.frames} frames`);
-  console.log(`guards: ${perf.guards}, displacement over window: ${perf.displacement.toFixed(2)} m`);
-  expect(perf.guards).toBe(5);
-  expect(perf.displacement).toBeGreaterThan(0);
-  expect(perf.fps).toBeGreaterThanOrEqual(30);
-});
+}

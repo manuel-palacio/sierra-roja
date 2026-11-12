@@ -1,8 +1,9 @@
 extends GutTest
-## Night missions: the same maps in the dark, with a searchlight on every watchtower.
+## Night missions: dark, lamp-lit, with a searchlight on every watchtower. Carchuna is the one
+## there is.
 
 const DAY := "res://scenes/missions/bridge.tscn"
-const NIGHT := "res://scenes/missions/bridge_night.tscn"
+const NIGHT := "res://scenes/missions/carchuna.tscn"
 
 
 func after_each() -> void:
@@ -30,17 +31,14 @@ func _towers(mission: Mission) -> Array[Watchtower]:
 	return out
 
 
-func test_night_missions_are_the_same_maps_with_the_lights_on() -> void:
-	for id in ["bridge_night", "powder_store_night"]:
-		var path: String = Missions.LIST[Missions.index_of(id)]["path"]
-		var mission := await _built(path)
-		assert_true(mission.night, id)
-		assert_eq(MissionValidator.validate(mission), PackedStringArray(), id)
-		assert_string_contains(mission.title, "by night")
-		for tower in _towers(mission):
-			assert_not_null(tower.searchlight, "%s: a searchlight on the tower" % id)
-		assert_gt(_towers(mission).size(), 0)
-		mission.free()
+func test_a_night_mission_has_the_lights_on_and_a_day_one_has_not() -> void:
+	var mission := await _built(NIGHT)
+	assert_true(mission.night)
+	assert_eq(MissionValidator.validate(mission), PackedStringArray())
+	for tower in _towers(mission):
+		assert_not_null(tower.searchlight, "a searchlight on the tower")
+	assert_gt(_towers(mission).size(), 0)
+	mission.free()
 	var day := await _built(DAY)
 	assert_false(day.night)
 	for tower in _towers(day):
@@ -70,7 +68,7 @@ func test_someone_standing_in_the_beam_raises_the_alarm_and_someone_lying_does_n
 	var specialists := mission.spawn_specialists()
 	light.arc_deg = 0.0  # hold the beam still, so that time passing does not move the spot away
 	var caught: Array = []
-	light.caught.connect(func(s: Specialist, _at: Vector3) -> void: caught.append(s))
+	light.caught.connect(func(s: Unit, _at: Vector3) -> void: caught.append(s))
 	light.sweep(0.0)
 	var in_spot := light.spot + Vector3(1.0, 0, 0.5)
 	specialists[0].global_position = Vector3(in_spot.x, mission.ground_height(in_spot.x, in_spot.z), in_spot.z)
@@ -134,10 +132,10 @@ func test_the_game_goes_dark_for_a_night_mission_and_not_for_a_day_one() -> void
 	var day_sky: Color = (day.get_node("WorldEnvironment") as WorldEnvironment).environment.background_color
 	var day_lamp: float = (day.mission.get_node("Scenery/Lamp1") as OmniLight3D).light_energy
 	day.free()
-	var night := await _game(Missions.index_of("bridge_night"))
+	var night := await _game(Missions.index_of("carchuna"))
 	assert_true(night.mission.night)
 	assert_lt((night.get_node("Sun") as DirectionalLight3D).light_energy, day_sun * 0.5, "a moon, not a sun")
 	var night_sky: Color = (night.get_node("WorldEnvironment") as WorldEnvironment).environment.background_color
 	assert_lt(night_sky.get_luminance(), day_sky.get_luminance() * 0.2)
 	assert_gt((night.mission.get_node("Scenery/Lamp1") as OmniLight3D).light_energy, day_lamp * 2.0, "lamps that matter")
-	assert_eq(night.hud.objective_label.text, "Objective: Destroy the bridge")
+	assert_eq(night.hud.objective_label.text, "Objective: Free the officer")

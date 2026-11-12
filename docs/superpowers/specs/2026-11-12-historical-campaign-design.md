@@ -1,7 +1,7 @@
 # Sierra Roja: third milestone design, "a campaign from history"
 
 Date: 2026-11-12
-Status: design approved by Manuel in conversation on 2026-11-12; this written spec awaits his review
+Status: approved by Manuel on 2026-11-12 (design, then this written spec). Batch 1 is built.
 
 ## Goal
 
@@ -138,9 +138,10 @@ New parts:
 
 Changed parts:
 
-- `MissionRules`: generic over the objective list. The bridge-only parts (breaking the span,
-  dropping whoever is on it, the cut-off check) move into a `BridgeTarget` that
-  `DestroyObjective` calls when its target is a bridge.
+- `MissionRules`: generic over the objective list. Breaking the span and dropping whoever is on
+  it move into `DestroyObjective`, which calls the mission's existing bridge-breaking code (it
+  already serves both a span and a stack of stores). The cut-off check stays in the rules and
+  runs whenever the navmesh is baked again.
 - `Mission`: exposes `objectives()`; `bridge_target()` and the text exports give way to what the
   objectives report.
 - `Missions`: six entries with date and place; the old ids map to the new ones.
