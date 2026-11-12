@@ -96,3 +96,15 @@ func test_no_next_mission_after_the_last_or_after_a_loss() -> void:
 	first.rules.result = MissionRules.Result.LOST
 	first.rules.result_changed.emit(MissionRules.Result.LOST)
 	assert_false(first.hud.end_screen.next_button.visible, "a lost mission is retried, not skipped")
+
+
+func test_old_ids_open_the_reframed_missions() -> void:
+	assert_eq(Missions.index_of("guadarrama"), 0)
+	assert_eq(Missions.index_of("bridge"), Missions.index_of("guadarrama"))
+	assert_eq(Missions.index_of("nowhere"), -1)
+	assert_eq(Missions.id_at(0), "guadarrama")
+
+
+func test_each_mission_says_where_and_when_or_neither() -> void:
+	for entry: Dictionary in Missions.LIST:
+		assert_eq(entry["place"] == "", entry["date"] == "", entry["id"])
