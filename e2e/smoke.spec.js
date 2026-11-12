@@ -12,7 +12,17 @@ test('game boots with a visible canvas and no console errors', async ({ page }) 
   await page.waitForFunction(() => window.sierraStarted === true);
   await page.waitForTimeout(500); // let the first frames run
   await expect(page.locator('#message')).toBeHidden();
+  await expect(page.locator('#status')).toBeHidden(); // the loading line goes once the game runs
   expect(errors).toEqual([]);
+});
+
+test('an error while loading is put on the page with the browser it happened in', async ({ page }) => {
+  // The engine's main script is made to fail, as a browser that cannot run it would.
+  await page.route('**/index.js', (route) => route.fulfill({ contentType: 'application/javascript', body: 'throw new Error("engine script broke");' }));
+  await page.goto('/index.html');
+  await expect(page.locator('#message')).toContainText('The game could not start.');
+  await expect(page.locator('#message')).toContainText('Mozilla/'); // the user agent line
+  await expect(page.locator('canvas')).toBeHidden();
 });
 
 test('keys and clicks in the real build raise no console errors', async ({ page }) => {
