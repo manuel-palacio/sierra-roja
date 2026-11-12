@@ -55,7 +55,12 @@ WALLS = [
     [(12, 21), (23, 20)],
     [(-19, -18), (-13, -23)],
     [(27, -9), (31, 3)],
+    # Sandbags by the south gate and inside the east one.
+    ([(8.6, 13.0), (8.6, 14.2), (9.8, 14.2)], 1.0, "sandbags"),
+    ([(17.6, 3.2), (18.8, 3.2)], 1.0, "sandbags"),
 ]
+# The telegraph line in along the road from the west.
+POLE_LINES = [[(-48, 5.5), (-34, 6.5), (-21, 9.5), (-9, 15.5)]]
 BUILDINGS = [
     ("Barracks", -3, -6.5, 0.0, (9, 3, 5), 1.4, False),
     ("Shed", 14.5, -7.5, 0.0, (6, 2.8, 5), 1.2, False),
@@ -84,7 +89,7 @@ SCATTERS = [
     ("Bushes", False, ["tree:bush"], WHOLE_MAP, 170, 35, 2.2, (0.7, 1.4), 1.5, None, 34),
     ("Grass", False, ["grass", "grass_large", "grass_leafs", "grass_leafsLarge"], WHOLE_MAP, 900, 36, 0.7, (2.0, 3.2), 0.9, None, 36),
     ("Wheat", False, ["crops_wheatStageB"], [(-24, 28.5), (-6, 28.5), (-6, 38), (-24, 38)], 420, 42, 0.55, (2.4, 3.2), 0.3, None, 30),
-    ("Poppies", False, ["flower_redA", "flower_redB", "flower_redC"], WHOLE_MAP, 280, 37, 0.6, (1.3, 2.0), 1.0, None, 30),
+    ("Poppies", False, ["flower_redA", "flower_redB", "flower_redC"], WHOLE_MAP, 180, 37, 0.6, (1.3, 2.0), 1.0, None, 30),
     ("Broom", False, ["flower_yellowA", "flower_yellowB", "flower_yellowC"], WHOLE_MAP, 160, 38, 0.8, (1.3, 2.1), 1.0, None, 34),
     ("Saplings", False, ["tree:sapling"], WHOLE_MAP, 22, 39, 6.0, (0.8, 1.3), 3.0, None, 30),
     ("Deadwood", False, ["stump_round", "log_stack", "log", "stump_old"], WHOLE_MAP, 18, 40, 5.0, (2.6, 3.4), 2.0, None, 30),
@@ -118,5 +123,5 @@ if __name__ == "__main__":
         NAME="powder_store", NODE="PowderStore", SEED=11, BOUNDS=BOUNDS, PLAIN=PLAIN, FEATURES=FEATURES,
         SPECIALIST_SPAWNS=SPECIALIST_SPAWNS, GUARDS=GUARDS, EXTRACTION=EXTRACTION, TARGET=TARGET,
         TARGET_STACK=TARGET_STACK, WALLS=WALLS, BUILDINGS=BUILDINGS, CRATES=CRATES, SCATTERS=SCATTERS,
-        CLEAR=CLEAR, PLACED=PLACED, LAMPS=LAMPS, TEXTS=TEXTS,
+        CLEAR=CLEAR, PLACED=PLACED, LAMPS=LAMPS, TEXTS=TEXTS, POLE_LINES=POLE_LINES,
     ))

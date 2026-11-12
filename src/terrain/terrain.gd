@@ -32,11 +32,14 @@ const EARTH_FULL := 0.42
 ## Land beyond the playable bounds fades into the mist over this share of the skirt, so the map
 ## has no visible end.
 const FADE_SHARE := 0.75
+## Metres of ground per pixel of the baked shade.
+const SHADE_CELL := 0.5
 
 @export var spec: TerrainSpec
 var field: HeightField
 
 var _material: ShaderMaterial
+var _shade: Image
 var _earth: FastNoiseLite
 
 
@@ -66,6 +69,7 @@ func build() -> void:
 	_material.set_shader_parameter("bounds", Vector4(b.position.x, b.position.y, b.end.x, b.end.y))
 	_material.set_shader_parameter("fade_distance", maxf(spec.skirt * FADE_SHARE, 0.001))
 	_material.set_shader_parameter("mist", MIST)
+	bake_shade([])
 	_earth = FastNoiseLite.new()
 	_earth.seed = spec.seed + 1
 	_earth.frequency = 1.0 / EARTH_PERIOD
@@ -165,6 +169,56 @@ func _weights(c: int, r: int) -> Color:
 	var p := field.vertex(c, r)
 	var dry := smoothstep(EARTH_FROM, EARTH_FULL, _earth.get_noise_2d(p.x, p.z))
 	return Color(1.0 - dry, dry, 0, 0)
+
+
+## Bakes the soft shade that things standing on the land throw round their feet, which is what
+## makes them sit on the ground instead of on top of it. Each caster is a dictionary:
+## "at" (Vector2, ground plane), "half" (Vector2, half its footprint along its own x and z),
+## "turn" (radians about y), "reach" (metres the shade spreads beyond the footprint) and
+## "strength" (0 to 1, how dark at the footprint). Calling it again replaces the last bake.
+func bake_shade(casters: Array) -> void:
+	var b := spec.bounds
+	var wide := maxi(int(ceilf(b.size.x / SHADE_CELL)), 1)
+	var deep := maxi(int(ceilf(b.size.y / SHADE_CELL)), 1)
+	var dark := PackedFloat32Array()
+	dark.resize(wide * deep)
+	for caster: Dictionary in casters:
+		var at: Vector2 = caster["at"]
+		var half: Vector2 = caster["half"]
+		var reach: float = caster["reach"]
+		var strength: float = caster["strength"]
+		var turn: float = caster.get("turn", 0.0)
+		var span := half.length() + reach
+		var x0 := maxi(int(floorf((at.x - span - b.position.x) / SHADE_CELL)), 0)
+		var x1 := mini(int(ceilf((at.x + span - b.position.x) / SHADE_CELL)), wide - 1)
+		var z0 := maxi(int(floorf((at.y - span - b.position.y) / SHADE_CELL)), 0)
+		var z1 := mini(int(ceilf((at.y + span - b.position.y) / SHADE_CELL)), deep - 1)
+		for pz in range(z0, z1 + 1):
+			for px in range(x0, x1 + 1):
+				var p := Vector2(b.position.x + (px + 0.5) * SHADE_CELL, b.position.y + (pz + 0.5) * SHADE_CELL)
+				var local := (p - at).rotated(turn)
+				var outside := Vector2(maxf(absf(local.x) - half.x, 0.0), maxf(absf(local.y) - half.y, 0.0)).length()
+				var amount := strength * (1.0 - smoothstep(0.0, reach, outside))
+				var i := pz * wide + px
+				# Shades overlap by taking the darker, with a little of the other added.
+				dark[i] = minf(maxf(dark[i], amount) + minf(dark[i], amount) * 0.35, 0.85)
+	_shade = Image.create(wide, deep, false, Image.FORMAT_L8)
+	for pz in deep:
+		for px in wide:
+			var light := 1.0 - dark[pz * wide + px]
+			_shade.set_pixel(px, pz, Color(light, light, light))
+	if _material != null:
+		_material.set_shader_parameter("shade", ImageTexture.create_from_image(_shade))
+
+
+## How light the baked shade leaves a point of the ground: 1 in the open, less beside things.
+func shade_at(x: float, z: float) -> float:
+	if _shade == null:
+		return 1.0
+	var b := spec.bounds
+	var px := clampi(int((x - b.position.x) / SHADE_CELL), 0, _shade.get_width() - 1)
+	var pz := clampi(int((z - b.position.y) / SHADE_CELL), 0, _shade.get_height() - 1)
+	return _shade.get_pixel(px, pz).r
 
 
 ## 0 inside the bounds, rising to 1 out across the skirt.

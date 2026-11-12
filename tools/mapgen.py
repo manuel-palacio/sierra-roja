@@ -18,12 +18,12 @@ NATURE = "res://assets/props/nature/"
 SURVIVAL = "res://assets/props/survival/"
 LAMP_HEIGHT = 3.2
 # Scatters drawn in one flat colour, by name.
-FLAT_COLOURS = {"Wheat": (0.80, 0.66, 0.30)}
+FLAT_COLOURS = {"Wheat": (0.74, 0.62, 0.32)}
 # Props drawn as plain textured shapes instead of kit models.
 PLAIN_SHAPES = ("barrel", "box", "box-large")
 
 DEFAULTS = dict(SEED=7, NOISE=0.45, NAV_FLOOR=-6, BRIDGE=False, TARGET=(0, 0, 0), TARGET_STACK=[], WALLS=[], BUILDINGS=[],
-                CRATES=[], SCATTERS=[], CLEAR=[], PLACED=[], LAMPS=[], TEXTS={})
+                CRATES=[], SCATTERS=[], CLEAR=[], PLACED=[], LAMPS=[], TEXTS={}, POLE_LINES=[])
 
 
 def mission(**tables):
@@ -81,7 +81,8 @@ def write_scene(m):
          '[ext_resource type="Script" path="res://src/terrain/prop_scatter.gd" id="7_scatter"]',
          '[ext_resource type="Script" path="res://src/terrain/sleepers.gd" id="8_sleepers"]',
          '[ext_resource type="Shader" path="res://assets/shaders/water.gdshader" id="9_water"]',
-         '[ext_resource type="Script" path="res://src/terrain/campfire.gd" id="10_campfire"]']
+         '[ext_resource type="Script" path="res://src/terrain/campfire.gd" id="10_campfire"]',
+         '[ext_resource type="Script" path="res://src/terrain/telegraph_pole.gd" id="11_pole"]']
     model_ids = {}
     for scatter in SCATTERS:
         for model in scatter[2]:
@@ -169,12 +170,15 @@ def write_scene(m):
         o += [f'[node name="{name}" type="CSGBox3D" parent="Nav"]', "use_collision = true", at(x, ground + 0.4, z),
               f"size = Vector3({length}, 1.6, {depth})", 'material = SubResource("m_crate")', ""]
     for i, wall in enumerate(WALLS):
-        # A wall is a polyline, or (polyline, height) for one too high to see over.
-        points, height = wall if isinstance(wall, tuple) else (wall, None)
+        # A wall is a polyline, or (polyline, height) for one too high to see over, or
+        # (polyline, height, kind) for one of sandbags.
+        points, height, kind = (tuple(wall) + (None, None))[:3] if isinstance(wall, tuple) else (wall, None, None)
         o += [f'[node name="Wall{i + 1}" type="StaticBody3D" parent="Nav"]', 'script = ExtResource("5_wall")',
               f"points = {v2(points)}"]
         if height:
             o.append(f"wall_height = {height}")
+        if kind:
+            o.append(f'kind = &"{kind}"')
         o.append("")
     for name, x, z, rot, size, roof, ruin in BUILDINGS:
         c, s = math.cos(rot), math.sin(rot)
@@ -258,6 +262,14 @@ def write_scene(m):
         for name, z in (("RailA", -0.7), ("RailB", 0.7)):
             o += [f'[node name="{name}" type="CSGBox3D" parent="Scenery"]', at(0, 0.19, z), "size = Vector3(200, 0.14, 0.1)",
                   'material = SubResource("m_rail")', ""]
+    # Telegraph poles, each wired to the next of its line.
+    for line_index, line in enumerate(m.POLE_LINES):
+        for i, (x, z) in enumerate(line):
+            o += [f'[node name="Pole{line_index + 1}_{i + 1}" type="Node3D" parent="Scenery"]',
+                  'script = ExtResource("11_pole")', at(x, 0, z)]
+            if i + 1 < len(line):
+                o.append("wire_to = Vector2(%s, %s)" % line[i + 1])
+            o.append("")
     ex, ez = EXTRACTION
     # The extraction point is a camp: a fire to walk to, a tent and stores beside it.
     o += ['[node name="ExtractionFire" type="Node3D" parent="Scenery"]', 'script = ExtResource("10_campfire")',

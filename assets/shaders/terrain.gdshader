@@ -14,6 +14,10 @@ uniform sampler2D earth_normal : hint_normal, filter_linear_mipmap, repeat_enabl
 uniform sampler2D road_normal : hint_normal, filter_linear_mipmap, repeat_enable;
 uniform sampler2D rock_normal : hint_normal, filter_linear_mipmap, repeat_enable;
 uniform float relief = 0.65;
+// Soft shade where things stand on the land: one value per half metre of the playable rectangle,
+// white where the ground is open. Baked by Terrain.bake_shade.
+uniform sampler2D shade : filter_linear, repeat_disable;
+uniform vec3 shade_tint : source_color = vec3(0.36, 0.38, 0.47);
 // Cloud shadows drifting over the land: how dark, how big (metres), how fast (metres a second).
 uniform float cloud_shade = 0.24;
 uniform float cloud_size = 55.0;
@@ -84,6 +88,9 @@ void fragment() {
 	bump = mix(bump, rock_bump * 1.4, rock_weight) * relief;
 	vec3 bumped = normalize(n + vec3(bump.x, 0.0, -bump.y));
 	NORMAL = normalize((VIEW_MATRIX * vec4(bumped, 0.0)).xyz);
+
+	vec2 shade_uv = (world_position.xz - bounds.xy) / (bounds.zw - bounds.xy);
+	colour *= mix(shade_tint, vec3(1.0), texture(shade, clamp(shade_uv, vec2(0.0), vec2(1.0))).r);
 
 	vec2 sky = (world_position.xz + cloud_drift * TIME) / cloud_size;
 	float cloud = value_noise(sky) * 0.65 + value_noise(sky * 2.3 + 7.0) * 0.35;

@@ -13,11 +13,11 @@ const LEAVES := {
 }
 ## Kind -> its shape. Heights and radii in metres. "tint" is laid over the leaf sprite.
 const KINDS := {
-	&"pine": { "leaf": &"pine", "height": 8.5, "trunk": 0.20, "crown": 2.3, "crown_from": 1.9, "tint": Color(0.62, 0.78, 0.62) },
-	&"oak": { "leaf": &"broad", "height": 6.5, "trunk": 0.30, "crown": 2.7, "crown_from": 2.3, "tint": Color(0.66, 0.78, 0.52) },
-	&"olive": { "leaf": &"broad", "height": 4.2, "trunk": 0.24, "crown": 2.0, "crown_from": 1.5, "tint": Color(0.66, 0.74, 0.62) },
-	&"sapling": { "leaf": &"broad", "height": 2.6, "trunk": 0.08, "crown": 0.9, "crown_from": 1.1, "tint": Color(0.74, 0.86, 0.54) },
-	&"bush": { "leaf": &"broad", "height": 1.0, "trunk": 0.0, "crown": 0.85, "crown_from": 0.1, "tint": Color(0.68, 0.78, 0.50) },
+	&"pine": { "leaf": &"pine", "height": 8.5, "trunk": 0.20, "crown": 2.3, "crown_from": 1.9, "tint": Color(0.52, 0.64, 0.52) },
+	&"oak": { "leaf": &"broad", "height": 6.5, "trunk": 0.30, "crown": 2.7, "crown_from": 2.3, "tint": Color(0.56, 0.64, 0.44) },
+	&"olive": { "leaf": &"broad", "height": 4.2, "trunk": 0.24, "crown": 2.0, "crown_from": 1.5, "tint": Color(0.56, 0.62, 0.52) },
+	&"sapling": { "leaf": &"broad", "height": 2.6, "trunk": 0.08, "crown": 0.9, "crown_from": 1.1, "tint": Color(0.62, 0.70, 0.46) },
+	&"bush": { "leaf": &"broad", "height": 1.0, "trunk": 0.0, "crown": 0.85, "crown_from": 0.1, "tint": Color(0.56, 0.63, 0.42) },
 }
 
 static var _made: Dictionary = {}

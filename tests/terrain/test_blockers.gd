@@ -122,3 +122,67 @@ func test_a_ruin_has_no_roof_and_can_be_entered() -> void:
 	spec.set_stance(Unit.Stance.CRAWLING)
 	await wait_physics_frames(2)
 	assert_eq(_sees(guard, spec), Vision.Zone.NONE, "a crawler inside is hidden by the wall")
+
+
+# --- Soft shade where things stand ---
+
+func test_things_on_the_land_sit_in_a_pool_of_shade() -> void:
+	var wall := StoneWall.new()
+	wall.points = PackedVector2Array([Vector2(-6, 0), Vector2(6, 0)])
+	region.add_child(wall)
+	var house := Building.new()
+	house.size = Vector3(5, 3, 4)
+	region.add_child(house)
+	house.position = Vector3(10, 0, -8)
+	await _built()
+	var land := mission.terrain()
+	assert_eq(land.shade_at(-15, 10), 1.0, "open ground is unshaded")
+	assert_lt(land.shade_at(0, 0.6), 0.7, "dark right beside the wall")
+	assert_between(land.shade_at(0, 1.1), 0.55, 0.99, "easing off a little way out")
+	assert_eq(land.shade_at(0, 4.0), 1.0, "and gone a few metres away")
+	assert_lt(land.shade_at(12.9, -8), 0.75, "the house too")
+	assert_gt(land.shade_at(0, 0.6), 0.1, "shade, not a black hole")
+
+
+func test_trees_shade_the_ground_under_their_crowns() -> void:
+	var trees := PropScatter.new()
+	trees.tree_kind = &"oak"
+	trees.area = PackedVector2Array([Vector2(-18, -12), Vector2(18, -12), Vector2(18, 12), Vector2(-18, 12)])
+	trees.count = 6
+	trees.min_spacing = 9.0
+	region.add_child(trees)
+	await _built()
+	var land := mission.terrain()
+	assert_gt(trees.transforms().size(), 2)
+	for t in trees.transforms():
+		assert_lt(land.shade_at(t.origin.x, t.origin.z), 0.8, "under a crown")
+
+
+func test_a_sandbag_wall_blocks_like_any_wall() -> void:
+	var bags := StoneWall.new()
+	bags.kind = &"sandbags"
+	bags.points = PackedVector2Array([Vector2(-3, 0), Vector2(3, 0)])
+	region.add_child(bags)
+	await _built()
+	assert_gt(bags.find_children("*", "CollisionShape3D", true, false).size(), 4, "in short bags, not long blocks")
+	assert_gt(_off_navmesh(0, 0), 0.5)
+
+
+func test_a_telegraph_pole_stands_on_the_ground_and_is_wired_to_the_next() -> void:
+	var pole := TelegraphPole.new()
+	pole.wire_to = Vector2(14, 5)
+	mission.add_child(pole)
+	pole.position = Vector3(0, 0, 5)
+	var last := TelegraphPole.new()
+	mission.add_child(last)
+	last.position = Vector3(14, 0, 5)
+	await _built()
+	assert_almost_eq(pole.global_position.y, 2.0, 0.01, "set down on the land")
+	var meshes := pole.find_children("*", "MeshInstance3D", true, false)
+	assert_eq(meshes.size(), 6, "post, arm, two insulators, two wires")
+	assert_eq(last.find_children("*", "MeshInstance3D", true, false).size(), 4, "the last of a line has no wires on")
+	assert_eq(pole.find_children("*", "CollisionShape3D", true, false).size(), 0)
+	var longest := 0.0
+	for m in meshes:
+		longest = maxf(longest, ((m as MeshInstance3D).mesh.get_aabb().size.z))
+	assert_almost_eq(longest, 14.0, 0.2, "the wires reach the next pole")

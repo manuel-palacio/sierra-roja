@@ -186,8 +186,11 @@ func build_scenery() -> void:
 	for node in find_children("*", "Node3D", true, false):
 		if node is PropScatter:
 			node.build(self)
+		elif node.has_method("settle"):
+			node.settle(ground)
 	if terrain() == null:
 		return
+	terrain().bake_shade(_shade_casters())
 	for marker in specialist_spawns() + guard_spawns():
 		marker.global_position.y = _standing_height(marker.global_position)
 	var list := guards()
@@ -198,6 +201,37 @@ func build_scenery() -> void:
 			var route := _route_points(routes[i])
 			list[i].set_route(route)
 			_guard_routes[String(list[i].name)] = route
+
+
+## Everything that stands on the land and should sit in a pool of soft shade: walls, buildings,
+## crates and other solid boxes, and each scattered tree and bush.
+func _shade_casters() -> Array:
+	var out := []
+	for node in find_children("*", "CollisionShape3D", true, false):
+		var collision := node as CollisionShape3D
+		if not collision.shape is BoxShape3D or collision.get_parent() is Area3D:
+			continue
+		var size := (collision.shape as BoxShape3D).size
+		var at := collision.global_position
+		out.append({ "at": Vector2(at.x, at.z), "half": Vector2(size.x, size.z) / 2.0,
+				"turn": collision.global_rotation.y, "reach": clampf(size.y * 0.8, 1.1, 2.4), "strength": 0.5 })
+	for node in find_children("*", "CSGBox3D", true, false):
+		var box := node as CSGBox3D
+		if not box.use_collision or box.name == "BridgeDeck" or not box.get_parent() is NavigationRegion3D \
+				and box.get_parent().name != "TargetStack":
+			continue
+		var at := box.global_position
+		out.append({ "at": Vector2(at.x, at.z), "half": Vector2(box.size.x, box.size.z) / 2.0,
+				"turn": box.global_rotation.y, "reach": 1.0, "strength": 0.5 })
+	for node in find_children("*", "Node3D", true, false):
+		var scatter := node as PropScatter
+		if scatter == null or scatter.tree_kind == &"":
+			continue
+		var crown: float = TreeBuilder.KINDS[scatter.tree_kind]["crown"]
+		for t in scatter.transforms():
+			out.append({ "at": Vector2(t.origin.x, t.origin.z), "half": Vector2.ZERO,
+					"reach": crown * t.basis.get_scale().y * 1.05, "strength": 0.34 })
+	return out
 
 
 ## The height of whatever a unit would stand on at a point of the ground plane: the bridge deck

@@ -10,6 +10,7 @@
 [ext_resource type="Script" path="res://src/terrain/sleepers.gd" id="8_sleepers"]
 [ext_resource type="Shader" path="res://assets/shaders/water.gdshader" id="9_water"]
 [ext_resource type="Script" path="res://src/terrain/campfire.gd" id="10_campfire"]
+[ext_resource type="Script" path="res://src/terrain/telegraph_pole.gd" id="11_pole"]
 [ext_resource type="PackedScene" path="res://assets/props/nature/rock_tallA.glb" id="m_rock_tallA"]
 [ext_resource type="PackedScene" path="res://assets/props/nature/rock_tallB.glb" id="m_rock_tallB"]
 [ext_resource type="PackedScene" path="res://assets/props/nature/rock_largeA.glb" id="m_rock_largeA"]
@@ -314,6 +315,12 @@ points = PackedVector2Array(-9, -12, -8.5, -21)
 script = ExtResource("5_wall")
 points = PackedVector2Array(-42, -21, -42, -31, -34, -33)
 
+[node name="Wall8" type="StaticBody3D" parent="Nav"]
+script = ExtResource("5_wall")
+points = PackedVector2Array(-35.2, 6.8, -33.4, 6.8, -33.4, 8.0)
+wall_height = 1.0
+kind = &"sandbags"
+
 [node name="CheckpointHut" type="StaticBody3D" parent="Nav"]
 transform = Transform3D(1.00000, 0, -0.00000, 0, 1, 0, 0.00000, 0, 1.00000, -37.5, 0, 13)
 script = ExtResource("6_building")
@@ -501,13 +508,13 @@ max_slope_deg = 30.0
 scale_range = Vector2(2.4, 3.2)
 keep_clear = 0.3
 clear_points = PackedVector2Array(-53.5, 12.5, -52, 13.5, -53.5, -9.5, -50, -14.5, -42, -15, -33, -15, -26, -13, -20, -10.5, -21.5, -12, -15, 10, -11, 30, -30, 36, 44.5, 10, 46, 20)
-flat_colour = Color(0.8, 0.66, 0.3, 1)
+flat_colour = Color(0.74, 0.62, 0.32, 1)
 
 [node name="Poppies" type="Node3D" parent="Scenery"]
 script = ExtResource("7_scatter")
 models = Array[PackedScene]([ExtResource("m_flower_redA"), ExtResource("m_flower_redB"), ExtResource("m_flower_redC")])
 area = PackedVector2Array(-54, -39, 54, -39, 54, 39, -54, 39)
-count = 300
+count = 190
 seed = 21
 min_spacing = 0.6
 max_slope_deg = 30.0
@@ -738,6 +745,44 @@ material = SubResource("m_rail")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.19, 0.7)
 size = Vector3(200, 0.14, 0.1)
 material = SubResource("m_rail")
+
+[node name="Pole1_1" type="Node3D" parent="Scenery"]
+script = ExtResource("11_pole")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -53, 0, -3.4)
+wire_to = Vector2(-39, -3.4)
+
+[node name="Pole1_2" type="Node3D" parent="Scenery"]
+script = ExtResource("11_pole")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -39, 0, -3.4)
+wire_to = Vector2(-25, -3.4)
+
+[node name="Pole1_3" type="Node3D" parent="Scenery"]
+script = ExtResource("11_pole")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -25, 0, -3.4)
+wire_to = Vector2(-11, -3.4)
+
+[node name="Pole1_4" type="Node3D" parent="Scenery"]
+script = ExtResource("11_pole")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11, 0, -3.4)
+
+[node name="Pole2_1" type="Node3D" parent="Scenery"]
+script = ExtResource("11_pole")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 0, -3.4)
+wire_to = Vector2(25, -3.4)
+
+[node name="Pole2_2" type="Node3D" parent="Scenery"]
+script = ExtResource("11_pole")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25, 0, -3.4)
+wire_to = Vector2(39, -3.4)
+
+[node name="Pole2_3" type="Node3D" parent="Scenery"]
+script = ExtResource("11_pole")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 39, 0, -3.4)
+wire_to = Vector2(53, -3.4)
+
+[node name="Pole2_4" type="Node3D" parent="Scenery"]
+script = ExtResource("11_pole")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 53, 0, -3.4)
 
 [node name="ExtractionFire" type="Node3D" parent="Scenery"]
 script = ExtResource("10_campfire")

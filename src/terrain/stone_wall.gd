@@ -7,6 +7,8 @@ extends StaticBody3D
 ## Tint over the stone texture.
 const COLOR := Color(0.92, 0.88, 0.82)
 ## Longest single block, in metres.
+## Tint for sandbags, laid over the rough plaster texture.
+const SANDBAG_COLOR := Color(0.74, 0.66, 0.46)
 const BLOCK_LENGTH := 1.6
 ## Blocks reach this far into the ground, so a slope shows no gap under them.
 const SINK := 0.4
@@ -15,6 +17,8 @@ const SINK := 0.4
 @export var points := PackedVector2Array()
 @export var wall_height := 1.0
 @export var thickness := 0.6
+## &"stone" for dry stone, &"sandbags" for a sandbagged position.
+@export var kind := &"stone"
 
 ## ground.call(x, z) gives the ground height. Mission calls this before the navmesh bake.
 func build(ground: Callable) -> void:
@@ -28,7 +32,7 @@ func build(ground: Callable) -> void:
 	for i in points.size() - 1:
 		var from := points[i]
 		var to := points[i + 1]
-		var blocks := maxi(int(ceilf(from.distance_to(to) / BLOCK_LENGTH)), 1)
+		var blocks := maxi(int(ceilf(from.distance_to(to) / (BLOCK_LENGTH if kind == &"stone" else 0.8))), 1)
 		for b in blocks:
 			var a := from.lerp(to, float(b) / blocks)
 			var c := from.lerp(to, float(b + 1) / blocks)
@@ -50,7 +54,7 @@ func _add_block(a: Vector2, c: Vector2, ground: Callable, rng: RandomNumberGener
 	# The drawn block is a little uneven; what blocks sight and feet is the plain box above.
 	var mesh := BoxMesh.new()
 	mesh.size = size * Vector3(1.0, 1.0, rng.randf_range(0.85, 1.1)) + Vector3(0, rng.randf_range(-0.08, 0.08), 0)
-	mesh.material = _stone()
+	mesh.material = _stone() if kind == &"stone" else Surfaces.material(&"plaster", SANDBAG_COLOR)
 	var instance := MeshInstance3D.new()
 	instance.mesh = mesh
 	instance.transform = at

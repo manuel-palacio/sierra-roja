@@ -61,6 +61,13 @@ WALLS = [
     [(34, 20), (40, 24)],
     [(-9, -12), (-8.5, -21)],
     [(-42, -21), (-42, -31), (-34, -33)],
+    # A sandbagged post by the barrier.
+    ([(-35.2, 6.8), (-33.4, 6.8), (-33.4, 8.0)], 1.0, "sandbags"),
+]
+# Telegraph poles along the north side of the track, either side of the gorge.
+POLE_LINES = [
+    [(x, -3.4) for x in (-53, -39, -25, -11)],
+    [(x, -3.4) for x in (11, 25, 39, 53)],
 ]
 # name, x, z, rotation (radians), size, roof height, ruin
 BUILDINGS = [
@@ -100,7 +107,7 @@ SCATTERS = [
     ("Bushes", False, ["tree:bush"], WHOLE_MAP, 190, 17, 2.2, (0.7, 1.4), 1.5, None, 34),
     ("Grass", False, ["grass", "grass_large", "grass_leafs", "grass_leafsLarge"], WHOLE_MAP, 1000, 18, 0.7, (2.0, 3.2), 0.9, None, 36),
     ("Wheat", False, ["crops_wheatStageB"], [(-23.2, 18.8), (-14.2, 18.8), (-14.2, 25.2), (-23.2, 25.2)], 260, 25, 0.5, (2.4, 3.2), 0.3, None, 30),
-    ("Poppies", False, ["flower_redA", "flower_redB", "flower_redC"], WHOLE_MAP, 300, 21, 0.6, (1.3, 2.0), 1.0, None, 30),
+    ("Poppies", False, ["flower_redA", "flower_redB", "flower_redC"], WHOLE_MAP, 190, 21, 0.6, (1.3, 2.0), 1.0, None, 30),
     ("Broom", False, ["flower_yellowA", "flower_yellowB", "flower_yellowC"], WHOLE_MAP, 170, 22, 0.8, (1.3, 2.1), 1.0, None, 34),
     ("Thistles", False, ["flower_purpleA", "flower_purpleB"], WHOLE_MAP, 80, 23, 1.0, (1.3, 2.0), 1.0, None, 34),
     ("Saplings", False, ["tree:sapling"], WHOLE_MAP, 26, 24, 6.0, (0.8, 1.3), 3.0, None, 30),
@@ -130,5 +137,5 @@ if __name__ == "__main__":
     write(mission(
         NAME="bridge", NODE="Bridge", BRIDGE=True, BOUNDS=BOUNDS, PLAIN=PLAIN, FEATURES=FEATURES,
         SPECIALIST_SPAWNS=SPECIALIST_SPAWNS, GUARDS=GUARDS, EXTRACTION=EXTRACTION, WALLS=WALLS,
-        BUILDINGS=BUILDINGS, CRATES=CRATES, SCATTERS=SCATTERS, CLEAR=CLEAR, PLACED=PLACED, LAMPS=LAMPS,
+        BUILDINGS=BUILDINGS, CRATES=CRATES, SCATTERS=SCATTERS, CLEAR=CLEAR, PLACED=PLACED, LAMPS=LAMPS, POLE_LINES=POLE_LINES,
     ))
