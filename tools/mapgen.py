@@ -23,7 +23,7 @@ FLAT_COLOURS = {"Wheat": (0.74, 0.62, 0.32)}
 PLAIN_SHAPES = ("barrel", "box", "box-large")
 
 DEFAULTS = dict(SEED=7, NOISE=0.45, NAV_FLOOR=-6, BRIDGE=False, TARGET=(0, 0, 0), TARGET_STACK=[], WALLS=[], BUILDINGS=[],
-                CRATES=[], SCATTERS=[], CLEAR=[], PLACED=[], LAMPS=[], TEXTS={}, POLE_LINES=[], RIVER_COURSE=[], TOWERS=[], CARTS=[], SETTLEMENT=[], NIGHT=False, LAND=None, OBJECTIVES=None)
+                CRATES=[], SCATTERS=[], CLEAR=[], PLACED=[], LAMPS=[], TEXTS={}, POLE_LINES=[], RIVER_COURSE=[], TOWERS=[], CARTS=[], SETTLEMENT=[], NIGHT=False, LAND=None, OBJECTIVES=None, SEA=None, EXTRACTION_FIRE=True, EXTRACTION_GROUND=None)
 
 
 def mission(**tables):
@@ -78,13 +78,29 @@ def objectives(m):
              "marker": m.TEXTS.get("target_name", "Bridge"), "done": m.TEXTS.get("destroyed_text", "Bridge destroyed")}]
 
 
-def objective_nodes(objective):
-    """The scene lines of one objective, under Objectives/."""
+def objective_nodes(objective, m):
+    """The scene lines of one objective, under Objectives/, and of what it needs on the map."""
     if objective["kind"] == "destroy":
         # The thing to destroy stands at the BridgeTarget marker, whatever it is.
         return ['[node name="Destroy" type="Node" parent="Objectives"]', 'script = ExtResource("15_destroy")',
                 f'hud_text = "{objective["hud"]}"', f'marker_name = "{objective["marker"]}"',
                 f'done_text = "{objective["done"]}"', 'target = NodePath("BridgeTarget")', ""]
+    if objective["kind"] == "rescue":
+        # The cell is an enterable building, which has its doorway in the middle of its south wall.
+        name, x, z, rot, size = next(b for b in m.BUILDINGS if b[0] == objective["building"])[:5]
+        assert rot == 0.0 and len(objective) and size, "a cell's building is not turned"
+        ground = objective["ground"]
+        door_z = z + size[2] / 2.0
+        px, pz = objective["prisoner"]
+        return [
+            # What shuts the doorway: solid to feet and eyes until the door is opened.
+            '[node name="CellDoorBlock" type="CSGBox3D" parent="Nav"]', "use_collision = true",
+            at(x, ground + 1.1, door_z - 0.22), "size = Vector3(2.5, 2.4, 0.3)", 'material = SubResource("m_crate")', "",
+            '[node name="CellDoor" type="Node3D" parent="."]', at(x, ground, door_z), 'script = ExtResource("17_door")', "",
+            '[node name="Prisoner" parent="." instance=ExtResource("18_prisoner")]', at(px, ground, pz), "",
+            '[node name="Rescue" type="Node" parent="Objectives"]', 'script = ExtResource("16_rescue")',
+            f'hud_text = "{objective["hud"]}"', f'marker_name = "{objective["marker"]}"',
+            f'escort_text = "{objective["escort"]}"', 'prisoner = NodePath("Prisoner")', 'door = NodePath("CellDoor")', ""]
     raise ValueError("unknown objective kind: %s" % objective["kind"])
 
 
@@ -109,6 +125,10 @@ def write_scene(m):
          '[ext_resource type="Script" path="res://src/terrain/cart.gd" id="13_cart"]',
          '[ext_resource type="Script" path="res://src/terrain/settlement_prop.gd" id="14_settled"]',
          '[ext_resource type="Script" path="res://src/mission/objectives/destroy_objective.gd" id="15_destroy"]']
+    if any(objective["kind"] == "rescue" for objective in objectives(m)):
+        o += ['[ext_resource type="Script" path="res://src/mission/objectives/rescue_objective.gd" id="16_rescue"]',
+              '[ext_resource type="Script" path="res://src/terrain/cell_door.gd" id="17_door"]',
+              '[ext_resource type="PackedScene" path="res://scenes/units/prisoner.tscn" id="18_prisoner"]']
     model_ids = {}
     for scatter in SCATTERS:
         for model in scatter[2]:
@@ -169,6 +189,7 @@ def write_scene(m):
         o += [f"shader_parameter/course = {v2(course)}", f"shader_parameter/course_points = {len(m.RIVER_COURSE)}"]
     o += ["",
           '[sub_resource type="PlaneMesh" id="Mesh_water"]', 'material = SubResource("m_water")', "size = Vector2(44, 260)", "",
+          '[sub_resource type="PlaneMesh" id="Mesh_sea"]', 'material = SubResource("m_water")', "size = Vector2(400, 160)", "",
           '[sub_resource type="StandardMaterial3D" id="m_lamp"]', "shading_mode = 0", "albedo_color = Color(1, 0.86, 0.55, 1)", "",
           '[sub_resource type="SphereMesh" id="Mesh_bulb"]', 'material = SubResource("m_lamp")', "radius = 0.16", "height = 0.32",
           "radial_segments = 8", "rings = 4", "",
@@ -272,6 +293,10 @@ def write_scene(m):
     o += ['[node name="Scenery" type="Node3D" parent="."]', ""]
     if m.BRIDGE:
         o += ['[node name="River" type="MeshInstance3D" parent="Scenery"]', at(1, -10.4, 0), 'mesh = SubResource("Mesh_water")', ""]
+    if m.SEA:
+        # Still water over everything south of the shore; the land rises out of it.
+        shore, level = m.SEA
+        o += ['[node name="Sea" type="MeshInstance3D" parent="Scenery"]', at(0, level, shore + 76), 'mesh = SubResource("Mesh_sea")', ""]
     for entry in SCATTERS:
         if not entry[1]:
             o += scatter_node("Scenery", entry)
@@ -326,9 +351,11 @@ def write_scene(m):
                 o.append("wire_to = Vector2(%s, %s)" % line[i + 1])
             o.append("")
     ex, ez = EXTRACTION
-    # The extraction point is a camp: a fire to walk to, a tent and stores beside it.
-    o += ['[node name="ExtractionFire" type="Node3D" parent="Scenery"]', 'script = ExtResource("10_campfire")',
-          at(ex, PLAIN, ez), ""]
+    extraction_ground = PLAIN if m.EXTRACTION_GROUND is None else m.EXTRACTION_GROUND
+    if m.EXTRACTION_FIRE:
+        # The extraction point is a camp: a fire to walk to, a tent and stores beside it.
+        o += ['[node name="ExtractionFire" type="Node3D" parent="Scenery"]', 'script = ExtResource("10_campfire")',
+              at(ex, PLAIN, ez), ""]
 
     o += ['[node name="SpecialistSpawns" type="Node3D" parent="."]', ""]
     for i, (x, z) in enumerate(SPECIALIST_SPAWNS):
@@ -341,13 +368,13 @@ def write_scene(m):
         o += [f'[node name="Route{i + 1}" type="Path3D" parent="Routes"]', f'curve = SubResource("Curve_{i + 1}")',
               f'editor_description = "{name}"', ""]
     o += ['[node name="Extraction" type="Area3D" parent="."]', "collision_layer = 0", "collision_mask = 2",
-          at(ex, PLAIN + 1.5, ez), "", '[node name="Shape" type="CollisionShape3D" parent="Extraction"]',
+          at(ex, extraction_ground + 1.5, ez), "", '[node name="Shape" type="CollisionShape3D" parent="Extraction"]',
           'shape = SubResource("Box_extraction")', "",
           '[node name="BridgeTarget" type="Marker3D" parent="."]', at(*m.TARGET), "",
           '[node name="Guards" type="Node3D" parent="."]', "",
           '[node name="Objectives" type="Node" parent="."]', ""]
     for objective in objectives(m):
-        o += objective_nodes(objective)
+        o += objective_nodes(objective, m)
     for i in range(len(GUARDS)):
         o += [f'[node name="Guard{i + 1}" parent="Guards" instance=ExtResource("2_guard")]', ""]
     (ROOT / f"scenes/missions/{m.NAME}.tscn").write_text("\n".join(o))

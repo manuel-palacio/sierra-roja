@@ -11,6 +11,7 @@ const KINDS := {
 	&"well": Vector3(1.7, 1.1, 1.7),
 	&"haystack": Vector3(2.6, 2.2, 2.6),
 	&"washing_line": Vector3.ZERO,
+	&"launch": Vector3(2.0, 1.0, 6.4),
 }
 const CANVAS := Color(0.44, 0.47, 0.34)
 const PAINT := Color(0.30, 0.36, 0.28)
@@ -44,6 +45,8 @@ func stand(ground: Callable) -> void:
 			_haystack()
 		&"washing_line":
 			_washing_line()
+		&"launch":
+			_launch()
 
 
 func _truck() -> void:
@@ -113,6 +116,20 @@ func _haystack() -> void:
 	cap.rings = 1
 	cap.material = _flat(HAY.darkened(0.12))
 	_mesh(cap, Vector3(0, 1.8, 0))
+
+
+## An open motor launch drawn up on a beach: a long hull narrowing to the bow, thwarts, and the
+## engine's box amidships.
+func _launch() -> void:
+	var hull := Surfaces.material(&"planks", Color(0.82, 0.84, 0.80))
+	var inside := Surfaces.material(&"planks", Color(0.66, 0.58, 0.44))
+	_box(Vector3(1.9, 0.75, 4.6), Vector3(0, 0.30, -0.6), hull)
+	_box(Vector3(1.4, 0.70, 0.9), Vector3(0, 0.32, 2.1), hull)
+	_box(Vector3(0.8, 0.62, 0.7), Vector3(0, 0.36, 2.8), hull)
+	_box(Vector3(1.6, 0.10, 4.2), Vector3(0, 0.66, -0.6), inside)
+	for z in [-2.2, -0.9, 1.0]:
+		_box(Vector3(1.8, 0.08, 0.32), Vector3(0, 0.74, z), inside)
+	_box(Vector3(0.7, 0.45, 0.9), Vector3(0, 0.90, 0.1), _flat(Color(0.16, 0.17, 0.18)))
 
 
 func _washing_line() -> void:

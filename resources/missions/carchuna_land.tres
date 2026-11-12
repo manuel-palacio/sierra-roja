@@ -1,0 +1,95 @@
+[gd_resource type="Resource" script_class="TerrainSpec" format=3]
+
+[ext_resource type="Script" path="res://src/terrain/terrain_spec.gd" id="1_spec"]
+[ext_resource type="Script" path="res://src/terrain/terrain_feature.gd" id="2_feature"]
+
+[sub_resource type="Resource" id="f0"]
+script = ExtResource("2_feature")
+kind = 0
+mode = 0
+points = PackedVector2Array(-30, -40)
+width = 7.0
+falloff = 14.0
+height = 4.5
+surface = -1
+
+[sub_resource type="Resource" id="f1"]
+script = ExtResource("2_feature")
+kind = 0
+mode = 0
+points = PackedVector2Array(40, -40)
+width = 6.0
+falloff = 12.0
+height = 3.5
+surface = -1
+
+[sub_resource type="Resource" id="f2"]
+script = ExtResource("2_feature")
+kind = 0
+mode = 0
+points = PackedVector2Array(-18, 12)
+width = 3.0
+falloff = 7.0
+height = 3.0
+surface = 4
+
+[sub_resource type="Resource" id="f3"]
+script = ExtResource("2_feature")
+kind = 0
+mode = 1
+points = PackedVector2Array(23, 5)
+width = 21.0
+falloff = 6.0
+height = 2.5
+surface = 1
+
+[sub_resource type="Resource" id="f4"]
+script = ExtResource("2_feature")
+kind = 1
+mode = 1
+points = PackedVector2Array(-110, -30, -25, -27, 8, -22, 23, -15, 23, -10)
+width = 2.0
+falloff = 2.5
+height = 2.5
+surface = 2
+
+[sub_resource type="Resource" id="f5"]
+script = ExtResource("2_feature")
+kind = 1
+mode = 1
+points = PackedVector2Array(-110, 46, 110, 46)
+width = 9.0
+falloff = 5.0
+height = -3.0
+surface = 4
+
+[sub_resource type="Resource" id="f6"]
+script = ExtResource("2_feature")
+kind = 0
+mode = 1
+points = PackedVector2Array(-40, 27)
+width = 7.0
+falloff = 5.0
+height = 1.0
+surface = 1
+
+[sub_resource type="Resource" id="f7"]
+script = ExtResource("2_feature")
+kind = 1
+mode = 1
+points = PackedVector2Array(-34, 26, -12, 25, 6, 25, 44, 25)
+width = 1.6
+falloff = 3.0
+height = 2.0
+surface = 1
+
+[resource]
+script = ExtResource("1_spec")
+bounds = Rect2(-55, -45, 110, 90)
+skirt = 45.0
+cell = 1.0
+base_height = 2.5
+seed = 23
+noise_amplitude = 0.45
+noise_period = 28.0
+features = Array[ExtResource("2_feature")]([SubResource("f0"), SubResource("f1"), SubResource("f2"), SubResource("f3"), SubResource("f4"), SubResource("f5"), SubResource("f6"), SubResource("f7")])

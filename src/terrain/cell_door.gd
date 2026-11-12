@@ -58,6 +58,11 @@ func set_open(value: bool) -> void:
 		_mission().rebake_nav_soon()
 
 
+## Sets the door on the ground. Mission calls this before the navmesh bake.
+func settle(ground: Callable) -> void:
+	global_position.y = ground.call(global_position.x, global_position.z)
+
+
 ## Where a specialist stands to open it: just outside, on the ground.
 func stand_point() -> Vector3:
 	var at := global_position + global_basis.z.normalized() * STAND_OFF

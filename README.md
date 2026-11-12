@@ -1,9 +1,11 @@
 # Sierra Roja
 
 A real-time stealth tactics game for the desktop browser, set in the Spanish Civil War. You command two
-fictional Republican guerrillas, the Dynamiter and the Marksman, through dawn raids: blow up a
-Nationalist railway bridge, then an ammunition store, and get both of them out each time. Low-poly 3D, isometric
-camera, Godot 4.7 (Compatibility renderer, single-threaded web export). "Sierra Roja" is a working title.
+fictional Republican guerrillas, the Dynamiter and the Marksman, through missions set at real events of the
+war: blow up a bridge behind the lines as the Segovia offensive opens in May 1937, raid an ammunition
+store, and bring a prisoner out of Fort Carchuna on the night of 23 May 1938. Both of them have to get out
+each time. Low-poly 3D, isometric camera, Godot 4.7 (Compatibility renderer, single-threaded web export).
+"Sierra Roja" is a working title.
 
 ## Controls
 
@@ -15,7 +17,7 @@ camera, Godot 4.7 (Compatibility renderer, single-threaded web export). "Sierra 
 | `3` | Select both: move and stance orders go to both |
 | `Q` Knife, `R` Pistol, `E` Rifle (Marksman) | Arm the ability, then click a guard; `Esc` or right click disarms |
 | `E` Charge (Dynamiter) | Plants a charge at your feet on the key press (10 s fuse) |
-| `F` Carry | On the key press, lifts the nearest body in reach, or drops the one you carry |
+| `F` Use / Carry | Uses what is next to you (a cell door); otherwise the Dynamiter lifts the nearest body in reach, or drops the one carried |
 | `C` | Crawl / stand |
 | `Space` | Pause / resume |
 | `O` / `L` | Quick save (not once the mission has ended) / quick load |
@@ -26,11 +28,16 @@ camera, Godot 4.7 (Compatibility renderer, single-threaded web export). "Sierra 
 The game opens on a briefing with the objectives and these controls; `Start`, `Enter` or `Space`
 begins. Sound starts after your first click or key press (browser rule).
 
-There are two missions, the bridge and the powder store; the briefing has a button for each, a
-win offers the next, and `?mission=powder_store` in the address starts on the second.
+The missions are a campaign in date order: the briefing lists them with their place and date, tells
+what history says of each, and opens the next one when the one before is won (wins are kept in the
+browser). A win shows what really happened. `?mission=powder_store` or `?mission=carchuna` in the
+address starts on that mission whether it is open or not.
+
+What a mission asks for is a list of objectives in its scene: destroy something with a charge, or free a
+prisoner and bring him out. `F` uses what is next to the selected specialist, such as a cell door.
 
 Each mission's map is authored as tables of numbers in its own file (`tools/make_bridge_map.py`,
-`tools/make_powder_map.py`), which `tools/mapgen.py` turns into the land
+`tools/make_powder_map.py`, `tools/make_carchuna_map.py`), which `tools/mapgen.py` turns into the land
 (`resources/missions/<name>_land.tres`) and the mission scene; `tools/map_preview.gd` draws the
 result from above. A new mission is a new table file and a line in `src/mission/missions.gd`. The
 soldier model and its uniforms come from `tools/make_soldier.py`; helmets, caps, rifles and bags
