@@ -17,12 +17,25 @@ const WALL_THICKNESS := 0.45
 const DOOR_WIDTH := 2.6
 const EAVES := 0.35
 const SINK := 0.6
+## The way into an enterable building: wide enough to stay open once the navmesh is cut back
+## from the walls either side.
+const ENTRANCE_WIDTH := 2.4
+const LOOK_INTERVAL := 0.1
 
 ## Footprint along x, wall height, footprint along z.
 @export var size := Vector3(5.0, 3.0, 4.0)
 @export var roof_height := 1.4
 ## Broken walls of uneven height with a doorway in the south wall (+z), and no roof.
 @export var ruin := false
+## Hollow, with a doorway in the south wall (+z): units walk in and out, the walls hide whoever is
+## inside from outside, and the roof is lifted off the picture while a specialist is inside.
+@export var enterable := false
+## Two floors' worth of wall, with a second row of windows. The upper floor is not gone up to.
+@export var storeys := 1
+
+## The roof and whatever else is taken off the picture while a specialist is inside.
+var _lid: Array[Node3D] = []
+var _since_look := 0.0
 
 
 ## ground.call(x, z) gives the ground height. Mission calls this before the navmesh bake.
@@ -33,14 +46,84 @@ func build(ground: Callable) -> void:
 		remove_child(child)
 		child.free()
 	global_position.y = ground.call(global_position.x, global_position.z)
+	_lid.clear()
 	if ruin:
 		_build_ruin()
+		return
+	if enterable:
+		_build_hollow()
 	else:
 		_add_box(Vector3(0, (size.y - SINK) / 2.0, 0), Vector3(size.x, size.y + SINK, size.z),
 				Surfaces.material(&"plaster", WALL_COLOR))
-		if roof_height > 0.0:
-			add_child(_roof())
-		_add_details()
+	if roof_height > 0.0:
+		var roof := _roof()
+		add_child(roof)
+		_lid.append(roof)
+	_add_details()
+
+
+## Whether a point of the ground plane is inside the walls.
+func holds(at: Vector3) -> bool:
+	var local := global_transform.affine_inverse() * at
+	return absf(local.x) < size.x / 2.0 - WALL_THICKNESS and absf(local.z) < size.z / 2.0 - WALL_THICKNESS
+
+
+## True while the roof is off the picture.
+func is_open() -> bool:
+	return not _lid.is_empty() and not _lid[0].visible
+
+
+func _process(delta: float) -> void:
+	if not enterable or _lid.is_empty():
+		return
+	_since_look += delta
+	if _since_look < LOOK_INTERVAL:
+		return
+	_since_look = 0.0
+	look_inside()
+
+
+## Lifts the roof off the picture when a living specialist is inside, and puts it back when not.
+## Display only: nothing here changes who can see whom.
+func look_inside() -> void:
+	var occupied := false
+	for node in get_tree().get_nodes_in_group(Specialist.GROUP):
+		var s := node as Specialist
+		if s.alive and holds(s.global_position):
+			occupied = true
+	for part in _lid:
+		part.visible = not occupied
+
+
+## Four walls with a doorway in the south one, a floor, and a little furniture.
+func _build_hollow() -> void:
+	var hx := size.x / 2.0
+	var hz := size.z / 2.0
+	var t := WALL_THICKNESS
+	var plaster := Surfaces.material(&"plaster", WALL_COLOR)
+	var door := (size.x - ENTRANCE_WIDTH) / 2.0
+	for wall in [
+		[Vector3(0, 0, -hz + t / 2.0), Vector3(size.x, 0, t)],
+		[Vector3(-hx + t / 2.0, 0, 0), Vector3(t, 0, size.z)],
+		[Vector3(hx - t / 2.0, 0, 0), Vector3(t, 0, size.z)],
+		[Vector3(-hx + door / 2.0, 0, hz - t / 2.0), Vector3(door, 0, t)],
+		[Vector3(hx - door / 2.0, 0, hz - t / 2.0), Vector3(door, 0, t)],
+	]:
+		var centre: Vector3 = wall[0]
+		var extent: Vector3 = wall[1]
+		_add_box(Vector3(centre.x, (size.y - SINK) / 2.0, centre.z), Vector3(extent.x, size.y + SINK, extent.z), plaster)
+	# The lintel over the doorway goes with the roof, so the way in shows when the roof is off.
+	var lintel := _trim(Vector3(0, size.y - 0.35, hz - t / 2.0), Vector3(ENTRANCE_WIDTH, 0.7, t), plaster)
+	_lid.append(lintel)
+	_add_trim(Vector3(0, 0.03, 0), Vector3(size.x - t * 2.0, 0.06, size.z - t * 2.0), Surfaces.material(&"planks", Color(0.72, 0.62, 0.50)))
+	# A table and a bunk against the back wall: looked at, not walked into.
+	var wood := Surfaces.material(&"planks", DOOR_COLOR)
+	_add_trim(Vector3(-hx + t + 0.75, 0.42, -hz + t + 0.5), Vector3(1.3, 0.08, 0.7), wood)
+	for leg in [Vector2(-0.55, -0.25), Vector2(0.55, -0.25), Vector2(-0.55, 0.25), Vector2(0.55, 0.25)]:
+		_add_trim(Vector3(-hx + t + 0.75 + leg.x, 0.2, -hz + t + 0.5 + leg.y), Vector3(0.07, 0.4, 0.07), wood)
+	if size.x >= 6.0:
+		_add_trim(Vector3(hx - t - 1.0, 0.3, -hz + t + 0.5), Vector3(1.9, 0.14, 0.8), wood)
+		_add_trim(Vector3(hx - t - 1.0, 0.42, -hz + t + 0.5), Vector3(1.8, 0.12, 0.7), _flat(Color(0.55, 0.52, 0.42)))
 
 
 func _build_ruin() -> void:
@@ -71,16 +154,23 @@ func _build_ruin() -> void:
 func _add_details() -> void:
 	var hx := size.x / 2.0
 	var hz := size.z / 2.0
-	var door := Vector3(1.0, minf(2.0, size.y - 0.4), 0.1)
-	_add_trim(Vector3(-hx * 0.35, door.y / 2.0, hz + 0.02), door, Surfaces.material(&"planks", DOOR_COLOR))
+	if not enterable:
+		var door := Vector3(1.0, minf(2.0, size.y - 0.4), 0.1)
+		_add_trim(Vector3(-hx * 0.35, door.y / 2.0, hz + 0.02), door, Surfaces.material(&"planks", DOOR_COLOR))
 	var glass := _flat(GLASS_COLOR)
 	var frame := Surfaces.material(&"planks", DOOR_COLOR)
-	var sill := minf(1.5, size.y - 0.9)
-	for window in [
-		[Vector3(hx * 0.45, sill, hz + 0.02), Vector3(0.8, 0.8, 0.08)],
-		[Vector3(hx + 0.02, sill, 0.0), Vector3(0.08, 0.8, 0.8)],
-		[Vector3(-hx - 0.02, sill, 0.0), Vector3(0.08, 0.8, 0.8)],
-	]:
+	var sill := minf(1.5, size.y / maxi(storeys, 1) - 0.9)
+	var windows := []
+	for floor_index in maxi(storeys, 1):
+		var y := sill + floor_index * size.y / maxi(storeys, 1)
+		# Beside the doorway on the ground floor of a house one walks into; over it upstairs.
+		var front_x := hx * 0.7 if enterable and floor_index == 0 else hx * 0.45
+		windows.append([Vector3(front_x, y, hz + 0.02), Vector3(0.8, 0.8, 0.08)])
+		windows.append([Vector3(hx + 0.02, y, 0.0), Vector3(0.08, 0.8, 0.8)])
+		windows.append([Vector3(-hx - 0.02, y, 0.0), Vector3(0.08, 0.8, 0.8)])
+		if floor_index > 0:
+			windows.append([Vector3(-hx * 0.45, y, hz + 0.02), Vector3(0.8, 0.8, 0.08)])
+	for window in windows:
 		var at: Vector3 = window[0]
 		var pane: Vector3 = window[1]
 		_add_trim(at, pane, glass)
@@ -97,8 +187,8 @@ func _add_details() -> void:
 	if roof_height <= 0.0:
 		return
 	# A row of capping tiles along the ridge, and a lean-to against the north wall with a wood pile.
-	_add_trim(Vector3(0, size.y + roof_height + 0.03, 0), Vector3(size.x + EAVES * 2.0 + 0.1, 0.12, 0.26),
-			Surfaces.material(&"roof", RIDGE_COLOR))
+	_lid.append(_trim(Vector3(0, size.y + roof_height + 0.03, 0), Vector3(size.x + EAVES * 2.0 + 0.1, 0.12, 0.26),
+			Surfaces.material(&"roof", RIDGE_COLOR)))
 	var lean := Vector3(size.x * 0.5, size.y * 0.62, 1.5)
 	_add_trim(Vector3(-size.x * 0.2, lean.y / 2.0, -hz - lean.z / 2.0), lean, Surfaces.material(&"planks", DOOR_COLOR))
 	_add_trim(Vector3(-size.x * 0.2, lean.y + 0.08, -hz - lean.z / 2.0 - 0.1), Vector3(lean.x + 0.3, 0.12, lean.z + 0.4),
@@ -107,7 +197,7 @@ func _add_details() -> void:
 		_add_trim(Vector3(size.x * 0.28, 0.14 + i * 0.26, -hz - 0.45), Vector3(1.5 - i * 0.3, 0.26, 0.7),
 				Surfaces.material(&"bark", Color(0.9, 0.82, 0.72)))
 	var chimney := Vector3(hx * 0.5, size.y + roof_height * 0.75, -hz * 0.3)
-	_add_trim(chimney, Vector3(0.5, roof_height * 1.1, 0.5), Surfaces.material(&"stone", RUIN_COLOR))
+	_lid.append(_trim(chimney, Vector3(0.5, roof_height * 1.1, 0.5), Surfaces.material(&"stone", RUIN_COLOR)))
 	var smoke := CPUParticles3D.new()
 	smoke.name = "Smoke"
 	smoke.position = chimney + Vector3(0, roof_height * 0.6, 0)
@@ -134,10 +224,15 @@ func _add_details() -> void:
 	smoke.mesh = puff
 	smoke.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(smoke)
+	_lid.append(smoke)
 
 
 ## A piece that is only looked at: no collision.
 func _add_trim(at: Vector3, box_size: Vector3, material: Material) -> void:
+	_trim(at, box_size, material)
+
+
+func _trim(at: Vector3, box_size: Vector3, material: Material) -> MeshInstance3D:
 	var mesh := BoxMesh.new()
 	mesh.size = box_size
 	mesh.material = material
@@ -145,6 +240,7 @@ func _add_trim(at: Vector3, box_size: Vector3, material: Material) -> void:
 	instance.mesh = mesh
 	instance.position = at
 	add_child(instance)
+	return instance
 
 
 static func _flat(color: Color) -> StandardMaterial3D:

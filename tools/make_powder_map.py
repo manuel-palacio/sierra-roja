@@ -62,11 +62,19 @@ WALLS = [
 # A watchtower in the north-east corner of the yard, and carts in the yard and on the road.
 TOWERS = [(17.0, 8.5)]
 CARTS = [(-2.5, 8.5, 1.3), (-20.0, 14.5, 0.3)]
+# What makes the place look lived in: kind, x, z, turn in radians.
+SETTLEMENT = [
+    ("truck", 0.5, 23.0, 1.57),
+    ("well", -16.5, -4.0, 0.0),
+    ("washing_line", -3.0, -2.3, 0.0),
+    ("haystack", 16.0, 26.5, 0.0),
+    ("haystack", 20.5, 29.5, 0.0),
+]
 # The telegraph line in along the road from the west.
 POLE_LINES = [[(-48, 5.5), (-34, 6.5), (-21, 9.5), (-9, 15.5)]]
 BUILDINGS = [
-    ("Barracks", -3, -6.5, 0.0, (9, 3, 5), 1.4, False),
-    ("Shed", 14.5, -7.5, 0.0, (6, 2.8, 5), 1.2, False),
+    ("Barracks", -3, -6.5, 0.0, (9, 3, 5), 1.4, False, True),
+    ("Shed", 14.5, -7.5, 0.0, (6, 2.8, 5), 1.2, False, True),
     ("Gatehouse", 10.5, 8.6, 0.0, (4, 2.8, 3.4), 1.2, False),
     ("OldBarn", -30, -6, 0.3, (7, 2.4, 6), 0.0, True),
 ]
@@ -126,5 +134,5 @@ if __name__ == "__main__":
         NAME="powder_store", NODE="PowderStore", SEED=11, BOUNDS=BOUNDS, PLAIN=PLAIN, FEATURES=FEATURES,
         SPECIALIST_SPAWNS=SPECIALIST_SPAWNS, GUARDS=GUARDS, EXTRACTION=EXTRACTION, TARGET=TARGET,
         TARGET_STACK=TARGET_STACK, WALLS=WALLS, BUILDINGS=BUILDINGS, CRATES=CRATES, SCATTERS=SCATTERS,
-        CLEAR=CLEAR, PLACED=PLACED, LAMPS=LAMPS, TEXTS=TEXTS, POLE_LINES=POLE_LINES, TOWERS=TOWERS, CARTS=CARTS,
+        CLEAR=CLEAR, PLACED=PLACED, LAMPS=LAMPS, TEXTS=TEXTS, POLE_LINES=POLE_LINES, TOWERS=TOWERS, CARTS=CARTS, SETTLEMENT=SETTLEMENT,
     ))

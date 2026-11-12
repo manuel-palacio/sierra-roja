@@ -23,7 +23,7 @@ FLAT_COLOURS = {"Wheat": (0.74, 0.62, 0.32)}
 PLAIN_SHAPES = ("barrel", "box", "box-large")
 
 DEFAULTS = dict(SEED=7, NOISE=0.45, NAV_FLOOR=-6, BRIDGE=False, TARGET=(0, 0, 0), TARGET_STACK=[], WALLS=[], BUILDINGS=[],
-                CRATES=[], SCATTERS=[], CLEAR=[], PLACED=[], LAMPS=[], TEXTS={}, POLE_LINES=[], RIVER_COURSE=[], TOWERS=[], CARTS=[])
+                CRATES=[], SCATTERS=[], CLEAR=[], PLACED=[], LAMPS=[], TEXTS={}, POLE_LINES=[], RIVER_COURSE=[], TOWERS=[], CARTS=[], SETTLEMENT=[])
 
 
 def mission(**tables):
@@ -84,7 +84,8 @@ def write_scene(m):
          '[ext_resource type="Script" path="res://src/terrain/campfire.gd" id="10_campfire"]',
          '[ext_resource type="Script" path="res://src/terrain/telegraph_pole.gd" id="11_pole"]',
          '[ext_resource type="Script" path="res://src/terrain/watchtower.gd" id="12_tower"]',
-         '[ext_resource type="Script" path="res://src/terrain/cart.gd" id="13_cart"]']
+         '[ext_resource type="Script" path="res://src/terrain/cart.gd" id="13_cart"]',
+         '[ext_resource type="Script" path="res://src/terrain/settlement_prop.gd" id="14_settled"]']
     model_ids = {}
     for scatter in SCATTERS:
         for model in scatter[2]:
@@ -186,12 +187,26 @@ def write_scene(m):
         if kind:
             o.append(f'kind = &"{kind}"')
         o.append("")
-    for name, x, z, rot, size, roof, ruin in BUILDINGS:
+    for building in BUILDINGS:
+        # name, x, z, turn, size, roof height, ruin, then optionally: enterable, storeys.
+        name, x, z, rot, size, roof, ruin = building[:7]
+        enterable = building[7] if len(building) > 7 else False
+        storeys = building[8] if len(building) > 8 else 1
         c, s = math.cos(rot), math.sin(rot)
         o += [f'[node name="{name}" type="StaticBody3D" parent="Nav"]',
               f"transform = Transform3D({c:.5f}, 0, {-s:.5f}, 0, 1, 0, {s:.5f}, 0, {c:.5f}, {x}, 0, {z})",
               'script = ExtResource("6_building")', "size = Vector3(%s, %s, %s)" % size,
-              f"roof_height = {roof}", f"ruin = {'true' if ruin else 'false'}", ""]
+              f"roof_height = {roof}", f"ruin = {'true' if ruin else 'false'}"]
+        if enterable:
+            o.append("enterable = true")
+        if storeys > 1:
+            o.append(f"storeys = {storeys}")
+        o.append("")
+    # Trucks, wells, haystacks and washing lines: kind, x, z, turn in radians.
+    for i, (kind, x, z, turn) in enumerate(m.SETTLEMENT):
+        c, sn = math.cos(turn), math.sin(turn)
+        o += [f'[node name="Settled{i + 1}" type="StaticBody3D" parent="Nav"]', 'script = ExtResource("14_settled")',
+              f"transform = Transform3D({c:.4f}, 0, {-sn:.4f}, 0, 1, 0, {sn:.4f}, 0, {c:.4f}, {x}, 0, {z})", f'kind = &"{kind}"', ""]
 
     # Watchtowers (x, z) and carts (x, z, turn in radians): solid, set on the ground by the mission.
     for i, (x, z) in enumerate(m.TOWERS):

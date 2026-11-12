@@ -67,6 +67,15 @@ WALLS = [
 # A watchtower over the checkpoint yard, and a cart left by the field and one at the farm.
 TOWERS = [(-39.5, 19.5)]
 CARTS = [(-17.5, 30.0, 0.5), (-39.0, -22.5, 2.0)]
+# What makes the places look lived in: kind, x, z, turn in radians.
+SETTLEMENT = [
+    ("truck", -38.5, 25.0, 0.1),
+    ("well", -43.5, 13.5, 0.0),
+    ("washing_line", -36.0, 21.6, 0.3),
+    ("haystack", -21.5, 30.5, 0.0),
+    ("haystack", -14.6, 33.4, 0.0),
+    ("well", 31.5, -9.5, 0.0),
+]
 # The middle of the river, for the foam along its banks: the gorge's own line.
 RIVER_COURSE = [(-6, -110), (-3, -30), (0, -9), (0, 9), (4, 30), (8, 110)]
 # Telegraph poles along the north side of the track, either side of the gorge.
@@ -76,7 +85,9 @@ POLE_LINES = [
 ]
 # name, x, z, rotation (radians), size, roof height, ruin
 BUILDINGS = [
-    ("CheckpointHut", -37.5, 13, 0.0, (5, 2.8, 4), 1.3, False),
+    ("CheckpointHut", -37.5, 13, 0.0, (5.6, 2.8, 4.4), 1.3, False, True),
+    # The halt on the east bank: two floors, shut up.
+    ("Halt", 27, -13, 0.0, (6.5, 5.4, 5), 1.5, False, False, 2),
     ("Farmhouse", -36, -27, 0.25, (7, 2.6, 6), 0.0, True),
 ]
 # Crates: name, x, y of the ground they stand on, z, size along x, size along z.
@@ -143,5 +154,5 @@ if __name__ == "__main__":
         NAME="bridge", NODE="Bridge", BRIDGE=True, BOUNDS=BOUNDS, PLAIN=PLAIN, FEATURES=FEATURES,
         SPECIALIST_SPAWNS=SPECIALIST_SPAWNS, GUARDS=GUARDS, EXTRACTION=EXTRACTION, WALLS=WALLS,
         BUILDINGS=BUILDINGS, CRATES=CRATES, SCATTERS=SCATTERS, CLEAR=CLEAR, PLACED=PLACED, LAMPS=LAMPS, POLE_LINES=POLE_LINES,
-        TOWERS=TOWERS, CARTS=CARTS, RIVER_COURSE=RIVER_COURSE,
+        TOWERS=TOWERS, CARTS=CARTS, RIVER_COURSE=RIVER_COURSE, SETTLEMENT=SETTLEMENT,
     ))

@@ -208,3 +208,108 @@ func test_a_watchtower_and_a_cart_stand_on_the_ground_and_block() -> void:
 	assert_ne(_sees(guard, spec), Vision.Zone.NONE, "someone standing shows over the cart")
 	spec.set_stance(Unit.Stance.CRAWLING)
 	assert_eq(_sees(guard, spec), Vision.Zone.NONE, "lying behind it they are hidden")
+
+
+# --- Going inside ---
+
+func _house(at: Vector3) -> Building:
+	var house := Building.new()
+	house.size = Vector3(7, 3, 5)
+	house.enterable = true
+	region.add_child(house)
+	house.position = at
+	return house
+
+
+func test_a_house_can_be_walked_into_by_its_door_and_only_by_its_door() -> void:
+	var house := _house(Vector3.ZERO)
+	await _built()
+	assert_lt(_off_navmesh(0, 0), 0.05, "the floor inside is walkable")
+	var inside := Vector3(0, 2, 0)
+	var from_south := NavigationServer3D.map_get_path(mission.nav_map(), Vector3(0, 2, 9), inside, true)
+	assert_lt(from_south[-1].distance_to(inside), 0.6, "in by the door on the south side")
+	var from_north := NavigationServer3D.map_get_path(mission.nav_map(), Vector3(0, 2, -9), inside, true)
+	var length := 0.0
+	for i in from_north.size() - 1:
+		length += from_north[i].distance_to(from_north[i + 1])
+	assert_gt(length, 16.0, "from behind, the way in is round to the front")
+	assert_gt(_off_navmesh(-3.3, 0), 0.3, "the walls still block")
+	assert_true(house.holds(inside))
+	assert_false(house.holds(Vector3(0, 2, 6)))
+
+
+func test_walls_hide_whoever_is_inside_and_the_doorway_does_not() -> void:
+	_house(Vector3.ZERO)
+	await _built()
+	var spec := _unit("res://scenes/units/specialist.tscn", Vector3(0, 2, 0)) as Specialist
+	var from_the_side := _unit("res://scenes/units/guard.tscn", Vector3(-9, 2, 0))
+	from_the_side.rotation.y = -PI / 2.0  # facing east, at the west wall
+	var through_the_door := _unit("res://scenes/units/guard.tscn", Vector3(0, 2, 8))
+	await wait_physics_frames(2)
+	assert_eq(_sees(from_the_side, spec), Vision.Zone.NONE, "a wall is in the way")
+	assert_ne(_sees(through_the_door, spec), Vision.Zone.NONE, "seen through the open doorway")
+
+
+func test_the_roof_comes_off_the_picture_while_a_specialist_is_inside() -> void:
+	var house := _house(Vector3.ZERO)
+	await _built()
+	var spec := _unit("res://scenes/units/specialist.tscn", Vector3(0, 2, 9)) as Specialist
+	house.look_inside()
+	assert_false(house.is_open(), "roof on with nobody in")
+	assert_true((house.get_node("Roof") as Node3D).visible)
+	spec.global_position = Vector3(1, 2, 0.5)
+	house.look_inside()
+	assert_true(house.is_open())
+	assert_false((house.get_node("Roof") as Node3D).visible)
+	var guard := _unit("res://scenes/units/guard.tscn", Vector3(-1, 2, 0))
+	spec.global_position = Vector3(0, 2, 9)
+	house.look_inside()
+	assert_false(house.is_open(), "a guard inside does not open it: only what the squad sees from inside")
+	assert_not_null(guard)
+	spec.global_position = Vector3(1, 2, 0.5)
+	spec.take_damage(1000)
+	house.look_inside()
+	assert_false(house.is_open(), "nor does a dead specialist")
+
+
+func test_a_house_not_made_enterable_is_as_solid_as_before() -> void:
+	var house := Building.new()
+	house.size = Vector3(7, 3, 5)
+	house.storeys = 2
+	region.add_child(house)
+	await _built()
+	assert_gt(_off_navmesh(0, 0), 2.0)
+	house.look_inside()
+	assert_false(house.is_open())
+
+
+# --- Lived-in places ---
+
+func test_settlement_props_stand_on_the_ground_and_the_solid_ones_block() -> void:
+	var made := {}
+	var x := -14.0
+	for kind in SettlementProp.KINDS:
+		var prop := SettlementProp.new()
+		prop.kind = kind
+		region.add_child(prop)
+		prop.position = Vector3(x, 0, 6)
+		made[kind] = prop
+		x += 8.0
+	await _built()
+	for kind in made:
+		var prop: SettlementProp = made[kind]
+		assert_almost_eq(prop.global_position.y, 2.0, 0.01, "%s set down on the land" % kind)
+		assert_gt(prop.find_children("*", "MeshInstance3D", true, false).size(), 1, "%s is built of pieces" % kind)
+		var solid: Vector3 = SettlementProp.KINDS[kind]
+		var off := _off_navmesh(prop.global_position.x, prop.global_position.z)
+		if solid == Vector3.ZERO:
+			assert_lt(off, 0.05, "%s is walked under" % kind)
+			assert_eq(prop.find_children("*", "CollisionShape3D", true, false).size(), 0)
+		else:
+			assert_gt(off, 0.5, "%s is walked round" % kind)
+	var truck: SettlementProp = made[&"truck"]
+	var guard := _unit("res://scenes/units/guard.tscn", truck.global_position + Vector3(4, 0, 0))
+	guard.rotation.y = PI / 2.0  # facing west, at the truck's side
+	var spec := _unit("res://scenes/units/specialist.tscn", truck.global_position + Vector3(-3, 0, 0)) as Specialist
+	await wait_physics_frames(2)
+	assert_eq(_sees(guard, spec), Vision.Zone.NONE, "a truck hides someone standing behind it")

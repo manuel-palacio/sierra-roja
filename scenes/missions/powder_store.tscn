@@ -13,6 +13,7 @@
 [ext_resource type="Script" path="res://src/terrain/telegraph_pole.gd" id="11_pole"]
 [ext_resource type="Script" path="res://src/terrain/watchtower.gd" id="12_tower"]
 [ext_resource type="Script" path="res://src/terrain/cart.gd" id="13_cart"]
+[ext_resource type="Script" path="res://src/terrain/settlement_prop.gd" id="14_settled"]
 [ext_resource type="PackedScene" path="res://assets/props/nature/rock_tallA.glb" id="m_rock_tallA"]
 [ext_resource type="PackedScene" path="res://assets/props/nature/rock_tallB.glb" id="m_rock_tallB"]
 [ext_resource type="PackedScene" path="res://assets/props/nature/rock_largeA.glb" id="m_rock_largeA"]
@@ -360,6 +361,7 @@ script = ExtResource("6_building")
 size = Vector3(9, 3, 5)
 roof_height = 1.4
 ruin = false
+enterable = true
 
 [node name="Shed" type="StaticBody3D" parent="Nav"]
 transform = Transform3D(1.00000, 0, -0.00000, 0, 1, 0, 0.00000, 0, 1.00000, 14.5, 0, -7.5)
@@ -367,6 +369,7 @@ script = ExtResource("6_building")
 size = Vector3(6, 2.8, 5)
 roof_height = 1.2
 ruin = false
+enterable = true
 
 [node name="Gatehouse" type="StaticBody3D" parent="Nav"]
 transform = Transform3D(1.00000, 0, -0.00000, 0, 1, 0, 0.00000, 0, 1.00000, 10.5, 0, 8.6)
@@ -381,6 +384,31 @@ script = ExtResource("6_building")
 size = Vector3(7, 2.4, 6)
 roof_height = 0.0
 ruin = true
+
+[node name="Settled1" type="StaticBody3D" parent="Nav"]
+script = ExtResource("14_settled")
+transform = Transform3D(0.0008, 0, -1.0000, 0, 1, 0, 1.0000, 0, 0.0008, 0.5, 0, 23.0)
+kind = &"truck"
+
+[node name="Settled2" type="StaticBody3D" parent="Nav"]
+script = ExtResource("14_settled")
+transform = Transform3D(1.0000, 0, -0.0000, 0, 1, 0, 0.0000, 0, 1.0000, -16.5, 0, -4.0)
+kind = &"well"
+
+[node name="Settled3" type="StaticBody3D" parent="Nav"]
+script = ExtResource("14_settled")
+transform = Transform3D(1.0000, 0, -0.0000, 0, 1, 0, 0.0000, 0, 1.0000, -3.0, 0, -2.3)
+kind = &"washing_line"
+
+[node name="Settled4" type="StaticBody3D" parent="Nav"]
+script = ExtResource("14_settled")
+transform = Transform3D(1.0000, 0, -0.0000, 0, 1, 0, 0.0000, 0, 1.0000, 16.0, 0, 26.5)
+kind = &"haystack"
+
+[node name="Settled5" type="StaticBody3D" parent="Nav"]
+script = ExtResource("14_settled")
+transform = Transform3D(1.0000, 0, -0.0000, 0, 1, 0, 0.0000, 0, 1.0000, 20.5, 0, 29.5)
+kind = &"haystack"
 
 [node name="Watchtower1" type="StaticBody3D" parent="Nav"]
 script = ExtResource("12_tower")
