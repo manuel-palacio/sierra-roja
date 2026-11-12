@@ -50,6 +50,9 @@ Then, from the repo root:
 Open http://localhost:8003/ and click the game once to enable sound. To use another port, start it
 with `SIERRAROJA_PORT=8080 ops/serve.sh`. Run `ops/build-web.sh` again after changing the game.
 
+Units behind trees and walls show through as flat silhouettes. If your browser does not draw them,
+add `?markers=1` to the address: every guard then gets a ring on the ground that is always visible.
+
 The game only starts in a secure context: over plain HTTP the browser has no audio worklet, and the
 page says so instead of starting. `localhost` counts as secure, so to play from another machine, put
 the build behind HTTPS.

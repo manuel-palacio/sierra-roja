@@ -284,3 +284,19 @@ func test_a_guard_killed_now_is_seen_to_fall() -> void:
 	assert_gt(_head_height(body), 1.0, "still on the way down")
 	assert_eq(body.get_parent(), holder)
 	body.free()
+
+
+# --- Where silhouettes cannot be relied on ---
+
+func test_guards_get_a_ground_ring_only_when_markers_are_asked_for() -> void:
+	assert_false(UnitVisual.always_markers, "off unless the page asks (?markers=1)")
+	assert_null(_unit(GUARD).get_node_or_null("LocatorRing"))
+	UnitVisual.always_markers = true
+	var guard := _unit(GUARD)
+	UnitVisual.always_markers = false
+	await get_tree().process_frame
+	var ring := guard.get_node_or_null("LocatorRing") as SelectionRing
+	assert_not_null(ring, "a ring that shows through whatever stands in front")
+	if ring != null:
+		assert_true((ring.material_override as StandardMaterial3D).no_depth_test)
+		assert_gt(ring.color.r, ring.color.b, "in the guards' warm colour")

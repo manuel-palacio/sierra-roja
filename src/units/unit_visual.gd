@@ -28,6 +28,12 @@ const MOVING := 0.1
 ## The model is never moved further than this from the unit's own height to meet the ground.
 const MAX_GROUND_SHIFT := 0.5
 
+## Set from the page address (?markers=1) for a browser where the see-through silhouettes do not
+## draw: every guard then also gets a ring on the ground that shows through whatever is in front,
+## as the specialists always have.
+static var always_markers := false
+static var _address_read := false
+
 ## The palette the model's body parts are coloured from (tools/make_soldier.py).
 @export var uniform: Texture2D
 ## What it wears and carries: a key of SoldierGear.KITS.
@@ -60,6 +66,23 @@ func _ready() -> void:
 		_gear = SoldierGear.equip(_model, kit)
 		show_through(_model, silhouette)
 	_unit.acted.connect(_on_acted)
+	if not _address_read:
+		_address_read = true
+		if OS.has_feature("web") and str(JavaScriptBridge.eval(
+				"new URLSearchParams(location.search).get('markers')", true)) == "1":
+			always_markers = true
+	if always_markers and _unit is Guard:
+		var torus := TorusMesh.new()
+		torus.inner_radius = 0.56
+		torus.outer_radius = 0.66
+		torus.rings = 24
+		torus.ring_segments = 4
+		var ring := SelectionRing.new()
+		ring.name = "LocatorRing"
+		ring.mesh = torus
+		ring.color = Color(silhouette, 1.0)
+		ring.position = Vector3(0.0, 0.06, 0.0)
+		_unit.add_child.call_deferred(ring)
 	if _player != null:
 		for clip in LOOPING:
 			if _player.has_animation(clip):
