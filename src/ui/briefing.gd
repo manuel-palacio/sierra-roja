@@ -22,7 +22,7 @@ const CONTROLS: Array[Array] = [
 	["Q", "Knife (Dynamiter), then click a guard"],
 	["E", "Charge at your feet (Dynamiter) / Rifle (Marksman)"],
 	["R", "Pistol, then click a guard"],
-	["F", "Carry or drop a body (Dynamiter)"],
+	["F", "Use what is next to you; carry or drop a body (Dynamiter)"],
 	["Space", "Pause and look around"],
 	["O / L", "Quick save / quick load"],
 	["Z / X", "Turn the camera"],

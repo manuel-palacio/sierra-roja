@@ -12,7 +12,7 @@ extends Unit
 ## guard's brain.alarm_raised and alarm_updated as it enters the tree, so it needs no Mission and survives any
 ## order of spawning.
 
-signal fired(target: Specialist)
+signal fired(target: Unit)
 
 const GROUP := "guards"
 
@@ -145,7 +145,7 @@ func _check_vision(elapsed: float) -> void:
 	vision_checks += 1
 	var target := _strongest_target()
 	var zone: Vision.Zone = target["zone"]
-	var spec: Specialist = target["specialist"]
+	var spec: Unit = target["specialist"]
 	var body := _find_body()
 	var pos := Vector3.ZERO
 	if spec != null:
@@ -163,11 +163,11 @@ func _check_vision(elapsed: float) -> void:
 
 func _strongest_target() -> Dictionary:
 	var best_zone := Vision.Zone.NONE
-	var best: Specialist = null
+	var best: Unit = null
 	var best_dist := INF
-	for node in get_tree().get_nodes_in_group(Specialist.GROUP):
-		var spec := node as Specialist
-		if not spec.alive:
+	for node in get_tree().get_nodes_in_group(Unit.HUNTED):
+		var spec := node as Unit
+		if spec == null or not spec.alive:
 			continue
 		var zone := Perception.sees(self, spec, vision.target_height(spec.stance),
 				current_far_range(), vision)
@@ -194,7 +194,7 @@ func _find_body() -> Body:
 	return null
 
 
-func _act_in_alarm(spec: Specialist, elapsed: float) -> void:
+func _act_in_alarm(spec: Unit, elapsed: float) -> void:
 	_fire_timer = maxf(_fire_timer - elapsed, 0.0)
 	if spec != null and _flat_distance(spec.global_position) <= tuning.fire_range:
 		stop()

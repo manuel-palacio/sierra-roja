@@ -16,6 +16,7 @@ var _can_run_before_carry := true
 func _ready() -> void:
 	super()
 	add_to_group(GROUP)
+	add_to_group(HUNTED)
 	died.connect(_on_died)
 	if abilities.is_empty():
 		grant_abilities(ability_ids)

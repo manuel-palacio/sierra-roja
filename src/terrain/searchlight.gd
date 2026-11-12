@@ -5,7 +5,7 @@ extends Node3D
 ## seen: every guard is sent to that place in alarm. Someone lying down is passed over, as in a
 ## guard's far zone. Sits at the lamp; the tower gives it its aim.
 
-signal caught(specialist: Specialist, at: Vector3)
+signal caught(unit: Unit, at: Vector3)
 
 ## Radius of the lit spot on the ground, in metres.
 const SPOT := 3.6
@@ -81,8 +81,8 @@ func sweep(delta: float) -> void:
 		_pool.global_position = spot + Vector3.UP * 0.12
 	if _quiet > 0.0 or not is_inside_tree():
 		return
-	for node in get_tree().get_nodes_in_group(Specialist.GROUP):
-		var s := node as Specialist
+	for node in get_tree().get_nodes_in_group(Unit.HUNTED):
+		var s := node as Unit
 		if catches(s):
 			_quiet = COOLDOWN
 			caught.emit(s, s.global_position)
@@ -93,8 +93,8 @@ func sweep(delta: float) -> void:
 			return
 
 
-## Whether the beam shows this specialist to the tower right now.
-func catches(s: Specialist) -> bool:
+## Whether the beam shows this unit to the tower right now.
+func catches(s: Unit) -> bool:
 	if s == null or not s.alive or s.stance != Unit.Stance.STANDING:
 		return false
 	var away := Vector2(s.global_position.x - spot.x, s.global_position.z - spot.z).length()

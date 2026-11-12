@@ -13,6 +13,8 @@ signal armed_changed(id: StringName)
 ## A guard was clicked with nothing armed (the vision cone is shown by whoever listens).
 signal guard_clicked(guard: Guard)
 signal order_refused(reason: String)
+## Something next to a specialist was used with F, and has this to say about it.
+signal used(text: String)
 ## A move order was given: where on the ground, and whether to run. Display hooks listen.
 signal move_ordered(pos: Vector3, run: bool)
 
@@ -196,6 +198,8 @@ func _on_key(event: InputEventKey) -> void:
 					else Unit.Stance.STANDING
 			for unit in selected_units():
 				unit.set_stance(stance)
+	elif key == KEY_F and _use_what_is_near():
+		pass
 	elif ABILITY_KEYS.has(key):
 		_press_ability(ABILITY_KEYS[key])
 
@@ -256,6 +260,27 @@ func _can_stand_near(target: Vector3) -> bool:
 
 
 ## What pressing the ability's key does; the HUD's ability buttons call this.
+## F, first of all, uses a thing in reach of whoever is selected: with both, the nearer of them.
+## True when something was used, and the key has then done its work.
+func _use_what_is_near() -> bool:
+	if not _can_order():
+		return false
+	var user: Specialist = null
+	var thing: Interactable = null
+	for unit in selected_units():
+		var near := Interactable.nearest(get_tree(), unit)
+		if near != null and (thing == null or near.global_position.distance_to(unit.global_position)
+				< thing.global_position.distance_to(user.global_position)):
+			user = unit
+			thing = near
+	if thing == null:
+		return false
+	thing.interact(user)
+	if thing.prompt != "":
+		used.emit(thing.prompt)
+	return true
+
+
 func arm_ability(id: StringName) -> void:
 	_press_ability([id])
 

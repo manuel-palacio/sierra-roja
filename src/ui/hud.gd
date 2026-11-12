@@ -78,6 +78,7 @@ func setup(input: PlayerInput, rules: MissionRules, specialists: Array[Specialis
 	input.selection_changed.connect(func(_s: Specialist) -> void: refresh())
 	input.paused_changed.connect(func(_p: bool) -> void: refresh())
 	input.order_refused.connect(show_message)
+	input.used.connect(show_message)
 	input.guard_clicked.connect(func(g: Guard) -> void: overlay.show_for(g))
 	rules.result_changed.connect(func(r: MissionRules.Result) -> void: end_screen.show_result(r, rules.loss_reason()))
 	rules.objective_done.connect(func(o: Objective) -> void:

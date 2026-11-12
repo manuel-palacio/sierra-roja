@@ -13,6 +13,9 @@ enum Stance { STANDING, CRAWLING }
 
 const LAYER_WORLD := 1
 const LAYER_UNITS := 2
+## The group of everyone a guard reacts to on sight, a searchlight catches and a blast kills:
+## the specialists, and whoever they bring out with them.
+const HUNTED := "hunted"
 const NOISE_INTERVAL := 0.5
 const VERTICAL_SNAP_SPEED := 10.0
 

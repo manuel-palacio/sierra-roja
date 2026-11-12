@@ -503,3 +503,71 @@ func test_selecting_both_with_one_dead_selects_the_living_one() -> void:
 	mark.take_damage(1000)
 	input.handle_event(_key(KEY_3))
 	assert_eq(input.selected_units(), [dyn] as Array[Specialist])
+
+
+# --- F uses what is next to you ---
+
+## Something to use that counts how often it was.
+class Lever extends Interactable:
+	var pulls := 0
+	var last_user: Specialist
+	func interact(user: Specialist) -> void:
+		pulls += 1
+		last_user = user
+
+
+func _lever(pos: Vector3) -> Lever:
+	var lever := Lever.new()
+	add_child_autofree(lever)
+	lever.global_position = pos
+	return lever
+
+
+func test_f_uses_the_thing_in_reach() -> void:
+	var lever := _lever(Vector3(1.0, 0, 0))
+	input.handle_event(_key(KEY_F))
+	assert_eq(lever.pulls, 1)
+	assert_eq(lever.last_user, dyn)
+	assert_eq(refusals.size(), 0)
+
+
+func test_f_ignores_a_thing_out_of_reach() -> void:
+	var lever := _lever(Vector3(1.9, 0, 0))
+	input.handle_event(_key(KEY_F))
+	assert_eq(lever.pulls, 0)
+	assert_eq(refusals.size(), 1, "and with no body either, the order is refused")
+
+
+func test_f_prefers_the_thing_over_a_body_then_takes_the_body() -> void:
+	var lever := _lever(Vector3(1.0, 0, 0))
+	var body := load("res://scenes/units/body.tscn").instantiate() as Body
+	add_child_autofree(body)
+	body.global_position = Vector3(0.5, 0, 0)
+	input.handle_event(_key(KEY_F))
+	assert_eq(lever.pulls, 1)
+	assert_null(dyn.carrying, "the body waits")
+	lever.usable = false  # used up, as a door that is now open
+	input.handle_event(_key(KEY_F))
+	assert_eq(lever.pulls, 1)
+	assert_eq(dyn.carrying, body)
+
+
+func test_marksman_can_use_a_thing() -> void:
+	var lever := _lever(Vector3(5.5, 0, 0))
+	input.select(mark)
+	input.handle_event(_key(KEY_F))
+	assert_eq(lever.pulls, 1)
+	assert_eq(lever.last_user, mark)
+
+
+func test_with_both_selected_the_nearer_one_uses_it() -> void:
+	var lever := _lever(Vector3(5.5, 0, 0))
+	input.select_both()
+	input.handle_event(_key(KEY_F))
+	assert_eq(lever.last_user, mark)
+
+
+func test_a_dead_specialist_uses_nothing() -> void:
+	var lever := _lever(Vector3(1.0, 0, 0))
+	dyn.take_damage(1000)
+	assert_false(lever.can_interact(dyn))
