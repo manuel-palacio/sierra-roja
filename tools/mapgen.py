@@ -23,7 +23,7 @@ FLAT_COLOURS = {"Wheat": (0.74, 0.62, 0.32)}
 PLAIN_SHAPES = ("barrel", "box", "box-large")
 
 DEFAULTS = dict(SEED=7, NOISE=0.45, NAV_FLOOR=-6, BRIDGE=False, TARGET=(0, 0, 0), TARGET_STACK=[], WALLS=[], BUILDINGS=[],
-                CRATES=[], SCATTERS=[], CLEAR=[], PLACED=[], LAMPS=[], TEXTS={}, POLE_LINES=[], RIVER_COURSE=[], TOWERS=[], CARTS=[], SETTLEMENT=[])
+                CRATES=[], SCATTERS=[], CLEAR=[], PLACED=[], LAMPS=[], TEXTS={}, POLE_LINES=[], RIVER_COURSE=[], TOWERS=[], CARTS=[], SETTLEMENT=[], NIGHT=False, LAND=None)
 
 
 def mission(**tables):
@@ -32,9 +32,12 @@ def mission(**tables):
 
 
 def write(m):
-    write_land(m)
+    """Writes a mission's scene, and its land unless it borrows another mission's (LAND)."""
+    if not m.LAND:
+        m.LAND = m.NAME
+        write_land(m)
     write_scene(m)
-    print(f"wrote {m.NAME}_land.tres and {m.NAME}.tscn")
+    print(f"wrote {m.NAME}.tscn on the land of {m.LAND}")
 
 
 def v2(points):
@@ -59,7 +62,7 @@ def write_land(m):
             "bounds = Rect2(%d, %d, %d, %d)" % BOUNDS, "skirt = 45.0", "cell = 1.0",
             f"base_height = {PLAIN}", f"seed = {m.SEED}", f"noise_amplitude = {m.NOISE}", "noise_period = 28.0",
             "features = Array[ExtResource(\"2_feature\")]([" + ", ".join(f'SubResource("{i}")' for i in ids) + "])", ""]
-    (ROOT / f"resources/missions/{m.NAME}_land.tres").write_text("\n".join(out))
+    (ROOT / f"resources/missions/{m.LAND}_land.tres").write_text("\n".join(out))
 
 
 def at(x, y, z):
@@ -75,7 +78,7 @@ def write_scene(m):
          '[ext_resource type="Script" path="res://src/mission/mission.gd" id="1_mission"]',
          '[ext_resource type="PackedScene" path="res://scenes/units/guard.tscn" id="2_guard"]',
          '[ext_resource type="Script" path="res://src/terrain/terrain.gd" id="3_terrain"]',
-         '[ext_resource type="Resource" path="res://resources/missions/' + m.NAME + '_land.tres" id="4_land"]',
+         '[ext_resource type="Resource" path="res://resources/missions/' + m.LAND + '_land.tres" id="4_land"]',
          '[ext_resource type="Script" path="res://src/terrain/stone_wall.gd" id="5_wall"]',
          '[ext_resource type="Script" path="res://src/terrain/building.gd" id="6_building"]',
          '[ext_resource type="Script" path="res://src/terrain/prop_scatter.gd" id="7_scatter"]',
@@ -154,6 +157,8 @@ def write_scene(m):
 
     o += [f'[node name="{m.NODE}" type="Node3D"]', 'script = ExtResource("1_mission")',
           "bounds_rect = Rect2(%d, %d, %d, %d)" % BOUNDS]
+    if m.NIGHT:
+        o.append("night = true")
     for key, value in m.TEXTS.items():
         if isinstance(value, list):
             o.append(f"{key} = PackedStringArray(" + ", ".join('"%s"' % line for line in value) + ")")
@@ -209,8 +214,10 @@ def write_scene(m):
               f"transform = Transform3D({c:.4f}, 0, {-sn:.4f}, 0, 1, 0, {sn:.4f}, 0, {c:.4f}, {x}, 0, {z})", f'kind = &"{kind}"', ""]
 
     # Watchtowers (x, z) and carts (x, z, turn in radians): solid, set on the ground by the mission.
-    for i, (x, z) in enumerate(m.TOWERS):
-        o += [f'[node name="Watchtower{i + 1}" type="StaticBody3D" parent="Nav"]', 'script = ExtResource("12_tower")', at(x, 0, z), ""]
+    # A tower: x, z, then its searchlight's aim in degrees (0 east, 90 south), swing and reach.
+    for i, (x, z, aim, arc, reach) in enumerate(m.TOWERS):
+        o += [f'[node name="Watchtower{i + 1}" type="StaticBody3D" parent="Nav"]', 'script = ExtResource("12_tower")', at(x, 0, z),
+              f"aim_deg = {float(aim)}", f"arc_deg = {float(arc)}", f"reach = {float(reach)}", ""]
     for i, (x, z, turn) in enumerate(m.CARTS):
         c, sn = math.cos(turn), math.sin(turn)
         o += [f'[node name="Cart{i + 1}" type="StaticBody3D" parent="Nav"]', 'script = ExtResource("13_cart")',

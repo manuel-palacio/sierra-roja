@@ -8,6 +8,17 @@ const FOOT := 2.6
 const FLOOR := 4.2
 const TOP := 6.4
 const TIMBER := Color(0.82, 0.72, 0.60)
+## Where the lamp of a searchlight is mounted, above the tower's foot.
+const LAMP_HEIGHT := 5.3
+
+## The searchlight's sweep: the middle of it in degrees (0 east, 90 south), the swing either
+## side, and how far out the spot travels. Used only when the mission is at night.
+@export var aim_deg := 0.0
+@export var arc_deg := 50.0
+@export var reach := 14.0
+
+## The searchlight, once one has been lit.
+var searchlight: Searchlight
 
 
 ## ground.call(x, z) gives the ground height. Mission calls this before the navmesh bake.
@@ -58,3 +69,20 @@ func _piece(size: Vector3, at: Vector3, material: Material) -> MeshInstance3D:
 	instance.position = at
 	add_child(instance)
 	return instance
+
+
+## Mounts and lights the searchlight. Mission calls this for a night mission, after stand().
+func light_up(ground: Callable) -> Searchlight:
+	if searchlight != null:
+		return searchlight
+	searchlight = Searchlight.new()
+	searchlight.name = "Searchlight"
+	searchlight.aim_deg = aim_deg
+	searchlight.arc_deg = arc_deg
+	searchlight.reach = reach
+	add_child(searchlight)
+	searchlight.position = Vector3(0, LAMP_HEIGHT, 0)
+	searchlight.setup(ground)
+	# The lamp housing.
+	_piece(Vector3(0.5, 0.5, 0.5), Vector3(0, LAMP_HEIGHT, 0), Surfaces.material(&"steel", Color(0.7, 0.72, 0.75)))
+	return searchlight

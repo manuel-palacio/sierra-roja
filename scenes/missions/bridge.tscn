@@ -382,6 +382,9 @@ kind = &"well"
 [node name="Watchtower1" type="StaticBody3D" parent="Nav"]
 script = ExtResource("12_tower")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -39.5, 0, 19.5)
+aim_deg = 25.0
+arc_deg = 55.0
+reach = 15.0
 
 [node name="Cart1" type="StaticBody3D" parent="Nav"]
 script = ExtResource("13_cart")

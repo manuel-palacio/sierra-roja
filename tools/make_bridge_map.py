@@ -65,7 +65,7 @@ WALLS = [
     ([(-35.2, 6.8), (-33.4, 6.8), (-33.4, 8.0)], 1.0, "sandbags"),
 ]
 # A watchtower over the checkpoint yard, and a cart left by the field and one at the farm.
-TOWERS = [(-39.5, 19.5)]
+TOWERS = [(-39.5, 19.5, 25, 55, 15)]
 CARTS = [(-17.5, 30.0, 0.5), (-39.0, -22.5, 2.0)]
 # What makes the places look lived in: kind, x, z, turn in radians.
 SETTLEMENT = [
@@ -150,9 +150,12 @@ LAMPS = [(-28.2, 9.5, PLAIN), (-35, 16, PLAIN), (-26, 17, PLAIN), (-6.3, 2.2, 0.
 
 
 if __name__ == "__main__":
-    write(mission(
-        NAME="bridge", NODE="Bridge", BRIDGE=True, BOUNDS=BOUNDS, PLAIN=PLAIN, FEATURES=FEATURES,
+    tables = dict(
+        NODE="Bridge", BRIDGE=True, BOUNDS=BOUNDS, PLAIN=PLAIN, FEATURES=FEATURES,
         SPECIALIST_SPAWNS=SPECIALIST_SPAWNS, GUARDS=GUARDS, EXTRACTION=EXTRACTION, WALLS=WALLS,
-        BUILDINGS=BUILDINGS, CRATES=CRATES, SCATTERS=SCATTERS, CLEAR=CLEAR, PLACED=PLACED, LAMPS=LAMPS, POLE_LINES=POLE_LINES,
-        TOWERS=TOWERS, CARTS=CARTS, RIVER_COURSE=RIVER_COURSE, SETTLEMENT=SETTLEMENT,
-    ))
+        BUILDINGS=BUILDINGS, CRATES=CRATES, SCATTERS=SCATTERS, CLEAR=CLEAR, PLACED=PLACED, LAMPS=LAMPS,
+        POLE_LINES=POLE_LINES, TOWERS=TOWERS, CARTS=CARTS, RIVER_COURSE=RIVER_COURSE, SETTLEMENT=SETTLEMENT,
+    )
+    write(mission(NAME="bridge", **tables))
+    # The same place at night, with the tower's searchlight on.
+    write(mission(NAME="bridge_night", LAND="bridge", NIGHT=True, TEXTS={"title": "The bridge by night"}, **tables))

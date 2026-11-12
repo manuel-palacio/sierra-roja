@@ -413,6 +413,9 @@ kind = &"haystack"
 [node name="Watchtower1" type="StaticBody3D" parent="Nav"]
 script = ExtResource("12_tower")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.0, 0, 8.5)
+aim_deg = 195.0
+arc_deg = 50.0
+reach = 12.0
 
 [node name="Cart1" type="StaticBody3D" parent="Nav"]
 script = ExtResource("13_cart")

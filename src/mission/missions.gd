@@ -7,6 +7,8 @@ extends RefCounted
 const LIST: Array[Dictionary] = [
 	{ "id": "bridge", "name": "The bridge", "path": "res://scenes/missions/bridge.tscn" },
 	{ "id": "powder_store", "name": "The powder store", "path": "res://scenes/missions/powder_store.tscn" },
+	{ "id": "bridge_night", "name": "The bridge by night", "path": "res://scenes/missions/bridge_night.tscn" },
+	{ "id": "powder_store_night", "name": "The powder store by night", "path": "res://scenes/missions/powder_store_night.tscn" },
 ]
 
 ## Index into LIST of the mission being played.

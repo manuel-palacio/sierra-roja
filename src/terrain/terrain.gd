@@ -211,6 +211,14 @@ func bake_shade(casters: Array) -> void:
 		_material.set_shader_parameter("shade", ImageTexture.create_from_image(_shade))
 
 
+## Changes what the land dissolves into past the edge of the map, and how dark cloud shadows are
+## (none at night).
+func set_sky(mist: Color, cloud_shade: float) -> void:
+	if _material != null:
+		_material.set_shader_parameter("mist", mist)
+		_material.set_shader_parameter("cloud_shade", cloud_shade)
+
+
 ## How light the baked shade leaves a point of the ground: 1 in the open, less beside things.
 func shade_at(x: float, z: float) -> float:
 	if _shade == null:

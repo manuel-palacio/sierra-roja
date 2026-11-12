@@ -46,6 +46,9 @@ const SPAN_DEPTH := 1.5
 	"Lose either one and the mission fails.",
 ])
 
+## A night mission: dark, lamp-lit, and with a searchlight sweeping from every watchtower.
+@export var night := false
+
 ## Ground-plane extent (x, z in metres) the camera may show.
 @export var bounds_rect := Rect2(-40.0, -30.0, 80.0, 60.0)
 
@@ -190,6 +193,10 @@ func build_scenery() -> void:
 			node.build(self)
 		elif node.has_method("settle"):
 			node.settle(ground)
+	if night:
+		for node in find_children("*", "StaticBody3D", true, false):
+			if node is Watchtower:
+				(node as Watchtower).light_up(ground)
 	if terrain() == null:
 		return
 	terrain().bake_shade(_shade_casters())

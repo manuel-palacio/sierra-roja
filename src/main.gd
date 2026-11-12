@@ -2,6 +2,9 @@ extends Node3D
 ## Loads the mission, validates it and starts the camera. An invalid mission is a
 ## content bug: debug builds stop with exit code 1, release builds log the errors.
 
+const NIGHT_MOON := Color(0.60, 0.70, 1.0)
+const NIGHT_SKY := Color(0.02, 0.03, 0.06)
+
 ## Starts the game again; with another mission chosen in Missions, on that one. Tests replace it.
 var reload_action := func() -> void: get_tree().reload_current_scene()
 
@@ -24,6 +27,8 @@ func _ready() -> void:
 		add_child(ScreenProbe.new())
 	mission = load(Missions.path()).instantiate()
 	add_child(mission)
+	if mission.night:
+		_fall_night()
 	camera = IsoCamera.new()
 	camera.bounds = mission.bounds_rect
 	camera.size = IsoCamera.ZOOM_START
@@ -128,3 +133,28 @@ func _vignette() -> CanvasLayer:
 	rect.material = material
 	layer.add_child(rect)
 	return layer
+
+
+## Turns the dawn into a clear night: a low cold moon in place of the sun, little light in the
+## shadows, darkness past the edge of the map, and the lamps turned up to matter.
+func _fall_night() -> void:
+	var sun := get_node_or_null("Sun") as DirectionalLight3D
+	if sun != null:
+		sun.light_color = NIGHT_MOON
+		sun.light_energy = 0.5
+	var fill := get_node_or_null("Fill") as DirectionalLight3D
+	if fill != null:
+		fill.light_energy = 0.1
+	var world := get_node_or_null("WorldEnvironment") as WorldEnvironment
+	if world != null:
+		world.environment = world.environment.duplicate()
+		world.environment.background_color = NIGHT_SKY
+		world.environment.ambient_light_color = Color(0.26, 0.33, 0.58)
+		world.environment.ambient_light_energy = 0.6
+		world.environment.adjustment_saturation = 0.8
+	if mission.terrain() != null:
+		mission.terrain().set_sky(NIGHT_SKY, 0.0)
+	for node in mission.find_children("Lamp*", "OmniLight3D", true, false):
+		var lamp := node as OmniLight3D
+		lamp.light_energy *= 3.2
+		lamp.omni_range = 13.0

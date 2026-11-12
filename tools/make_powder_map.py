@@ -60,7 +60,7 @@ WALLS = [
     ([(17.6, 3.2), (18.8, 3.2)], 1.0, "sandbags"),
 ]
 # A watchtower in the north-east corner of the yard, and carts in the yard and on the road.
-TOWERS = [(17.0, 8.5)]
+TOWERS = [(17.0, 8.5, 195, 50, 12)]
 CARTS = [(-2.5, 8.5, 1.3), (-20.0, 14.5, 0.3)]
 # What makes the place look lived in: kind, x, z, turn in radians.
 SETTLEMENT = [
@@ -130,9 +130,14 @@ TEXTS = {
 
 
 if __name__ == "__main__":
-    write(mission(
-        NAME="powder_store", NODE="PowderStore", SEED=11, BOUNDS=BOUNDS, PLAIN=PLAIN, FEATURES=FEATURES,
+    tables = dict(
+        NODE="PowderStore", SEED=11, BOUNDS=BOUNDS, PLAIN=PLAIN, FEATURES=FEATURES,
         SPECIALIST_SPAWNS=SPECIALIST_SPAWNS, GUARDS=GUARDS, EXTRACTION=EXTRACTION, TARGET=TARGET,
         TARGET_STACK=TARGET_STACK, WALLS=WALLS, BUILDINGS=BUILDINGS, CRATES=CRATES, SCATTERS=SCATTERS,
-        CLEAR=CLEAR, PLACED=PLACED, LAMPS=LAMPS, TEXTS=TEXTS, POLE_LINES=POLE_LINES, TOWERS=TOWERS, CARTS=CARTS, SETTLEMENT=SETTLEMENT,
-    ))
+        CLEAR=CLEAR, PLACED=PLACED, LAMPS=LAMPS, POLE_LINES=POLE_LINES, TOWERS=TOWERS, CARTS=CARTS,
+        SETTLEMENT=SETTLEMENT,
+    )
+    write(mission(NAME="powder_store", TEXTS=TEXTS, **tables))
+    # The same place at night, with the tower's searchlight on.
+    write(mission(NAME="powder_store_night", LAND="powder_store", NIGHT=True,
+                  TEXTS={**TEXTS, "title": "The powder store by night"}, **tables))
