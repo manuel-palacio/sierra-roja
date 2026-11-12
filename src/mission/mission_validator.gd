@@ -33,7 +33,7 @@ static func validate(mission: Mission) -> PackedStringArray:
 	var map := mission.nav_map()
 	var from := specialists[0].global_position
 	for spawn in specialists:
-		if not _reaches(map, from, spawn.global_position):
+		if not reaches(map, from, spawn.global_position):
 			errors.append("specialist spawn %s is not connected to the others" % spawn.name)
 	for spawn in specialists:
 		_check_point(map, spawn.global_position, "specialist spawn %s" % spawn.name, errors)
@@ -54,11 +54,11 @@ static func validate(mission: Mission) -> PackedStringArray:
 		if sound and points.size() >= 2:
 			var legs := points.size() if points.size() > 2 else 1
 			for i in legs:
-				if not _reaches(map, points[i], points[(i + 1) % points.size()]):
+				if not reaches(map, points[i], points[(i + 1) % points.size()]):
 					errors.append("route %s leg %d cannot be walked" % [route.name, i])
-	if target and not _reaches(map, from, target.global_position):
+	if target and not reaches(map, from, target.global_position):
 		errors.append("bridge target is unreachable from the specialist spawn")
-	if extraction and not _reaches(map, from, extraction.global_position):
+	if extraction and not reaches(map, from, extraction.global_position):
 		errors.append("extraction is unreachable from the specialist spawn")
 	return errors
 
@@ -82,7 +82,7 @@ static func _check_point(map: RID, pos: Vector3, what: String, errors: PackedStr
 		errors.append("%s is %.1f m off the ground" % [what, absf(nearest.y - pos.y)])
 
 
-static func _reaches(map: RID, from: Vector3, to: Vector3) -> bool:
+static func reaches(map: RID, from: Vector3, to: Vector3) -> bool:
 	if not map.is_valid():
 		return false
 	var path := NavigationServer3D.map_get_path(map, from, to, true)
