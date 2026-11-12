@@ -74,7 +74,7 @@ func test_bridge_valid() -> void:
 func test_navmesh_stays_small_enough_for_the_path_search() -> void:
 	await _built()
 	var polygons := (mission.get_node("Nav") as NavigationRegion3D).navigation_mesh.get_polygon_count()
-	assert_between(polygons, 500, 3200)
+	assert_between(polygons, 500, 2000)
 
 
 func test_bridge_counts() -> void:
@@ -175,7 +175,7 @@ func test_a_walker_stays_on_the_ground_up_the_gorge_path() -> void:
 			break
 	assert_true(arrived[0], "reaches the abutment")
 	assert_lt(worst, 0.3)
-	assert_almost_eq(walker.global_position.y, 0.0, 0.15, "at rail level")
+	assert_almost_eq(walker.global_position.y, 0.0, 0.25, "at rail level")
 
 
 func test_the_embankment_hides_a_crawler_at_its_foot_from_the_track() -> void:

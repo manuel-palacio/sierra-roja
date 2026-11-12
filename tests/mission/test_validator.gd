@@ -134,3 +134,38 @@ func test_specialist_spawn_off_the_ground_is_named() -> void:
 	await _built(mission)
 	var text := _joined_text(MissionValidator.validate(mission))
 	assert_string_contains(text, "specialist spawn S2 is not on walkable ground")
+
+
+func test_route_that_cannot_be_walked_is_named() -> void:
+	# Both ends stand on walkable ground, but on floors with a gap between them.
+	var mission: Mission = _small_mission(false)
+	var route := mission.get_node("Routes/Route1") as Path3D
+	route.curve = Curve3D.new()
+	route.curve.add_point(Vector3(-6, 0, 1))
+	route.curve.add_point(Vector3(6, 0, 1))
+	await _built(mission)
+	var text := _joined_text(MissionValidator.validate(mission))
+	assert_string_contains(text, "route Route1 leg 0 cannot be walked")
+	assert_false(text.contains("Route0"), "the routes that can be walked are not named")
+
+
+func test_closing_leg_of_a_loop_is_checked_too() -> void:
+	var mission: Mission = _small_mission(false)
+	var route := mission.get_node("Routes/Route2") as Path3D
+	route.curve = Curve3D.new()
+	for p in [Vector3(4, 0, 0), Vector3(8, 0, 0), Vector3(-6, 0, 2)]:
+		route.curve.add_point(p)
+	await _built(mission)
+	var text := _joined_text(MissionValidator.validate(mission))
+	assert_string_contains(text, "route Route2 leg 1 cannot be walked")
+	assert_string_contains(text, "route Route2 leg 2 cannot be walked", "back to the start")
+
+
+func test_marker_hanging_in_the_air_is_named() -> void:
+	var mission: Mission = _small_mission(true)
+	mission.get_node("GuardSpawns/G2").position = Vector3(6, 4, 2)
+	mission.get_node("SpecialistSpawns/S1").position = Vector3(-8, -3, 0)
+	await _built(mission)
+	var text := _joined_text(MissionValidator.validate(mission))
+	assert_string_contains(text, "guard spawn G2 is 4.0 m off the ground")
+	assert_string_contains(text, "specialist spawn S1 is 3.0 m off the ground")

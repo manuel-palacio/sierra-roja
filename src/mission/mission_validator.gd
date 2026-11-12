@@ -5,8 +5,10 @@ extends RefCounted
 const SPECIALISTS_REQUIRED := 2
 const GUARDS_REQUIRED := 3
 const REACH_TOLERANCE := 1.0
-## A spawn or route point may be this far from the navmesh on the ground plane.
+## A spawn or route point may be this far from the navmesh on the ground plane, and this far
+## above or below it.
 const GROUND_TOLERANCE := 1.0
+const HEIGHT_TOLERANCE := 1.0
 
 
 static func validate(mission: Mission) -> PackedStringArray:
@@ -34,17 +36,26 @@ static func validate(mission: Mission) -> PackedStringArray:
 		if not _reaches(map, from, spawn.global_position):
 			errors.append("specialist spawn %s is not connected to the others" % spawn.name)
 	for spawn in specialists:
-		if not _on_ground(map, spawn.global_position):
-			errors.append("specialist spawn %s is not on walkable ground" % spawn.name)
+		_check_point(map, spawn.global_position, "specialist spawn %s" % spawn.name, errors)
 	for spawn in guards:
-		if not _on_ground(map, spawn.global_position):
-			errors.append("guard spawn %s is not on walkable ground" % spawn.name)
+		_check_point(map, spawn.global_position, "guard spawn %s" % spawn.name, errors)
 	for route in mission.patrol_routes():
 		if route.curve == null:
 			continue
+		var points: Array[Vector3] = []
+		var sound := true
 		for i in route.curve.point_count:
-			if not _on_ground(map, route.to_global(route.curve.get_point_position(i))):
-				errors.append("route %s point %d is not on walkable ground" % [route.name, i])
+			points.append(route.to_global(route.curve.get_point_position(i)))
+			var before := errors.size()
+			# Route points are authored on the ground plane and set down by the mission.
+			_check_point(map, points[i], "route %s point %d" % [route.name, i], errors, false)
+			sound = sound and errors.size() == before
+		# Every leg of a beat has to be walkable, the one back to the start included.
+		if sound and points.size() >= 2:
+			var legs := points.size() if points.size() > 2 else 1
+			for i in legs:
+				if not _reaches(map, points[i], points[(i + 1) % points.size()]):
+					errors.append("route %s leg %d cannot be walked" % [route.name, i])
 	if target and not _reaches(map, from, target.global_position):
 		errors.append("bridge target is unreachable from the specialist spawn")
 	if extraction and not _reaches(map, from, extraction.global_position):
@@ -52,11 +63,23 @@ static func validate(mission: Mission) -> PackedStringArray:
 	return errors
 
 
-static func _on_ground(map: RID, pos: Vector3) -> bool:
+## A point units stand on must be over walkable ground and at its height. Ground too steep to
+## walk has no navmesh, so a point on it fails the first test.
+static func _check_point(map: RID, pos: Vector3, what: String, errors: PackedStringArray,
+		check_height := true) -> void:
 	if not map.is_valid():
-		return false
+		errors.append("%s is not on walkable ground" % what)
+		return
 	var nearest := NavigationServer3D.map_get_closest_point(map, pos)
-	return Vector2(nearest.x - pos.x, nearest.z - pos.z).length() <= GROUND_TOLERANCE
+	if Vector2(nearest.x - pos.x, nearest.z - pos.z).length() > GROUND_TOLERANCE:
+		# Its own height may be what puts the nearest ground far away: look straight down too.
+		var below := NavigationServer3D.map_get_closest_point(map, Vector3(pos.x, nearest.y, pos.z))
+		if Vector2(below.x - pos.x, below.z - pos.z).length() > GROUND_TOLERANCE:
+			errors.append("%s is not on walkable ground" % what)
+			return
+		nearest = below
+	if check_height and absf(nearest.y - pos.y) > HEIGHT_TOLERANCE:
+		errors.append("%s is %.1f m off the ground" % [what, absf(nearest.y - pos.y)])
 
 
 static func _reaches(map: RID, from: Vector3, to: Vector3) -> bool:

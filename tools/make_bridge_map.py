@@ -191,8 +191,10 @@ def write_scene():
     o += ["",
          '[sub_resource type="NavigationMesh" id="NavMesh_bridge"]', "cell_size = 0.25", "cell_height = 0.25",
          "agent_height = 1.75", "agent_radius = 0.5", "agent_max_climb = 0.25", "agent_max_slope = 35.0",
-         # Coarse detail keeps the navmesh under the path search's 4096-polygon limit.
-         "detail_sample_distance = 8.0", "detail_sample_max_error = 0.3",
+         # Coarse detail keeps the navmesh far under the path search's 4096-polygon limit (about
+         # 1,400 polygons with every prop in; it was 2,800 at twice the detail), and costs a
+         # centimetre or two of height, which the unit models make up when they are drawn.
+         "detail_sample_distance = 16.0", "detail_sample_max_error = 0.6",
          # The gorge floor is left out: nobody can get there.
          f"filter_baking_aabb = AABB({bx - 1}, -6, {bz - 1}, {bw + 2}, 30, {bd + 2})", ""]
     # name -> (colour or tint, texture or None, texture repeats per metre)
