@@ -16,6 +16,23 @@ test('game boots with a visible canvas and no console errors', async ({ page }) 
   expect(errors).toEqual([]);
 });
 
+test('a progress bar fills while the game loads and goes when it runs', async ({ page }) => {
+  // The engine file is held back so the bar can be seen part way.
+  let release;
+  const held = new Promise((resolve) => { release = resolve; });
+  await page.route('**/index.wasm', async (route) => { await held; await route.continue(); });
+  await page.goto('/index.html');
+  await expect(page.locator('#status')).toBeVisible();
+  await expect(page.locator('#bar')).toBeVisible();
+  await expect(page.locator('#status h1')).toHaveText('Sierra Roja');
+  const before = Number(await page.locator('#bar').getAttribute('aria-valuenow'));
+  expect(before).toBeLessThan(100);
+  release();
+  await page.waitForFunction(() => window.sierraStarted === true);
+  await expect(page.locator('#status')).toBeHidden();
+  expect(Number(await page.locator('#bar').getAttribute('aria-valuenow'))).toBeGreaterThan(before);
+});
+
 test('an error while loading is put on the page with the browser it happened in', async ({ page }) => {
   // The engine's main script is made to fail, as a browser that cannot run it would.
   await page.route('**/index.js', (route) => route.fulfill({ contentType: 'application/javascript', body: 'throw new Error("engine script broke");' }));

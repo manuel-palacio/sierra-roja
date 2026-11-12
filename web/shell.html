@@ -8,14 +8,22 @@
 		html, body { margin: 0; height: 100%; background: #000; color: #ddd; font-family: sans-serif; overflow: hidden; }
 		#canvas { display: block; width: 100%; height: 100%; }
 		#message { display: none; position: absolute; inset: 0; align-items: center; justify-content: center; text-align: center; padding: 1em; white-space: pre-wrap; }
-		#status { position: absolute; left: 0; right: 0; bottom: 12%; text-align: center; font-size: 1.1em; color: #aaa; pointer-events: none; }
+		#status { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.9em; background: #0b0d12; pointer-events: none; }
+		#status h1 { margin: 0; font-size: 2.2em; font-weight: 600; color: #e0492f; }
+		#bar { width: min(26em, 70vw); height: 0.7em; border: 1px solid #555; border-radius: 0.4em; overflow: hidden; }
+		#fill { width: 0; height: 100%; background: #e0492f; transition: width 0.15s linear; }
+		#percent { color: #aaa; font-size: 0.95em; min-height: 1.2em; }
 	</style>
 	$GODOT_HEAD_INCLUDE
 </head>
 <body>
 	<canvas id="canvas"></canvas>
 	<div id="message"></div>
-	<div id="status">Loading…</div>
+	<div id="status">
+		<h1>$GODOT_PROJECT_NAME</h1>
+		<div id="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="fill"></div></div>
+		<div id="percent">Loading…</div>
+	</div>
 	<script src="$GODOT_URL"></script>
 	<script>
 		const GODOT_CONFIG = $GODOT_CONFIG;
@@ -49,8 +57,18 @@
 		} else if (!probe.getContext('webgl2')) {
 			fail('This game needs WebGL2. Please use a current desktop browser with hardware acceleration enabled.');
 		} else {
+			// Downloading fills the bar; after that the browser still has to prepare the engine, which
+			// can take some seconds with nothing to count, so the line says so.
+			const bar = document.getElementById('bar');
+			const fill = document.getElementById('fill');
+			const percent = document.getElementById('percent');
 			const onProgress = (current, total) => {
-				status.textContent = total > 0 ? 'Loading… ' + Math.round(100 * current / total) + '%' : 'Loading…';
+				if (total > 0) {
+					const done = Math.min(100, Math.round(100 * current / total));
+					fill.style.width = done + '%';
+					bar.setAttribute('aria-valuenow', done);
+					percent.textContent = done < 100 ? 'Loading… ' + done + '%' : 'Starting…';
+				}
 			};
 			new Engine(GODOT_CONFIG).startGame({ canvas, onProgress })
 				.then(() => { window.sierraStarted = true; status.style.display = 'none'; })
