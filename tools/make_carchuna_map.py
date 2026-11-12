@@ -8,6 +8,11 @@ launch on the beach in the south-west; the fort stands on the flat ground in the
 to the north on the coast road. Three ways in: the gate, the breach in the west wall above the
 beach path, and the postern in the east wall, round by the rocks. The officer is in the cells
 against the east wall; he has to be brought back to the launch.
+
+The quiet way is on the belly, by the breach: a figure lying down is seen only within six metres,
+and no beat comes that close to the shore path, the foot of the south wall inside, or the corner
+east of the cells. The one sentry to time is the one in the lane west of the cells: while it is up
+the lane the cells themselves hide the door from it. tests/run/carchuna_bot.gd plays it.
 """
 from mapgen import ADD, EARTH, MOUND, PATH, ROAD, ROCK, SET, mission, write
 
@@ -40,9 +45,10 @@ GUARDS = [
     ("Gate", [(20, -13), (27, -13)]),
     ("Road", [(-6, -25), (12, -21)]),
     ("GateInside", [(23, -6), (23, 0)]),
-    ("Yard", [(13, 4), (27, 4), (27, 16), (13, 16)]),
-    ("Cells", [(29, 11.5), (36, 15)]),
-    ("BeachPath", [(-10, 25), (3, 24.5)]),
+    ("Yard", [(11.5, 2), (22, 2), (22, 8), (11.5, 8)]),
+    # The lane between the yard wall and the cells: from its south end the door is in view.
+    ("Lane", [(28, 10), (28, -1.5)]),
+    ("AboveBeach", [(-14, 19), (-4, 18)]),
     ("EastRocks", [(43, 12), (43, -6)]),
 ]
 # The launch: where they came ashore, and where they have to get back to.
@@ -52,11 +58,13 @@ WALLS = [
     # North, with the gate.
     ([(8, -10), (21, -10)], HIGH), ([(25, -10), (38, -10)], HIGH),
     # East, with the postern.
-    ([(38, -10), (38, 2)], HIGH), ([(38, 5), (38, 20)], HIGH),
+    ([(38, -10), (38, -1)], HIGH), ([(38, 2), (38, 20)], HIGH),
     # South.
     ([(38, 20), (8, 20)], HIGH),
     # West, with the breach low down near the corner.
     ([(8, 20), (8, 17.2)], HIGH), ([(8, 14), (8, -10)], HIGH),
+    # The wall that shuts the cells' court off from the yard.
+    ([(26, -2), (26, 12)], HIGH),
     # Sandbags inside the gate and at the breach.
     ([(19.5, -7.5), (21, -7.5)], 1.0, "sandbags"),
     ([(10.5, 12.6), (12.4, 12.6)], 1.0, "sandbags"),
@@ -67,26 +75,25 @@ WALLS = [
 ]
 # A tower in the north-west corner sweeping the road, and one in the south-west over the breach.
 # x, z, the searchlight's aim in degrees (0 east, 90 south), its swing and its reach.
-TOWERS = [(10.5, -7.5, 250, 60, 17), (10.5, 17.6, 170, 50, 13)]
-CARTS = [(16.0, 0.5, 1.2)]
+TOWERS = [(10.5, -7.5, 250, 60, 17), (10.6, 11.0, 150, 50, 13)]
+CARTS = [(17.0, 5.0, 1.2)]
 SETTLEMENT = [
     ("launch", -37.5, 30.2, 0.35),
-    ("well", 20.0, 9.0, 0.0),
+    ("well", 17.0, 13.5, 0.0),
     ("truck", 29.0, -13.5, 1.57),
-    ("washing_line", 14.0, 8.5, 1.57),
+    ("washing_line", 20.5, 16.0, 0.0),
 ]
 POLE_LINES = [[(-50, -32.5), (-36, -31), (-22, -30), (-8, -27.5), (6, -24.5), (17, -18.5)]]
 # name, x, z, rotation (radians), size, roof height, ruin, then optionally: enterable, storeys.
 BUILDINGS = [
-    ("Cells", 32, 6, 0.0, (7, 3, 5), 1.2, False, True),
+    ("Cells", 33.5, 6, 0.0, (7, 3, 5), 1.2, False, True),
     ("Barracks", 14.5, -4, 0.0, (9, 3, 5), 1.4, False, False),
     ("Commandant", 31.5, -5, 0.0, (6, 5.4, 5), 1.4, False, False, 2),
     ("SentryBox", 27.2, -12.4, 0.0, (1.6, 2.4, 1.6), 0.6, False, False),
 ]
 CRATES = [
-    ("CrateYard1", 24.5, PLAIN, 9.5, 1.4, 1.4),
-    ("CrateYard2", 18.0, PLAIN, 14.5, 1.4, 1.4),
-    ("CrateBreach", 11.2, PLAIN, 9.0, 1.4, 1.4),
+    ("CrateYard1", 24.3, PLAIN, 10.5, 1.4, 1.4),
+    ("CrateYard2", 21.5, PLAIN, 12.5, 1.4, 1.4),
 ]
 
 OLIVES = ["tree:olive"]
@@ -95,7 +102,7 @@ EAST = [(41, -13), (54, -13), (54, 22), (41, 22)]
 SHORE = [(-28, 22), (52, 22), (52, 29), (-28, 29)]
 # Kept open: the three ways in, the landing and the lying-up places on the way.
 CLEAR = [(-42, 25), (-40, 27.5), (-37, 28), (-24, 25.5), (-12, 25), (0, 25), (6, 20), (6, 15.5), (23, -13),
-         (23, -18), (40, 3.5), (43, 3.5), (43, 20), (40, 24), (20, 24), (-18, 20)]
+         (23, -18), (40, 0.5), (43, 0.5), (43, 20), (40, 24), (20, 24), (-18, 20), (5.5, 22), (-20, 27.5), (-6, 27.5)]
 # name, blocking, models, area, count, seed, spacing, scale range, keep clear, blocker size, max slope
 SCATTERS = [
     ("Olives", True, OLIVES, INLAND, 26, 51, 6.0, (0.85, 1.25), 3.5, (0.6, 3.0, 0.6), 25),
@@ -111,16 +118,16 @@ SCATTERS = [
 ]
 # Single props: model, x, ground height, z, scale, turn in radians, and the box that makes it solid.
 PLACED = [
-    ("barrel", 26.0, PLAIN, 10.6, 4.2, 0.0, (1.0, 1.4, 1.0)),
-    ("barrel", 36.2, PLAIN, 17.8, 4.2, 1.0, (1.0, 1.4, 1.0)),
-    ("box-large", 12.0, PLAIN, 3.0, 4.4, 0.2, (1.3, 1.1, 2.1)),
+    ("barrel", 24.6, PLAIN, 12.0, 4.2, 0.0, (1.0, 1.4, 1.0)),
+    ("barrel", 31.0, PLAIN, 14.5, 4.2, 1.0, (1.0, 1.4, 1.0)),
+    ("box-large", 16.5, PLAIN, 5.0, 4.4, 0.2, (1.3, 1.1, 2.1)),
     ("box", -34.5, BEACH, 25.6, 4.4, 0.6, (1.1, 1.1, 1.1)),
 ]
 # Lamps: x, z, height of the ground there.
-LAMPS = [(26.2, -11.2, PLAIN), (20.0, 5.5, PLAIN), (28.6, 9.6, PLAIN), (19.5, -2.0, PLAIN)]
+LAMPS = [(26.2, -11.2, PLAIN), (19.0, 10.0, PLAIN), (29.4, 11.4, PLAIN), (19.5, -2.0, PLAIN)]
 SEA = (33, 0.35)
 OBJECTIVES = [
-    {"kind": "rescue", "building": "Cells", "prisoner": (32, 5.5), "ground": PLAIN, "hud": "Free the officer",
+    {"kind": "rescue", "building": "Cells", "prisoner": (33.5, 5.5), "ground": PLAIN, "hud": "Free the officer",
      "escort": "Bring the officer to the launch", "marker": "Cells"},
 ]
 TEXTS = {

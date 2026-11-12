@@ -109,7 +109,7 @@ func test_each_way_in_reaches_the_cell_door() -> void:
 	var ways := {
 		"gate": [Vector3(23, 0, -12.5), Vector3(23, 0, -7.5)],
 		"breach": [Vector3(5.5, 0, 15.6), Vector3(10.5, 0, 15.6)],
-		"postern": [Vector3(40.5, 0, 3.5), Vector3(35.5, 0, 3.5)],
+		"postern": [Vector3(40.5, 0, 0.5), Vector3(35.5, 0, 0.5)],
 	}
 	var spawn := mission.specialist_spawns()[0].global_position
 	for way: String in ways:
