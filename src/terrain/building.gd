@@ -39,6 +39,9 @@ var _since_look := 0.0
 
 
 ## ground.call(x, z) gives the ground height. Mission calls this before the navmesh bake.
+var _room_lamp: OmniLight3D
+
+
 func build(ground: Callable) -> void:
 	collision_layer = Unit.LAYER_WORLD
 	collision_mask = 0
@@ -93,6 +96,8 @@ func look_inside() -> void:
 			occupied = true
 	for part in _lid:
 		part.visible = not occupied
+	if _room_lamp != null:
+		_room_lamp.visible = occupied
 
 
 ## Four walls with a doorway in the south one, a floor, and a little furniture.
@@ -116,14 +121,86 @@ func _build_hollow() -> void:
 	var lintel := _trim(Vector3(0, size.y - 0.35, hz - t / 2.0), Vector3(ENTRANCE_WIDTH, 0.7, t), plaster)
 	_lid.append(lintel)
 	_add_trim(Vector3(0, 0.03, 0), Vector3(size.x - t * 2.0, 0.06, size.z - t * 2.0), Surfaces.material(&"planks", Color(0.72, 0.62, 0.50)))
-	# A table and a bunk against the back wall: looked at, not walked into.
+	_furnish()
+
+
+## What makes the room a guardroom: a dado round the walls, a table with its lamp and stools, a
+## stove, a rifle rack, a shelf, and bunks where there is room. All display only and all against
+## the walls, so the middle and the doorway stay clear.
+func _furnish() -> void:
+	var t := WALL_THICKNESS
+	var west := -size.x / 2.0 + t
+	var east := size.x / 2.0 - t
+	var north := -size.z / 2.0 + t
+	var south := size.z / 2.0 - t
 	var wood := Surfaces.material(&"planks", DOOR_COLOR)
-	_add_trim(Vector3(-hx + t + 0.75, 0.42, -hz + t + 0.5), Vector3(1.3, 0.08, 0.7), wood)
-	for leg in [Vector2(-0.55, -0.25), Vector2(0.55, -0.25), Vector2(-0.55, 0.25), Vector2(0.55, 0.25)]:
-		_add_trim(Vector3(-hx + t + 0.75 + leg.x, 0.2, -hz + t + 0.5 + leg.y), Vector3(0.07, 0.4, 0.07), wood)
-	if size.x >= 6.0:
-		_add_trim(Vector3(hx - t - 1.0, 0.3, -hz + t + 0.5), Vector3(1.9, 0.14, 0.8), wood)
-		_add_trim(Vector3(hx - t - 1.0, 0.42, -hz + t + 0.5), Vector3(1.8, 0.12, 0.7), _flat(Color(0.55, 0.52, 0.42)))
+	var pale := Surfaces.material(&"planks", Color(0.80, 0.68, 0.52))
+	var iron := Surfaces.material(&"steel", Color(0.22, 0.22, 0.24))
+	var dado := _flat(Color(0.42, 0.50, 0.44))
+	# A painted band along the foot of the three whole walls.
+	_add_trim(Vector3(0, 0.5, north + 0.02), Vector3(east - west, 1.0, 0.04), dado)
+	_add_trim(Vector3(west + 0.02, 0.5, 0), Vector3(0.04, 1.0, south - north), dado)
+	_add_trim(Vector3(east - 0.02, 0.5, 0), Vector3(0.04, 1.0, south - north), dado)
+	# A rug in the middle of the floor.
+	_add_trim(Vector3(0, 0.07, 0.1), Vector3(minf(2.2, east - west - 2.2), 0.02, 1.3), _flat(Color(0.55, 0.22, 0.18)))
+	_add_trim(Vector3(0, 0.075, 0.1), Vector3(minf(1.8, east - west - 2.6), 0.02, 0.9), _flat(Color(0.74, 0.62, 0.42)))
+	# The table in the north-west corner, with stools, a map, a bottle and the lamp.
+	var table := Vector3(west + 0.85, 0, north + 0.55)
+	_add_trim(table + Vector3(0, 0.74, 0), Vector3(1.3, 0.07, 0.75), pale)
+	for leg in [Vector2(-0.57, -0.3), Vector2(0.57, -0.3), Vector2(-0.57, 0.3), Vector2(0.57, 0.3)]:
+		_add_trim(table + Vector3(leg.x, 0.37, leg.y), Vector3(0.07, 0.72, 0.07), wood)
+	for stool in [Vector3(-0.2, 0, 0.75), Vector3(0.95, 0, 0.1)]:
+		_add_trim(table + stool + Vector3(0, 0.42, 0), Vector3(0.36, 0.06, 0.36), wood)
+		_add_trim(table + stool + Vector3(0, 0.2, 0), Vector3(0.22, 0.4, 0.22), wood)
+	_add_trim(table + Vector3(-0.2, 0.785, 0.02), Vector3(0.6, 0.01, 0.42), _flat(Color(0.86, 0.82, 0.68)))
+	_add_trim(table + Vector3(0.42, 0.9, -0.2), Vector3(0.08, 0.26, 0.08), _flat(Color(0.16, 0.30, 0.18)))
+	_add_trim(table + Vector3(0.3, 0.84, 0.15), Vector3(0.1, 0.14, 0.1), iron)
+	var flame := StandardMaterial3D.new()
+	flame.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	flame.albedo_color = Color(1.0, 0.82, 0.45)
+	_add_trim(table + Vector3(0.3, 0.97, 0.15), Vector3(0.07, 0.12, 0.07), flame)
+	# Lit only while the room is looked into: under its roof the light would leak through the walls.
+	_room_lamp = OmniLight3D.new()
+	_room_lamp.name = "RoomLamp"
+	_room_lamp.light_color = Color(1.0, 0.78, 0.5)
+	_room_lamp.light_energy = 1.6
+	_room_lamp.omni_range = maxf(size.x, size.z) * 0.8
+	_room_lamp.visible = false
+	add_child(_room_lamp)
+	_room_lamp.position = table + Vector3(0.3, 1.5, 0.15)
+	# The stove in the north-east corner, its pipe going up the wall.
+	var stove := Vector3(east - 0.45, 0, north + 0.45)
+	_add_trim(stove + Vector3(0, 0.45, 0), Vector3(0.6, 0.9, 0.6), iron)
+	_add_trim(stove + Vector3(0, 0.93, 0), Vector3(0.7, 0.06, 0.7), iron)
+	_add_trim(stove + Vector3(0.1, (size.y + 0.9) / 2.0, -0.1), Vector3(0.16, size.y - 0.9, 0.16), iron)
+	_add_trim(stove + Vector3(0, 0.4, 0.31), Vector3(0.26, 0.2, 0.02), flame)
+	_add_trim(stove + Vector3(-0.75, 0.2, 0.05), Vector3(0.6, 0.4, 0.45), pale)  # the log box
+	# Rifles racked on the east wall.
+	var rack := Vector3(east - 0.1, 0, south - 1.0)
+	_add_trim(rack + Vector3(0, 0.25, 0), Vector3(0.2, 0.08, 1.1), wood)
+	_add_trim(rack + Vector3(0, 1.0, 0), Vector3(0.12, 0.08, 1.1), wood)
+	for i in 3:
+		_add_trim(rack + Vector3(-0.04, 0.85, -0.35 + i * 0.35), Vector3(0.07, 1.2, 0.07), iron)
+		_add_trim(rack + Vector3(-0.04, 0.5, -0.35 + i * 0.35), Vector3(0.09, 0.45, 0.11), wood)
+	# A shelf on the west wall with tins and a helmet, and a coat hung under it.
+	var shelf := Vector3(west + 0.14, 1.5, south - 1.0)
+	_add_trim(shelf, Vector3(0.28, 0.05, 1.2), wood)
+	_add_trim(shelf + Vector3(0, 0.13, -0.4), Vector3(0.16, 0.2, 0.16), _flat(Color(0.62, 0.34, 0.22)))
+	_add_trim(shelf + Vector3(0, 0.1, -0.1), Vector3(0.14, 0.15, 0.14), _flat(Color(0.70, 0.66, 0.50)))
+	_add_trim(shelf + Vector3(0, 0.1, 0.35), Vector3(0.24, 0.14, 0.26), _flat(Color(0.33, 0.37, 0.28)))
+	_add_trim(shelf + Vector3(-0.05, -0.55, 0.2), Vector3(0.1, 0.9, 0.42), _flat(Color(0.36, 0.38, 0.30)))
+	if size.x < 6.0:
+		return
+	# Room for bunks along the back wall: frame, mattress, grey blanket and a pillow.
+	var count := int((east - west - 3.2) / 1.1)
+	for i in count:
+		var bunk := Vector3(west + 2.2 + i * 1.1, 0, north + 1.0)
+		_add_trim(bunk + Vector3(0, 0.3, 0), Vector3(0.9, 0.12, 1.95), wood)
+		_add_trim(bunk + Vector3(0, 0.6, -0.95), Vector3(0.9, 0.7, 0.06), wood)
+		_add_trim(bunk + Vector3(0, 0.42, 0.02), Vector3(0.82, 0.14, 1.8), _flat(Color(0.80, 0.77, 0.68)))
+		_add_trim(bunk + Vector3(0, 0.46, 0.3), Vector3(0.84, 0.1, 1.2), _flat(Color(0.42, 0.44, 0.46)))
+		_add_trim(bunk + Vector3(0, 0.52, -0.68), Vector3(0.55, 0.1, 0.32), _flat(Color(0.90, 0.88, 0.82)))
+		_add_trim(bunk + Vector3(0, 0.2, 1.15), Vector3(0.7, 0.4, 0.4), pale)  # a footlocker
 
 
 func _build_ruin() -> void:

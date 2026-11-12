@@ -272,6 +272,19 @@ func test_the_roof_comes_off_the_picture_while_a_specialist_is_inside() -> void:
 	assert_false(house.is_open(), "nor does a dead specialist")
 
 
+func test_a_lamp_lights_the_room_only_while_it_is_looked_into() -> void:
+	var house := _house(Vector3.ZERO)
+	await _built()
+	var spec := _unit("res://scenes/units/specialist.tscn", Vector3(0, 2, 9)) as Specialist
+	var lamp := house.get_node("RoomLamp") as OmniLight3D
+	house.look_inside()
+	assert_false(lamp.visible, "dark under its roof, so no light leaks through the walls")
+	spec.global_position = Vector3(1, 2, 0.5)
+	house.look_inside()
+	assert_true(lamp.visible)
+	assert_true(house.holds(house.to_global(lamp.position)), "the lamp hangs inside the walls")
+
+
 func test_a_house_not_made_enterable_is_as_solid_as_before() -> void:
 	var house := Building.new()
 	house.size = Vector3(7, 3, 5)
