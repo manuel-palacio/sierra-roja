@@ -127,7 +127,7 @@ func _init() -> void:
 ## Shows a mission's own title and objectives, and marks it in the row of missions.
 func set_mission(mission: Mission, index: int) -> void:
 	_subtitle.text = mission.title
-	_show_objectives(mission.objectives)
+	_show_objectives(mission.briefing_lines)
 	for i in mission_buttons.size():
 		mission_buttons[i].disabled = i == index
 

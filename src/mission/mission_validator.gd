@@ -22,10 +22,10 @@ static func validate(mission: Mission) -> PackedStringArray:
 	for route in mission.patrol_routes():
 		if route.curve == null or route.curve.point_count < 2:
 			errors.append("route %s needs at least 2 points" % route.name)
-	var target := mission.bridge_target()
 	var extraction := mission.extraction()
-	if target == null:
-		errors.append("mission has no bridge target")
+	var objectives := mission.objectives()
+	if objectives.is_empty():
+		errors.append("mission has no objectives")
 	if extraction == null:
 		errors.append("mission has no extraction area")
 	if specialists.is_empty():
@@ -56,8 +56,8 @@ static func validate(mission: Mission) -> PackedStringArray:
 			for i in legs:
 				if not reaches(map, points[i], points[(i + 1) % points.size()]):
 					errors.append("route %s leg %d cannot be walked" % [route.name, i])
-	if target and not reaches(map, from, target.global_position):
-		errors.append("bridge target is unreachable from the specialist spawn")
+	for o in objectives:
+		errors.append_array(o.validate(mission, map, from))
 	if extraction and not reaches(map, from, extraction.global_position):
 		errors.append("extraction is unreachable from the specialist spawn")
 	return errors

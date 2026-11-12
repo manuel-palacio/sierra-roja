@@ -182,12 +182,12 @@ func test_fuse_label_goes_when_the_charge_does() -> void:
 
 func test_blast_far_from_the_bridge_says_so() -> void:
 	_plant(Vector3(-30, 0, 0), 1.0).advance(2.0)
-	assert_eq(hud.message_label.text, "The charge was too far from the bridge")
+	assert_eq(hud.message_label.text, "The charge was too far from the target")
 	assert_true(hud.message_label.visible)
 
 
 func test_blast_at_the_bridge_says_it_was_destroyed() -> void:
-	_plant(mission.bridge_target().global_position, 1.0).advance(2.0)
+	_plant((mission.get_node("BridgeTarget") as Node3D).global_position, 1.0).advance(2.0)
 	assert_eq(hud.message_label.text, "Bridge destroyed")
 
 
@@ -302,10 +302,10 @@ func test_objective_line_follows_the_bridge() -> void:
 	hud.refresh()
 	assert_true(hud.objective_label.visible)
 	assert_eq(hud.objective_label.text, "Objective: Destroy the bridge")
-	rules.bridge_destroyed = true
+	rules.mission().objectives()[0].done = true
 	hud.refresh()
 	assert_eq(hud.objective_label.text, "Objective: Reach the extraction point")
-	rules.bridge_destroyed = false  # a load back to before the blast
+	rules.mission().objectives()[0].done = false  # a load back to before the blast
 	hud.refresh()
 	assert_eq(hud.objective_label.text, "Objective: Destroy the bridge")
 

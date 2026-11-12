@@ -2,7 +2,7 @@ class_name Mission
 extends Node3D
 ## A mission map. Spawns, routes and objectives are plain nodes found by name, so a new
 ## mission is a new scene with no engine code. Expected children:
-## SpecialistSpawns/ and GuardSpawns/ (Marker3D), Routes/ (Path3D), BridgeTarget (Marker3D),
+## SpecialistSpawns/ and GuardSpawns/ (Marker3D), Routes/ (Path3D), Objectives/ (Objective),
 ## Extraction (Area3D) and Nav (NavigationRegion3D holding the walkable geometry).
 ## Guards/ holds the guard instances; each takes the spawn and route at its own index.
 ##
@@ -33,14 +33,11 @@ const STANDING_RAY_TOP := 100.0
 ## How far below the deck still counts as on the span.
 const SPAN_DEPTH := 1.5
 
-## What the player is told. The defaults are the bridge mission's.
+## What the player is told. The defaults are the bridge mission's. What is asked of the player
+## is in the Objectives node.
 @export var title := "The bridge at dawn"
-## The thing to destroy, as the objective pointer names it.
-@export var target_name := "Bridge"
-@export var objective_text := "Destroy the bridge"
-@export var destroyed_text := "Bridge destroyed"
 ## The briefing's lines.
-@export var objectives := PackedStringArray([
+@export var briefing_lines := PackedStringArray([
 	"Destroy the railway bridge with the Dynamiter's charge.",
 	"Get both of them to the extraction point on the far bank.",
 	"Lose either one and the mission fails.",
@@ -69,6 +66,9 @@ var _scenery_built := false
 
 
 func _ready() -> void:
+	# Before the rules exist, an objective can already say where it is.
+	for o in objectives():
+		o.setup(self, null)
 	var spawns := guard_spawns()
 	var routes := patrol_routes()
 	var list := guards()
@@ -132,8 +132,15 @@ func guards() -> Array[Guard]:
 	return out
 
 
-func bridge_target() -> Marker3D:
-	return get_node_or_null("BridgeTarget") as Marker3D
+## What the mission asks for: the children of Objectives, in order.
+func objectives() -> Array[Objective]:
+	var out: Array[Objective] = []
+	var holder := get_node_or_null("Objectives")
+	if holder:
+		for child in holder.get_children():
+			if child is Objective:
+				out.append(child)
+	return out
 
 
 func extraction() -> Area3D:
@@ -339,7 +346,8 @@ func _break_stack(region: NavigationRegion3D) -> void:
 	var wreck := Node3D.new()
 	wreck.name = "TargetWreck"
 	add_child(wreck)
-	var at := bridge_target().global_position if bridge_target() else Vector3.ZERO
+	var marker := get_node_or_null("BridgeTarget") as Node3D
+	var at := marker.global_position if marker else Vector3.ZERO
 	wreck.global_position = Vector3(at.x, ground_height(at.x, at.z) + 0.03, at.z)
 	var scorch := MeshInstance3D.new()
 	var disc := CylinderMesh.new()

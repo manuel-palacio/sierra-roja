@@ -114,7 +114,7 @@ func _plant(pos: Vector3, fuse := 10.0) -> PlantedCharge:
 
 
 func _blow_bridge() -> void:
-	_plant(mission.bridge_target().global_position, 0.0).advance(0.1)
+	_plant((mission.get_node("BridgeTarget") as Node3D).global_position, 0.0).advance(0.1)
 	await _frames(1)
 
 
@@ -314,6 +314,10 @@ func test_any_damaged_save_is_refused_whole() -> void:
 		"bad result": func(d: Dictionary) -> Variant: d["rules"]["result"] = 7; return d,
 		"unknown at extraction": func(d: Dictionary) -> Variant: d["rules"]["at_extraction"] = ["Nobody"]; return d,
 		"no rules": func(d: Dictionary) -> Variant: d.erase("rules"); return d,
+		"no objectives": func(d: Dictionary) -> Variant: d["rules"].erase("objectives"); return d,
+		"an objective too many": func(d: Dictionary) -> Variant: d["rules"]["objectives"].append({"done": false, "failed": false}); return d,
+		"bad objective state": func(d: Dictionary) -> Variant: d["rules"]["objectives"][0]["done"] = 1; return d,
+		"the old bridge flag": func(d: Dictionary) -> Variant: d["rules"].erase("objectives"); d["rules"]["bridge_destroyed"] = false; return d,
 	}
 	var before := _state_text()
 	for damage_name in damages:
@@ -385,7 +389,7 @@ func test_load_after_win_clears_end_screen() -> void:
 	_load()
 	assert_eq(rules.result, MissionRules.Result.RUNNING)
 	assert_false(hud.end_screen.visible)
-	assert_false(rules.bridge_destroyed)
+	assert_false(rules.objectives_done())
 
 
 func test_load_keeps_the_players_pause_and_hud_agrees() -> void:
@@ -559,7 +563,7 @@ func test_browser_shortcuts_are_left_alone() -> void:
 func test_save_is_json_at_the_set_path_with_version() -> void:
 	_save()
 	assert_eq(SaveGame.SAVE_PATH, "user://quicksave.json")
-	assert_eq(int(_read_save()["version"]), 2)
+	assert_eq(int(_read_save()["version"]), 3)
 
 
 # --- Guards come and go ---
@@ -688,27 +692,27 @@ func test_body_since_save_disappears() -> void:
 
 func test_charge_since_save_disappears_and_cannot_fire() -> void:
 	_save()
-	var stale := _plant(mission.bridge_target().global_position, 0.05)
+	var stale := _plant((mission.get_node("BridgeTarget") as Node3D).global_position, 0.05)
 	_load()
 	assert_false(is_instance_valid(stale), "gone at once, not at the end of the frame")
 	assert_eq(_charges().size(), 0)
 	await _frames(8)
-	assert_false(rules.bridge_destroyed)
+	assert_false(rules.objectives_done())
 	assert_not_null(mission.get_node_or_null("Nav/BridgeDeck"))
 
 
 func test_loaded_charge_blows_the_bridge_and_counts_for_the_win() -> void:
-	_plant(mission.bridge_target().global_position, 6.0)
+	_plant((mission.get_node("BridgeTarget") as Node3D).global_position, 6.0)
 	_save()
 	for c in _charges():
 		c.free()
 	_load()
 	var loaded := _charges()[0] as PlantedCharge
 	var blown := [0]
-	rules.bridge_blown.connect(func() -> void: blown[0] += 1)
+	rules.objective_done.connect(func(_o: Objective) -> void: blown[0] += 1)
 	loaded.advance(7.0)
 	assert_eq(blown[0], 1, "rules hooked the restored charge")
-	assert_true(rules.bridge_destroyed)
+	assert_true(rules.objectives_done())
 	_to_extraction(specs[0])
 	_to_extraction(specs[1])
 	await _frames(4)
@@ -767,7 +771,7 @@ func test_load_restores_a_destroyed_bridge() -> void:
 	# A fresh look at the same save: live state already broken, still broken after.
 	_load()
 	await _idle()
-	assert_true(rules.bridge_destroyed)
+	assert_true(rules.objectives_done())
 	assert_null(mission.get_node_or_null("Nav/BridgeDeck"))
 	assert_not_null(mission.get_node_or_null("Nav/BridgeBroken"))
 	assert_false(_crosses_gorge())
@@ -779,17 +783,17 @@ func test_load_breaks_an_intact_live_bridge_when_the_save_says_broken() -> void:
 	await _idle()
 	_save()
 	var broken := _read_save()
-	broken["rules"]["bridge_destroyed"] = false
+	broken["rules"]["objectives"][0]["done"] = false
 	_write_save(JSON.stringify(broken))
 	_load()
 	await _idle()
-	broken["rules"]["bridge_destroyed"] = true
+	broken["rules"]["objectives"][0]["done"] = true
 	_write_save(JSON.stringify(broken))
 	assert_not_null(mission.get_node_or_null("Nav/BridgeDeck"), "precondition: intact")
 	_load()
 	await _idle()
 	assert_null(mission.get_node_or_null("Nav/BridgeDeck"))
-	assert_true(rules.bridge_destroyed)
+	assert_true(rules.objectives_done())
 	assert_false(_crosses_gorge())
 
 
@@ -800,7 +804,7 @@ func test_intact_bridge_in_save_rebuilds_a_broken_live_bridge() -> void:
 	await _idle()
 	assert_false(_crosses_gorge(), "precondition: broken")
 	_load()
-	assert_false(rules.bridge_destroyed)
+	assert_false(rules.objectives_done())
 	await _idle()
 	assert_not_null(mission.get_node_or_null("Nav/BridgeDeck"), "deck is back")
 	assert_null(mission.get_node_or_null("Nav/BridgeBroken"), "stubs are gone")
@@ -816,11 +820,11 @@ func test_bridge_can_blow_again_after_being_rebuilt() -> void:
 	_load()
 	await _idle()
 	var blown := [0]
-	rules.bridge_blown.connect(func() -> void: blown[0] += 1)
+	rules.objective_done.connect(func(_o: Objective) -> void: blown[0] += 1)
 	await _blow_bridge()
 	await _idle()
 	assert_eq(blown[0], 1)
-	assert_true(rules.bridge_destroyed)
+	assert_true(rules.objectives_done())
 	assert_false(_crosses_gorge())
 
 
@@ -854,8 +858,8 @@ func test_specialist_in_transit_crosses_the_rebuilt_bridge() -> void:
 func test_stale_rebake_does_not_fire_across_a_load() -> void:
 	_save()
 	# The bridge breaks and is restored before the deferred rebake has had its frame.
-	_plant(mission.bridge_target().global_position, 0.0).advance(0.1)
-	assert_true(rules.bridge_destroyed)
+	_plant((mission.get_node("BridgeTarget") as Node3D).global_position, 0.0).advance(0.1)
+	assert_true(rules.objectives_done())
 	var bakes := mission.nav_bakes
 	_load()
 	await _idle(4)
@@ -865,7 +869,7 @@ func test_stale_rebake_does_not_fire_across_a_load() -> void:
 
 
 func test_load_while_a_break_is_pending_keeps_its_rebake() -> void:
-	_plant(mission.bridge_target().global_position, 0.0).advance(0.1)
+	_plant((mission.get_node("BridgeTarget") as Node3D).global_position, 0.0).advance(0.1)
 	_save()
 	var bakes := mission.nav_bakes
 	_load()
@@ -904,33 +908,44 @@ func test_no_false_win_from_stale_extraction_tracking() -> void:
 	await _idle()
 	_save()
 	var broken := _read_save()
-	broken["rules"]["bridge_destroyed"] = false
+	broken["rules"]["objectives"][0]["done"] = false
 	_write_save(JSON.stringify(broken))
 	_load()
 	await _idle()
 	_to_extraction(specs[0])
 	_to_extraction(specs[1])
 	await _frames(4)
-	assert_true(rules.at_extraction(specs[0]), "precondition: live tracking says inside")
-	broken["rules"]["bridge_destroyed"] = true
+	assert_true(rules.is_at_extraction(specs[0]), "precondition: live tracking says inside")
+	broken["rules"]["objectives"][0]["done"] = true
 	_write_save(JSON.stringify(broken))
 	_load()
 	rules.evaluate()
 	assert_eq(rules.result, MissionRules.Result.RUNNING, "the save has them outside")
 	await _frames(4)
 	assert_eq(rules.result, MissionRules.Result.RUNNING)
-	assert_false(rules.at_extraction(specs[0]))
+	assert_false(rules.is_at_extraction(specs[0]))
 
 
 func test_extraction_presence_survives_a_load() -> void:
 	_to_extraction(specs[0])
 	await _frames(4)
-	assert_true(rules.at_extraction(specs[0]), "precondition")
+	assert_true(rules.is_at_extraction(specs[0]), "precondition")
 	_save()
 	specs[0].global_position = mission.specialist_spawns()[0].global_position
 	await _frames(4)
-	assert_false(rules.at_extraction(specs[0]), "precondition: walked out")
+	assert_false(rules.is_at_extraction(specs[0]), "precondition: walked out")
 	_load()
-	assert_true(rules.at_extraction(specs[0]))
+	assert_true(rules.is_at_extraction(specs[0]))
 	await _frames(4)
-	assert_true(rules.at_extraction(specs[0]))
+	assert_true(rules.is_at_extraction(specs[0]))
+
+
+func test_objective_states_round_trip() -> void:
+	await _blow_bridge()
+	await _idle()
+	_save()
+	assert_true(_read_save()["rules"]["objectives"][0]["done"])
+	_load()
+	await _idle()
+	assert_true(rules.objectives_done())
+	assert_null(mission.get_node_or_null("Nav/BridgeDeck"), "and the bridge is still down")

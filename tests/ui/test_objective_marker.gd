@@ -46,8 +46,8 @@ func test_it_points_at_the_bridge_then_the_extraction_then_goes() -> void:
 	marker._process(0.0)
 	assert_true(marker.visible)
 	assert_eq(marker.label.text.split(" ")[0], "Bridge")
-	assert_eq(marker.target, main.mission.bridge_target().global_position)
-	main.rules.bridge_destroyed = true
+	assert_eq(marker.target, (main.mission.get_node("BridgeTarget") as Node3D).global_position)
+	main.rules.mission().objectives()[0].done = true
 	marker._process(0.0)
 	assert_eq(marker.label.text.split(" ")[0], "Extraction")
 	assert_almost_eq(marker.target.x, main.mission.extraction().global_position.x, 0.01)

@@ -161,12 +161,13 @@ func _points_to_avoid(mission: Mission) -> Array[PackedVector2Array]:
 	var single: Array[Node3D] = []
 	single.append_array(mission.specialist_spawns())
 	single.append_array(mission.guard_spawns())
-	if mission.bridge_target():
-		single.append(mission.bridge_target())
 	if mission.extraction():
 		single.append(mission.extraction())
 	for node in single:
 		out.append(PackedVector2Array([Vector2(node.global_position.x, node.global_position.z)]))
+	for o in mission.objectives():
+		var at := o.marker_position()
+		out.append(PackedVector2Array([Vector2(at.x, at.z)]))
 	for p in clear_points:
 		out.append(PackedVector2Array([p]))
 	for route in mission.patrol_routes():

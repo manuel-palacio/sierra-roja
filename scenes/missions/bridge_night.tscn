@@ -14,6 +14,7 @@
 [ext_resource type="Script" path="res://src/terrain/watchtower.gd" id="12_tower"]
 [ext_resource type="Script" path="res://src/terrain/cart.gd" id="13_cart"]
 [ext_resource type="Script" path="res://src/terrain/settlement_prop.gd" id="14_settled"]
+[ext_resource type="Script" path="res://src/mission/objectives/destroy_objective.gd" id="15_destroy"]
 [ext_resource type="PackedScene" path="res://assets/props/nature/rock_tallA.glb" id="m_rock_tallA"]
 [ext_resource type="PackedScene" path="res://assets/props/nature/rock_tallB.glb" id="m_rock_tallB"]
 [ext_resource type="PackedScene" path="res://assets/props/nature/rock_largeA.glb" id="m_rock_largeA"]
@@ -908,6 +909,15 @@ shape = SubResource("Box_extraction")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
 
 [node name="Guards" type="Node3D" parent="."]
+
+[node name="Objectives" type="Node" parent="."]
+
+[node name="Destroy" type="Node" parent="Objectives"]
+script = ExtResource("15_destroy")
+hud_text = "Destroy the bridge"
+marker_name = "Bridge"
+done_text = "Bridge destroyed"
+target = NodePath("BridgeTarget")
 
 [node name="Guard1" parent="Guards" instance=ExtResource("2_guard")]
 

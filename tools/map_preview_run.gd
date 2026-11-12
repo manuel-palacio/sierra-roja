@@ -95,8 +95,8 @@ func _run() -> void:
 		_dot(img, to_px.call(spawn.global_position), 4, Color(0.2, 0.5, 1.0))
 	if mission.extraction():
 		_dot(img, to_px.call(mission.extraction().global_position), 6, Color(0.2, 1.0, 0.3))
-	if mission.bridge_target():
-		_dot(img, to_px.call(mission.bridge_target().global_position), 4, Color(1, 1, 0))
+	for o in mission.objectives():
+		_dot(img, to_px.call(o.marker_position()), 4, Color(1, 1, 0))
 	img.save_png(out_path)
 	for message in MissionValidator.validate(mission):
 		print("INVALID: ", message)

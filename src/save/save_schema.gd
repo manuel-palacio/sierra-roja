@@ -107,8 +107,14 @@ static func _charges_ok(list: Array) -> bool:
 
 
 static func _rules_ok(r: Dictionary, mission: Mission) -> bool:
-	if not _is_enum(r.get("result"), MissionRules.Result.size()) or not _is_bool(r.get("bridge_destroyed")):
+	if not _is_enum(r.get("result"), MissionRules.Result.size()):
 		return false
+	var objectives := mission.objectives()
+	if not r.get("objectives") is Array or r["objectives"].size() != objectives.size():
+		return false
+	for i in objectives.size():
+		if not objectives[i].state_ok(r["objectives"][i]):
+			return false
 	if not r.get("at_extraction") is Array:
 		return false
 	var ids := mission.specialists().map(func(s: Specialist) -> String: return String(s.name))

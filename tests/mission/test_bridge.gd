@@ -83,7 +83,7 @@ func test_bridge_counts() -> void:
 	assert_eq(mission.guard_spawns().size(), 5)
 	assert_eq(mission.patrol_routes().size(), 5)
 	assert_eq(mission.guards().size(), 5)
-	assert_not_null(mission.bridge_target())
+	assert_not_null((mission.get_node("BridgeTarget") as Node3D))
 	assert_not_null(mission.extraction())
 	assert_not_null(mission.terrain())
 	assert_eq(mission.bounds_rect, mission.terrain().spec.bounds)
@@ -92,7 +92,7 @@ func test_bridge_counts() -> void:
 func test_extraction_is_far_side_from_start() -> void:
 	await _load()
 	var start := mission.specialist_spawns()[0].global_position
-	var bridge := mission.bridge_target().global_position
+	var bridge := (mission.get_node("BridgeTarget") as Node3D).global_position
 	var out := mission.extraction().global_position
 	assert_gt(out.distance_to(start), 60.0)
 	assert_lt(start.x, bridge.x)
@@ -299,7 +299,7 @@ func test_whoever_stands_on_the_span_when_it_blows_goes_down_with_it() -> void:
 	charge.global_position = Vector3(-4.5, 0, 0)
 	charge.advance(0.1)
 	await wait_physics_frames(2)
-	assert_true(rules.bridge_destroyed)
+	assert_true(rules.objectives_done())
 	assert_false(is_instance_valid(sentry) and sentry.alive, "the sentry on the span fell with it")
 	assert_true(specialists[0].alive, "the abutment holds")
 	assert_true(track_guard.alive)
@@ -332,7 +332,7 @@ func test_blowing_the_bridge_with_someone_left_behind_fails_the_mission() -> voi
 	await wait_physics_frames(2)
 	assert_eq(rules.loss_reason(), "", "nothing lost yet")
 	await _blow(Vector3(-4.5, 0, 0))
-	assert_true(rules.bridge_destroyed)
+	assert_true(rules.objectives_done())
 	assert_eq(rules.result, MissionRules.Result.LOST)
 	assert_eq(rules.loss_reason(), MissionRules.CUT_OFF_TEXT)
 	assert_true(specialists[0].alive and specialists[1].alive, "nobody died; they are just stranded")
@@ -346,7 +346,7 @@ func test_blowing_the_bridge_with_both_across_plays_on() -> void:
 	specialists[1].global_position = _on_ground(Vector2(24, 0))
 	await wait_physics_frames(2)
 	await _blow(Vector3(-4.5, 0, 0))
-	assert_true(rules.bridge_destroyed)
+	assert_true(rules.objectives_done())
 	assert_eq(rules.result, MissionRules.Result.RUNNING)
 	assert_eq(rules.loss_reason(), "")
 

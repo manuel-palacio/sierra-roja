@@ -14,6 +14,7 @@
 [ext_resource type="Script" path="res://src/terrain/watchtower.gd" id="12_tower"]
 [ext_resource type="Script" path="res://src/terrain/cart.gd" id="13_cart"]
 [ext_resource type="Script" path="res://src/terrain/settlement_prop.gd" id="14_settled"]
+[ext_resource type="Script" path="res://src/mission/objectives/destroy_objective.gd" id="15_destroy"]
 [ext_resource type="PackedScene" path="res://assets/props/nature/rock_tallA.glb" id="m_rock_tallA"]
 [ext_resource type="PackedScene" path="res://assets/props/nature/rock_tallB.glb" id="m_rock_tallB"]
 [ext_resource type="PackedScene" path="res://assets/props/nature/rock_largeA.glb" id="m_rock_largeA"]
@@ -231,10 +232,7 @@ script = ExtResource("1_mission")
 bounds_rect = Rect2(-50, -40, 100, 80)
 night = true
 title = "The powder store by night"
-target_name = "Powder store"
-objective_text = "Destroy the powder store"
-destroyed_text = "Powder store destroyed"
-objectives = PackedStringArray("Blow up the ammunition stacked in the farm's yard with the Dynamiter's charge.", "Get both of them to the camp fire on the road east.", "Lose either one and the mission fails.")
+briefing_lines = PackedStringArray("Blow up the ammunition stacked in the farm's yard with the Dynamiter's charge.", "Get both of them to the camp fire on the road east.", "Lose either one and the mission fails.")
 
 [node name="Nav" type="NavigationRegion3D" parent="."]
 navigation_mesh = SubResource("NavMesh_bridge")
@@ -781,6 +779,15 @@ shape = SubResource("Box_extraction")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, -1.0, 1.7)
 
 [node name="Guards" type="Node3D" parent="."]
+
+[node name="Objectives" type="Node" parent="."]
+
+[node name="Destroy" type="Node" parent="Objectives"]
+script = ExtResource("15_destroy")
+hud_text = "Destroy the powder store"
+marker_name = "Powder store"
+done_text = "Powder store destroyed"
+target = NodePath("BridgeTarget")
 
 [node name="Guard1" parent="Guards" instance=ExtResource("2_guard")]
 

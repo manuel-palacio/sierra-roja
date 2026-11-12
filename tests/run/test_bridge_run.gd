@@ -22,7 +22,7 @@ func test_stealth_play_wins() -> void:
 	_bot = await BridgeBot.start(self)
 	await _bot.play()
 	assert_eq(_bot.rules.result, MissionRules.Result.WON, _bot.summary())
-	assert_true(_bot.rules.bridge_destroyed, "the bridge is down")
+	assert_true(_bot.rules.objectives_done(), "the bridge is down")
 	assert_lt(_bot.elapsed, BridgeBot.CAP, "inside the 5-minute cap")
 	assert_true(_bot.knife_used, "the sentry was knifed")
 	assert_true(_bot.body_hidden, "the body was hidden")

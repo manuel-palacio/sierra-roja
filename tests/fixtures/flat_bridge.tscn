@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://src/mission/mission.gd" id="1_mission"]
 [ext_resource type="PackedScene" path="res://scenes/units/guard.tscn" id="2_guard"]
+[ext_resource type="Script" path="res://src/mission/objectives/destroy_objective.gd" id="3_destroy"]
 
 [sub_resource type="NavigationMesh" id="NavMesh_bridge"]
 cell_size = 0.25
@@ -275,3 +276,12 @@ omni_range = 13.0
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.6, 3.0, -12.2)
 radius = 0.18
 material = SubResource("m_lamp")
+
+[node name="Objectives" type="Node" parent="."]
+
+[node name="Destroy" type="Node" parent="Objectives"]
+script = ExtResource("3_destroy")
+hud_text = "Destroy the bridge"
+marker_name = "Bridge"
+done_text = "Bridge destroyed"
+target = NodePath("BridgeTarget")

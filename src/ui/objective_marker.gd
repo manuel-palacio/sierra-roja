@@ -1,6 +1,6 @@
 class_name ObjectiveMarker
 extends CanvasLayer
-## Points the player at the current objective: the bridge until it is down, then the extraction.
+## Points the player at the objective to go for now, and at the extraction once none is left.
 ## On screen it hangs an arrow over the place; off screen it sits at the edge of the view,
 ## pointing the way and saying how far. Display only; hidden once the mission has ended.
 
@@ -65,15 +65,18 @@ func _process(delta: float) -> void:
 	if _rules == null or _rules.result != MissionRules.Result.RUNNING:
 		visible = false
 		return
-	var place: Node3D = _mission.extraction() if _rules.bridge_destroyed else _mission.bridge_target()
-	if place == null or not _camera.is_inside_tree():
+	var objective := _rules.current_objective()
+	if not _camera.is_inside_tree() or (objective == null and _mission.extraction() == null):
 		visible = false
 		return
 	visible = true
-	target = place.global_position
-	if _rules.bridge_destroyed:
+	var name_text := EXTRACTION_TEXT
+	if objective != null:
+		target = objective.marker_position()
+		name_text = objective.marker_name
+	else:
+		target = _mission.extraction().global_position
 		target.y = _mission.ground_height(target.x, target.z)
-	var name_text := EXTRACTION_TEXT if _rules.bridge_destroyed else _mission.target_name
 	var view := _camera.get_viewport().get_visible_rect().size
 	var p := placement(_camera.unproject_position(target), view)
 	on_screen = p["on_screen"]

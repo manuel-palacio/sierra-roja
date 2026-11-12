@@ -322,5 +322,5 @@ func _observe() -> void:
 					marksman.global_position.snappedf(0.1)])
 		if g.brain.state == GuardBrain.State.ALARM:
 			alarm_seen = true
-		if g.brain.state != GuardBrain.State.PATROL and not rules.bridge_destroyed:
+		if g.brain.state != GuardBrain.State.PATROL and not rules.objectives_done():
 			noticed_before_blast = true

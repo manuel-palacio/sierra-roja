@@ -61,6 +61,7 @@ func _small_mission(joined: bool) -> Mission:
 		path.name = "Route%d" % i
 		routes.add_child(path)
 	_marker(mission, "BridgeTarget", Vector3(6, 0, 0))
+	_destroy_objective(mission)
 	var ex := Area3D.new()
 	ex.name = "Extraction"
 	mission.add_child(ex)
@@ -102,7 +103,7 @@ func test_unreachable_objective_reported() -> void:
 	var mission: Mission = _small_mission(false)
 	await _built(mission)
 	var text := _joined_text(MissionValidator.validate(mission))
-	assert_string_contains(text, "bridge target is unreachable")
+	assert_string_contains(text, "Destroy: target is unreachable")
 	assert_string_contains(text, "extraction is unreachable")
 
 
@@ -169,3 +170,20 @@ func test_marker_hanging_in_the_air_is_named() -> void:
 	var text := _joined_text(MissionValidator.validate(mission))
 	assert_string_contains(text, "guard spawn G2 is 4.0 m off the ground")
 	assert_string_contains(text, "specialist spawn S1 is 3.0 m off the ground")
+
+
+func _destroy_objective(mission: Mission) -> void:
+	var holder := Node.new()
+	holder.name = "Objectives"
+	mission.add_child(holder)
+	var objective := DestroyObjective.new()
+	objective.name = "Destroy"
+	objective.target = NodePath("BridgeTarget")
+	holder.add_child(objective)
+
+
+func test_mission_without_objectives_is_invalid() -> void:
+	var mission: Mission = _small_mission(true)
+	mission.get_node("Objectives").free()
+	await _built(mission)
+	assert_string_contains(_joined_text(MissionValidator.validate(mission)), "mission has no objectives")

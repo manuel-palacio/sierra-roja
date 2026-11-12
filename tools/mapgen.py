@@ -23,7 +23,7 @@ FLAT_COLOURS = {"Wheat": (0.74, 0.62, 0.32)}
 PLAIN_SHAPES = ("barrel", "box", "box-large")
 
 DEFAULTS = dict(SEED=7, NOISE=0.45, NAV_FLOOR=-6, BRIDGE=False, TARGET=(0, 0, 0), TARGET_STACK=[], WALLS=[], BUILDINGS=[],
-                CRATES=[], SCATTERS=[], CLEAR=[], PLACED=[], LAMPS=[], TEXTS={}, POLE_LINES=[], RIVER_COURSE=[], TOWERS=[], CARTS=[], SETTLEMENT=[], NIGHT=False, LAND=None)
+                CRATES=[], SCATTERS=[], CLEAR=[], PLACED=[], LAMPS=[], TEXTS={}, POLE_LINES=[], RIVER_COURSE=[], TOWERS=[], CARTS=[], SETTLEMENT=[], NIGHT=False, LAND=None, OBJECTIVES=None)
 
 
 def mission(**tables):
@@ -69,6 +69,25 @@ def at(x, y, z):
     return f"transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, {x}, {y}, {z})"
 
 
+def objectives(m):
+    """What the mission asks for. One that says nothing asks for its TARGET to be destroyed, in the
+    words of its TEXTS."""
+    if m.OBJECTIVES is not None:
+        return m.OBJECTIVES
+    return [{"kind": "destroy", "hud": m.TEXTS.get("objective_text", "Destroy the bridge"),
+             "marker": m.TEXTS.get("target_name", "Bridge"), "done": m.TEXTS.get("destroyed_text", "Bridge destroyed")}]
+
+
+def objective_nodes(objective):
+    """The scene lines of one objective, under Objectives/."""
+    if objective["kind"] == "destroy":
+        # The thing to destroy stands at the BridgeTarget marker, whatever it is.
+        return ['[node name="Destroy" type="Node" parent="Objectives"]', 'script = ExtResource("15_destroy")',
+                f'hud_text = "{objective["hud"]}"', f'marker_name = "{objective["marker"]}"',
+                f'done_text = "{objective["done"]}"', 'target = NodePath("BridgeTarget")', ""]
+    raise ValueError("unknown objective kind: %s" % objective["kind"])
+
+
 def write_scene(m):
     BOUNDS, PLAIN, GUARDS, EXTRACTION = m.BOUNDS, m.PLAIN, m.GUARDS, m.EXTRACTION
     WALLS, BUILDINGS, CRATES, SCATTERS, CLEAR = m.WALLS, m.BUILDINGS, m.CRATES, m.SCATTERS, m.CLEAR
@@ -88,7 +107,8 @@ def write_scene(m):
          '[ext_resource type="Script" path="res://src/terrain/telegraph_pole.gd" id="11_pole"]',
          '[ext_resource type="Script" path="res://src/terrain/watchtower.gd" id="12_tower"]',
          '[ext_resource type="Script" path="res://src/terrain/cart.gd" id="13_cart"]',
-         '[ext_resource type="Script" path="res://src/terrain/settlement_prop.gd" id="14_settled"]']
+         '[ext_resource type="Script" path="res://src/terrain/settlement_prop.gd" id="14_settled"]',
+         '[ext_resource type="Script" path="res://src/mission/objectives/destroy_objective.gd" id="15_destroy"]']
     model_ids = {}
     for scatter in SCATTERS:
         for model in scatter[2]:
@@ -159,11 +179,10 @@ def write_scene(m):
           "bounds_rect = Rect2(%d, %d, %d, %d)" % BOUNDS]
     if m.NIGHT:
         o.append("night = true")
-    for key, value in m.TEXTS.items():
-        if isinstance(value, list):
-            o.append(f"{key} = PackedStringArray(" + ", ".join('"%s"' % line for line in value) + ")")
-        else:
-            o.append(f'{key} = "{value}"')
+    if "title" in m.TEXTS:
+        o.append(f'title = "{m.TEXTS["title"]}"')
+    if "objectives" in m.TEXTS:
+        o.append("briefing_lines = PackedStringArray(" + ", ".join('"%s"' % line for line in m.TEXTS["objectives"]) + ")")
     o += ["",
           '[node name="Nav" type="NavigationRegion3D" parent="."]', 'navigation_mesh = SubResource("NavMesh_bridge")', "",
           '[node name="Terrain" type="StaticBody3D" parent="Nav"]', 'script = ExtResource("3_terrain")',
@@ -325,7 +344,10 @@ def write_scene(m):
           at(ex, PLAIN + 1.5, ez), "", '[node name="Shape" type="CollisionShape3D" parent="Extraction"]',
           'shape = SubResource("Box_extraction")', "",
           '[node name="BridgeTarget" type="Marker3D" parent="."]', at(*m.TARGET), "",
-          '[node name="Guards" type="Node3D" parent="."]', ""]
+          '[node name="Guards" type="Node3D" parent="."]', "",
+          '[node name="Objectives" type="Node" parent="."]', ""]
+    for objective in objectives(m):
+        o += objective_nodes(objective)
     for i in range(len(GUARDS)):
         o += [f'[node name="Guard{i + 1}" parent="Guards" instance=ExtResource("2_guard")]', ""]
     (ROOT / f"scenes/missions/{m.NAME}.tscn").write_text("\n".join(o))

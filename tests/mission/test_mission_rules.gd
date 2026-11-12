@@ -21,7 +21,7 @@ func before_each() -> void:
 	add_child_autofree(rules)
 	rules.setup(mission, specs)
 	rules.result_changed.connect(func(r: int) -> void: results.append(r))
-	rules.bridge_blown.connect(func() -> void: blown += 1)
+	rules.objective_done.connect(func(_o: Objective) -> void: blown += 1)
 
 
 func after_each() -> void:
@@ -43,7 +43,7 @@ func _blast(pos: Vector3) -> void:
 
 
 func _blow_bridge() -> void:
-	_blast(mission.bridge_target().global_position)
+	_blast((mission.get_node("BridgeTarget") as Node3D).global_position)
 
 
 func _to_extraction(s: Specialist) -> void:
@@ -87,7 +87,7 @@ func test_extraction_before_bridge_does_not_win() -> void:
 	_to_extraction(specs[1])
 	await _frames()
 	assert_eq(rules.result, MissionRules.Result.RUNNING)
-	assert_false(rules.bridge_destroyed)
+	assert_false(rules.objectives_done())
 
 
 func test_win_after_bridge_when_already_waiting() -> void:
@@ -103,11 +103,11 @@ func test_leaving_extraction_clears_presence() -> void:
 	_to_extraction(specs[0])
 	_to_extraction(specs[1])
 	await _frames()
-	assert_true(rules.at_extraction(specs[1]))
+	assert_true(rules.is_at_extraction(specs[1]))
 	_across(specs[1])
 	await _frames()
-	assert_false(rules.at_extraction(specs[1]))
-	assert_true(rules.at_extraction(specs[0]))
+	assert_false(rules.is_at_extraction(specs[1]))
+	assert_true(rules.is_at_extraction(specs[0]))
 	_blow_bridge()
 	await _frames()
 	assert_eq(rules.result, MissionRules.Result.RUNNING, "the one who left is missing")
@@ -137,21 +137,21 @@ func test_death_and_bridge_same_frame_is_loss() -> void:
 	specs[0].take_damage(1000)
 	await _frames(2)
 	assert_eq(rules.result, MissionRules.Result.LOST)
-	assert_true(rules.bridge_destroyed)
+	assert_true(rules.objectives_done())
 
 
 func test_charge_far_from_bridge_does_not_count() -> void:
-	_blast(mission.bridge_target().global_position + Vector3(20, 0, 0))
+	_blast((mission.get_node("BridgeTarget") as Node3D).global_position + Vector3(20, 0, 0))
 	await _frames(2)
-	assert_false(rules.bridge_destroyed)
+	assert_false(rules.objectives_done())
 	assert_eq(blown, 0)
 
 
 func test_charge_within_blast_distance_counts_once() -> void:
-	_blast(mission.bridge_target().global_position + Vector3(7.5, 0, 0))
+	_blast((mission.get_node("BridgeTarget") as Node3D).global_position + Vector3(7.5, 0, 0))
 	_blow_bridge()
-	assert_true(rules.bridge_destroyed)
-	assert_eq(blown, 1, "bridge_blown fires once")
+	assert_true(rules.objectives_done())
+	assert_eq(blown, 1, "objective_done fires once")
 
 
 func test_result_is_final_after_won_or_lost() -> void:
@@ -212,7 +212,7 @@ func test_save_and_load_state_is_json_safe() -> void:
 	var d := rules.save_state()
 	var copy: Dictionary = JSON.parse_string(JSON.stringify(d))
 	assert_eq(int(copy["result"]), MissionRules.Result.LOST)
-	assert_true(copy["bridge_destroyed"])
+	assert_true(copy["objectives"][0]["done"])
 
 	var fresh: Mission = load("res://tests/fixtures/flat_bridge.tscn").instantiate()
 	fresh.get_node("Guards").process_mode = Node.PROCESS_MODE_DISABLED
@@ -225,7 +225,7 @@ func test_save_and_load_state_is_json_safe() -> void:
 	other.setup(fresh, fresh_specs)
 	other.load_state(copy)
 	assert_eq(other.result, MissionRules.Result.LOST)
-	assert_true(other.bridge_destroyed)
+	assert_true(other.objectives_done())
 	await get_tree().process_frame
 	assert_null(fresh.get_node_or_null("Nav/BridgeDeck"), "broken deck restored")
 	assert_not_null(fresh.get_node_or_null("Nav/BridgeBroken"))
@@ -253,10 +253,10 @@ func _reaches_in(m: Mission, from: Vector3, to: Vector3) -> bool:
 func test_blast_far_from_the_bridge_is_reported_and_leaves_it_whole() -> void:
 	var missed := [0]
 	rules.charge_too_far.connect(func() -> void: missed[0] += 1)
-	var target := mission.bridge_target().global_position
-	_blast(target + Vector3(MissionRules.BRIDGE_BLAST_RANGE + 1.0, 0, 0))
+	var target := (mission.get_node("BridgeTarget") as Node3D).global_position
+	_blast(target + Vector3(8.0 + 1.0, 0, 0))
 	assert_eq(missed[0], 1)
-	assert_false(rules.bridge_destroyed)
+	assert_false(rules.objectives_done())
 
 
 func test_blast_on_the_bridge_is_not_reported_as_too_far() -> void:
@@ -264,5 +264,86 @@ func test_blast_on_the_bridge_is_not_reported_as_too_far() -> void:
 	rules.charge_too_far.connect(func() -> void: missed[0] += 1)
 	_blow_bridge()
 	assert_eq(missed[0], 0)
-	_blast(mission.bridge_target().global_position + Vector3(30, 0, 0))
+	_blast((mission.get_node("BridgeTarget") as Node3D).global_position + Vector3(30, 0, 0))
 	assert_eq(missed[0], 0, "the bridge is already down; there is nothing left to miss")
+
+
+## An objective a test can meet or fail by hand.
+class Stub extends Objective:
+	var reason := ""
+	func fail_reason() -> String:
+		return reason if failed else ""
+
+
+func _stub(reason := "") -> Stub:
+	var stub := Stub.new()
+	stub.reason = reason
+	mission.get_node("Objectives").add_child(stub)
+	stub.setup(mission, rules)
+	return stub
+
+
+func test_no_objectives_left_and_both_out_wins() -> void:
+	mission.objectives()[0].complete()
+	_to_extraction(specs[0])
+	_to_extraction(specs[1])
+	await _frames()
+	assert_eq(rules.result, MissionRules.Result.WON)
+
+
+func test_a_failed_objective_loses_with_its_reason() -> void:
+	var stub := _stub("The prisoner was killed")
+	stub.failed = true
+	await _frames(2)
+	assert_eq(rules.result, MissionRules.Result.LOST)
+	assert_eq(rules.loss_reason(), "The prisoner was killed")
+
+
+func test_a_failed_objective_without_a_reason_uses_the_fallback() -> void:
+	var stub := _stub()
+	stub.failed = true
+	await _frames(2)
+	assert_eq(rules.result, MissionRules.Result.LOST)
+	assert_eq(rules.loss_reason(), MissionRules.OBJECTIVE_FAILED_FALLBACK)
+
+
+func test_two_objectives_need_both() -> void:
+	var stub := _stub()
+	mission.objectives()[0].complete()
+	_to_extraction(specs[0])
+	_to_extraction(specs[1])
+	await _frames()
+	assert_eq(rules.result, MissionRules.Result.RUNNING, "the second is not met")
+	stub.complete()
+	await _frames(2)
+	assert_eq(rules.result, MissionRules.Result.WON)
+
+
+func test_current_objective_is_the_first_not_done() -> void:
+	var stub := _stub()
+	assert_eq(rules.current_objective(), mission.objectives()[0])
+	mission.objectives()[0].complete()
+	assert_eq(rules.current_objective(), stub)
+	stub.complete()
+	assert_null(rules.current_objective())
+	assert_true(rules.objectives_done())
+
+
+func test_charge_far_from_every_target_reports_once() -> void:
+	var second := DestroyObjective.new()
+	second.target = NodePath("Extraction")
+	mission.get_node("Objectives").add_child(second)
+	second.setup(mission, rules)
+	var missed := [0]
+	rules.charge_too_far.connect(func() -> void: missed[0] += 1)
+	_blast(Vector3(-30, 0, 0))
+	assert_eq(missed[0], 1)
+
+
+func test_charge_with_no_destroy_objective_reports_nothing() -> void:
+	mission.get_node("Objectives").get_child(0).free()
+	_stub()
+	var missed := [0]
+	rules.charge_too_far.connect(func() -> void: missed[0] += 1)
+	_blast(Vector3(-30, 0, 0))
+	assert_eq(missed[0], 0)
