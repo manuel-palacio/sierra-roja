@@ -73,7 +73,7 @@ func _process(delta: float) -> void:
 	var name_text := EXTRACTION_TEXT
 	if objective != null:
 		target = objective.marker_position()
-		name_text = objective.marker_name
+		name_text = objective.current_marker_name()
 	else:
 		target = _mission.extraction().global_position
 		target.y = _mission.ground_height(target.x, target.z)

@@ -181,6 +181,9 @@ func _tracked() -> Array[Unit]:
 	var out: Array[Unit] = []
 	for s in _specialists:
 		out.append(s)
+	if _mission:
+		for p in _mission.prisoners():
+			out.append(p)
 	return out
 
 

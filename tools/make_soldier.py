@@ -7,7 +7,7 @@ The library's mannequin is a well-proportioned, fully animated human with no clo
 This script paints it by body part: every triangle is given one region (skin, hair, jacket,
 trousers, boots, belt) from the bone that moves it and its height, and its texture coordinates
 are pointed at that region's square in an 8 x 1 palette image. A uniform is then just a palette:
-`uniform-guard.png`, `uniform-dynamiter.png`, `uniform-marksman.png`. Only the animations in KEEP
+`uniform-guard.png`, `uniform-dynamiter.png`, `uniform-marksman.png`, `uniform-prisoner.png`. Only the animations in KEEP
 are kept.
 Helmets, caps, rifles and bags are added in the game (src/units/soldier_gear.gd).
 """
@@ -34,6 +34,8 @@ PALETTES = {
     "guard": ["#d9a987", "#3a2c20", "#a3966b", "#93875f", "#2a1f19", "#5a3a20"],
     "dynamiter": ["#c89673", "#1c1a1c", "#3a5c96", "#335288", "#3a2c22", "#4a301c"],
     "marksman": ["#d4a482", "#4a3423", "#6e4c30", "#5f6450", "#2a1f19", "#3a2616"],
+    # A prisoner: a dirty undershirt, army trousers, bare feet.
+    "prisoner": ["#c9a084", "#2e2a26", "#b9b2a0", "#6d6a55", "#b98f76", "#8a7a5c"],
 }
 
 # The clips the game uses or is likely to use next; the rest are left out of the model.

@@ -2,7 +2,7 @@ extends Node3D
 ## The work of tools/unit_preview.gd, which loads this once the autoloads exist.
 
 const SCENES := ["res://scenes/units/guard.tscn", "res://scenes/units/specialist.tscn",
-		"res://scenes/units/marksman.tscn", "res://scenes/units/body.tscn"]
+		"res://scenes/units/marksman.tscn", "res://scenes/units/prisoner.tscn", "res://scenes/units/body.tscn"]
 
 
 func _ready() -> void:

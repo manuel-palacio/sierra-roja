@@ -31,6 +31,16 @@ func update() -> void:
 	pass
 
 
+## hud_text and marker_name as they stand just now, for objectives whose words change as they
+## are worked through.
+func current_hud_text() -> String:
+	return hud_text
+
+
+func current_marker_name() -> String:
+	return marker_name
+
+
 ## Where the pointer should lead while this is the objective to go for.
 func marker_position() -> Vector3:
 	return Vector3.ZERO

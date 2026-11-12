@@ -96,6 +96,15 @@ func specialists() -> Array[Specialist]:
 	return out
 
 
+## Those to be brought out: the Prisoner children.
+func prisoners() -> Array[Prisoner]:
+	var out: Array[Prisoner] = []
+	for child in get_children():
+		if child is Prisoner:
+			out.append(child)
+	return out
+
+
 func has_guard_slot(id: String) -> bool:
 	return _guard_routes.has(id)
 
@@ -180,6 +189,8 @@ func build_nav() -> void:
 	for guard in guards():
 		guard.set_nav_map(nav_map())
 		guard.start_patrol()
+	for held in prisoners():
+		held.set_nav_map(nav_map())
 
 
 ## Sets everything that stands on the land onto it, once: walls and buildings, and the spawn and
@@ -440,9 +451,13 @@ func save_state() -> Dictionary:
 	var specialist_states: Array[Dictionary] = []
 	for s in specialists():
 		specialist_states.append(s.save_state())
+	var prisoner_states: Array[Dictionary] = []
+	for held in prisoners():
+		prisoner_states.append(held.save_state())
 	return {
 		"mission": scene_file_path,
 		"specialists": specialist_states,
+		"prisoners": prisoner_states,
 		"guards": live_guards,
 		"bodies": bodies,
 		"charges": charges,
@@ -459,6 +474,10 @@ func load_state(d: Dictionary) -> void:
 		by_id[String(s.name)] = s
 	for e in d["specialists"]:
 		by_id[e["id"]].load_state(e)
+	for e in d["prisoners"]:
+		var held := get_node(NodePath(e["id"])) as Prisoner
+		held.follow(by_id.get(e["leader"]) as Specialist)
+		held.load_state(e)
 	for node in _mine(PlantedCharge.GROUP) + _mine(Body.GROUP):
 		node.free()
 	_load_guards(d["guards"])
@@ -507,6 +526,12 @@ func _mine(group: String) -> Array[Node]:
 		if is_ancestor_of(node):
 			out.append(node)
 	return out
+
+
+## For something on the map that has just opened or shut a way: bakes the navmesh again on the
+## next frame.
+func rebake_nav_soon() -> void:
+	_rebake_next_frame()
 
 
 ## CSG builds its geometry on the next idle frame, so the rebake waits one frame (callers need not

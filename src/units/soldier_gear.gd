@@ -41,6 +41,8 @@ const KITS := {
 		{ "held": 0.30, "thick": 0.03, "grip": 0.08, "color": BLADE, "when": &"knife" },
 		{ "bone": "DEF-spine.002", "shape": "box", "size": Vector3(0.05, 0.56, 0.02), "at": Vector3(0.0, 1.27, 0.125), "turn": Vector3(0, 0, 38), "color": Color(0.42, 0.37, 0.26) },
 	],
+	# Nothing but what he was taken in.
+	&"prisoner": [],
 	&"marksman": [
 		# Flat cap and the long rifle across the back.
 		{ "bone": "DEF-head", "shape": "sphere", "size": Vector3(0.31, 0.09, 0.36), "at": Vector3(0, 1.80, 0.03), "color": Color(0.33, 0.28, 0.22) },
@@ -64,7 +66,8 @@ const FACE := [
 	{ "bone": "DEF-head", "shape": "box", "size": Vector3(0.056, 0.012, 0.014), "at": Vector3(0, 1.624, 0.104), "color": Color(0.42, 0.22, 0.18) },
 ]
 ## Kit name -> a moustache or stubble colour for its mouth line, where it has one.
-const WHISKERS := { &"guard": Color(0.16, 0.11, 0.08), &"marksman": Color(0.30, 0.20, 0.13) }
+const WHISKERS := { &"guard": Color(0.16, 0.11, 0.08), &"marksman": Color(0.30, 0.20, 0.13),
+		&"prisoner": Color(0.35, 0.30, 0.26) }
 
 static var _materials: Dictionary = {}
 

@@ -104,6 +104,10 @@ func take_damage(amount: int) -> void:
 		died.emit(self)
 
 
+func is_running() -> bool:
+	return _running
+
+
 func current_speed() -> float:
 	if stance == Stance.CRAWLING:
 		return stats.crawl_speed

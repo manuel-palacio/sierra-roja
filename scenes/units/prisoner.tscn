@@ -1,0 +1,29 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/units/prisoner.gd" id="1_prisoner"]
+[ext_resource type="Resource" path="res://resources/prisoner.tres" id="2_stats"]
+[ext_resource type="PackedScene" path="res://assets/characters/soldier/soldier.glb" id="9_model"]
+[ext_resource type="Script" path="res://src/units/unit_visual.gd" id="10_visual"]
+[ext_resource type="Texture2D" path="res://assets/characters/soldier/uniform-prisoner.png" id="11_uniform"]
+
+[sub_resource type="CapsuleShape3D" id="Capsule_1"]
+radius = 0.4
+height = 1.7
+
+[node name="Prisoner" type="CharacterBody3D"]
+script = ExtResource("1_prisoner")
+stats = ExtResource("2_stats")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.85, 0)
+shape = SubResource("Capsule_1")
+
+[node name="NavigationAgent3D" type="NavigationAgent3D" parent="."]
+
+[node name="Model" parent="." instance=ExtResource("9_model")]
+transform = Transform3D(-1.25, 0, 0, 0, 1.25, 0, 0, 0, -1.25, 0, 0, 0)
+
+[node name="UnitVisual" type="Node" parent="."]
+script = ExtResource("10_visual")
+uniform = ExtResource("11_uniform")
+kit = &"prisoner"

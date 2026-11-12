@@ -11,12 +11,13 @@ static func is_valid(d: Variant, version: int, mission: Mission) -> bool:
 		return false
 	if not d.get("mission") is String or d["mission"] != mission.scene_file_path:
 		return false
-	for key in ["specialists", "guards", "bodies", "charges"]:
+	for key in ["specialists", "prisoners", "guards", "bodies", "charges"]:
 		if not d.get(key) is Array:
 			return false
 	if not d.get("rules") is Dictionary:
 		return false
-	return _specialists_ok(d["specialists"], mission) and _guards_ok(d["guards"], mission) \
+	return _specialists_ok(d["specialists"], mission) and _prisoners_ok(d["prisoners"], mission) \
+			and _guards_ok(d["guards"], mission) \
 			and _bodies_ok(d["bodies"], d["specialists"], d["guards"]) and _charges_ok(d["charges"]) \
 			and _rules_ok(d["rules"], mission)
 
@@ -42,6 +43,27 @@ static func _specialists_ok(list: Array, mission: Mission) -> bool:
 			var a: Variant = e["abilities"].get(id)
 			if not a is Dictionary or not _is_int(a.get("ammo")) or a["ammo"] < -1:
 				return false
+	return true
+
+
+## One entry for each prisoner of the mission, each following nobody or one of its specialists.
+static func _prisoners_ok(list: Array, mission: Mission) -> bool:
+	var live := mission.prisoners()
+	if list.size() != live.size():
+		return false
+	var ids := {}
+	for held in live:
+		ids[String(held.name)] = held
+	var leaders := {"": true}
+	for s in mission.specialists():
+		leaders[String(s.name)] = true
+	var seen := {}
+	for e in list:
+		if not _unit_ok(e) or not ids.has(e["id"]) or seen.has(e["id"]):
+			return false
+		seen[e["id"]] = true
+		if not e.get("leader") is String or not leaders.has(e["leader"]) or e["hp"] > (ids[e["id"]] as Prisoner).stats.max_hp:
+			return false
 	return true
 
 
@@ -118,6 +140,7 @@ static func _rules_ok(r: Dictionary, mission: Mission) -> bool:
 	if not r.get("at_extraction") is Array:
 		return false
 	var ids := mission.specialists().map(func(s: Specialist) -> String: return String(s.name))
+	ids.append_array(mission.prisoners().map(func(p: Prisoner) -> String: return String(p.name)))
 	for id in r["at_extraction"]:
 		if not ids.has(id):
 			return false

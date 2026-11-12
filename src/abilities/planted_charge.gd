@@ -50,6 +50,10 @@ func _detonate() -> void:
 	var victims: Array = []
 	victims.append_array(get_tree().get_nodes_in_group(Guard.GROUP))
 	victims.append_array(get_tree().get_nodes_in_group(Unit.HUNTED))
+	# A prisoner still in his cell is not hunted, but a blast does not ask.
+	for node in get_tree().get_nodes_in_group(Prisoner.GROUP):
+		if not victims.has(node):
+			victims.append(node)
 	for node in victims:
 		var unit := node as Unit
 		if unit != null and unit.global_position.distance_to(pos) <= tuning.blast_radius:

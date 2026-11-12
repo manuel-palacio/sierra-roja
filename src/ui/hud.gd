@@ -132,7 +132,7 @@ func refresh() -> void:
 	alarm_label.text = "Alarm: %d" % _rules.alarm_level
 	alarm_label.modulate = Color(1, 0.4, 0.3) if _rules.alarm_level > 0 else Color.WHITE
 	var objective := _rules.current_objective()
-	objective_label.text = OBJECTIVE_PREFIX + objective.hud_text if objective else OBJECTIVE_ESCAPE
+	objective_label.text = OBJECTIVE_PREFIX + objective.current_hud_text() if objective else OBJECTIVE_ESCAPE
 	objective_label.visible = _rules.result == MissionRules.Result.RUNNING
 	pause_box.visible = _input.is_paused()
 
