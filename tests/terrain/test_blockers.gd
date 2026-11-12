@@ -285,6 +285,34 @@ func test_a_lamp_lights_the_room_only_while_it_is_looked_into() -> void:
 	assert_true(house.holds(house.to_global(lamp.position)), "the lamp hangs inside the walls")
 
 
+func test_the_walls_towards_the_camera_are_cut_low_while_the_room_is_looked_into() -> void:
+	var house := _house(Vector3.ZERO)
+	await _built()
+	var camera := Camera3D.new()
+	add_child_autofree(camera)
+	camera.look_at_from_position(Vector3(20, 20, 20), Vector3.ZERO)  # from the south-east
+	camera.current = true
+	var spec := _unit("res://scenes/units/specialist.tscn", Vector3(0, 2, 9)) as Specialist
+	house.look_inside()
+	for side in [Vector3.BACK, Vector3.RIGHT, Vector3.FORWARD, Vector3.LEFT]:
+		assert_false(house.is_wall_cut(side), "whole with nobody in: %s" % side)
+	spec.global_position = Vector3(1, 2, 0.5)
+	house.look_inside()
+	assert_true(house.is_wall_cut(Vector3.BACK), "the south wall, towards the camera")
+	assert_true(house.is_wall_cut(Vector3.RIGHT), "the east wall, towards the camera")
+	assert_false(house.is_wall_cut(Vector3.FORWARD), "the north wall stands behind the room")
+	assert_false(house.is_wall_cut(Vector3.LEFT))
+	camera.look_at_from_position(Vector3(-20, 20, -20), Vector3.ZERO)  # the camera turned half round
+	house.look_inside()
+	assert_false(house.is_wall_cut(Vector3.BACK))
+	assert_true(house.is_wall_cut(Vector3.FORWARD))
+	assert_true(house.is_wall_cut(Vector3.LEFT))
+	var guard := _unit("res://scenes/units/guard.tscn", Vector3(-9, 2, 0))
+	guard.rotation.y = -PI / 2.0
+	await wait_physics_frames(2)
+	assert_eq(_sees(guard, spec), Vision.Zone.NONE, "a wall cut low on the picture still hides whoever is inside")
+
+
 func test_a_house_not_made_enterable_is_as_solid_as_before() -> void:
 	var house := Building.new()
 	house.size = Vector3(7, 3, 5)

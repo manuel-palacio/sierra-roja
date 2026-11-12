@@ -21,6 +21,11 @@ const SINK := 0.6
 ## from the walls either side.
 const ENTRANCE_WIDTH := 2.4
 const LOOK_INTERVAL := 0.1
+## How high a wall towards the camera is left standing while the room is looked into.
+const WALL_CUT := 1.2
+## How far outside a wall something built against it, a lean-to, can stand.
+const LEAN_TO_REACH := 1.8
+const SIDES: Array[Vector3] = [Vector3.BACK, Vector3.RIGHT, Vector3.FORWARD, Vector3.LEFT]
 
 ## Footprint along x, wall height, footprint along z.
 @export var size := Vector3(5.0, 3.0, 4.0)
@@ -40,6 +45,10 @@ var _since_look := 0.0
 
 ## ground.call(x, z) gives the ground height. Mission calls this before the navmesh bake.
 var _room_lamp: OmniLight3D
+## For each of SIDES, what stands on that wall above WALL_CUT: the top of the wall, its windows
+## and shutters, a shelf.
+var _upper := {}
+var _cut := {}
 
 
 func build(ground: Callable) -> void:
@@ -63,6 +72,8 @@ func build(ground: Callable) -> void:
 		add_child(roof)
 		_lid.append(roof)
 	_add_details()
+	if enterable and not ruin:
+		_sort_upper_parts()
 
 
 ## Whether a point of the ground plane is inside the walls.
@@ -98,6 +109,49 @@ func look_inside() -> void:
 		part.visible = not occupied
 	if _room_lamp != null:
 		_room_lamp.visible = occupied
+	# The walls between the camera and the room come down to WALL_CUT, with whatever hangs on them.
+	if _upper.is_empty():
+		return
+	var camera := get_viewport().get_camera_3d()
+	var hidden := {}
+	for side in SIDES:
+		var cut := false
+		if occupied and camera != null:
+			var outward := global_basis * side
+			var towards := camera.global_basis.z
+			cut = Vector2(outward.x, outward.z).normalized().dot(Vector2(towards.x, towards.z).normalized()) > 0.15
+		_cut[side] = cut
+		if cut:
+			for part: Node3D in _upper[side]:
+				hidden[part] = true
+	for side in SIDES:
+		for part: Node3D in _upper[side]:
+			if not _lid.has(part):
+				part.visible = not hidden.has(part)
+
+
+## Whether the wall facing this way (one of SIDES, in the house's own axes) is cut low just now.
+func is_wall_cut(side: Vector3) -> bool:
+	return _cut.get(side, false)
+
+
+## Files every part that reaches above WALL_CUT under the wall it stands on or hangs from.
+func _sort_upper_parts() -> void:
+	var reach := WALL_THICKNESS + 0.4
+	for side in SIDES:
+		_upper[side] = []
+	for child in get_children():
+		var part := child as MeshInstance3D
+		if part == null or part.mesh == null or _lid.has(part):
+			continue
+		var top := part.position.y + part.mesh.get_aabb().end.y
+		if top <= WALL_CUT + 0.05:
+			continue
+		for side in SIDES:
+			var half := size.x / 2.0 if side.x != 0.0 else size.z / 2.0
+			var out := part.position.dot(side)
+			if out > half - reach and out < half + LEAN_TO_REACH:
+				_upper[side].append(part)
 
 
 ## Four walls with a doorway in the south one, a floor, and a little furniture.
@@ -116,7 +170,15 @@ func _build_hollow() -> void:
 	]:
 		var centre: Vector3 = wall[0]
 		var extent: Vector3 = wall[1]
-		_add_box(Vector3(centre.x, (size.y - SINK) / 2.0, centre.z), Vector3(extent.x, size.y + SINK, extent.z), plaster)
+		var shape := BoxShape3D.new()
+		shape.size = Vector3(extent.x, size.y + SINK, extent.z)
+		var collision := CollisionShape3D.new()
+		collision.shape = shape
+		collision.position = Vector3(centre.x, (size.y - SINK) / 2.0, centre.z)
+		add_child(collision)
+		# The picture of it in two parts, so the upper one can be taken away: see look_inside().
+		_trim(Vector3(centre.x, (WALL_CUT - SINK) / 2.0, centre.z), Vector3(extent.x, WALL_CUT + SINK, extent.z), plaster)
+		_trim(Vector3(centre.x, (size.y + WALL_CUT) / 2.0, centre.z), Vector3(extent.x, size.y - WALL_CUT, extent.z), plaster)
 	# The lintel over the doorway goes with the roof, so the way in shows when the roof is off.
 	var lintel := _trim(Vector3(0, size.y - 0.35, hz - t / 2.0), Vector3(ENTRANCE_WIDTH, 0.7, t), plaster)
 	_lid.append(lintel)
@@ -142,8 +204,8 @@ func _furnish() -> void:
 	_add_trim(Vector3(west + 0.02, 0.5, 0), Vector3(0.04, 1.0, south - north), dado)
 	_add_trim(Vector3(east - 0.02, 0.5, 0), Vector3(0.04, 1.0, south - north), dado)
 	# A rug in the middle of the floor.
-	_add_trim(Vector3(0, 0.07, 0.1), Vector3(minf(2.2, east - west - 2.2), 0.02, 1.3), _flat(Color(0.55, 0.22, 0.18)))
-	_add_trim(Vector3(0, 0.075, 0.1), Vector3(minf(1.8, east - west - 2.6), 0.02, 0.9), _flat(Color(0.74, 0.62, 0.42)))
+	_add_trim(Vector3(0, 0.07, 0.1), Vector3(minf(2.2, east - west - 2.2), 0.02, 1.3), _matt(Color(0.55, 0.22, 0.18)))
+	_add_trim(Vector3(0, 0.075, 0.1), Vector3(minf(1.8, east - west - 2.6), 0.02, 0.9), _matt(Color(0.74, 0.62, 0.42)))
 	# The table in the north-west corner, with stools, a map, a bottle and the lamp.
 	var table := Vector3(west + 0.85, 0, north + 0.55)
 	_add_trim(table + Vector3(0, 0.74, 0), Vector3(1.3, 0.07, 0.75), pale)
@@ -178,10 +240,10 @@ func _furnish() -> void:
 	# Rifles racked on the east wall.
 	var rack := Vector3(east - 0.1, 0, south - 1.0)
 	_add_trim(rack + Vector3(0, 0.25, 0), Vector3(0.2, 0.08, 1.1), wood)
-	_add_trim(rack + Vector3(0, 1.0, 0), Vector3(0.12, 0.08, 1.1), wood)
+	_add_trim(rack + Vector3(0, 0.9, 0), Vector3(0.12, 0.08, 1.1), wood)
 	for i in 3:
-		_add_trim(rack + Vector3(-0.04, 0.85, -0.35 + i * 0.35), Vector3(0.07, 1.2, 0.07), iron)
-		_add_trim(rack + Vector3(-0.04, 0.5, -0.35 + i * 0.35), Vector3(0.09, 0.45, 0.11), wood)
+		_add_trim(rack + Vector3(-0.04, 0.62, -0.35 + i * 0.35), Vector3(0.07, 1.05, 0.07), iron)
+		_add_trim(rack + Vector3(-0.04, 0.35, -0.35 + i * 0.35), Vector3(0.09, 0.45, 0.11), wood)
 	# A shelf on the west wall with tins and a helmet, and a coat hung under it.
 	var shelf := Vector3(west + 0.14, 1.5, south - 1.0)
 	_add_trim(shelf, Vector3(0.28, 0.05, 1.2), wood)
@@ -324,6 +386,12 @@ static func _flat(color: Color) -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()
 	m.albedo_color = color
 	m.roughness = 0.3
+	return m
+
+
+static func _matt(color: Color) -> StandardMaterial3D:
+	var m := _flat(color)
+	m.roughness = 1.0
 	return m
 
 
