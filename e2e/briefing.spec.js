@@ -72,7 +72,7 @@ test('a new player sees the first mission and its history, and the rest shut', a
   await open(page, null);
   const state = await probe(page);
   expect(state.mission).toBe('guadarrama');
-  expect(state.note).toContain('30 May 1937');
+  expect(state.note).toContain('May 1937');
   expect(state.open[0]).toBe(true);
   expect(state.open.slice(1).every((o) => o === false)).toBe(true);
   await page.screenshot({ path: 'build/e2e/briefing-campaign.png' });

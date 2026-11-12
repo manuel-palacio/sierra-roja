@@ -6,7 +6,7 @@ extends RefCounted
 ## A page address with ?mission=<id> starts on that mission.
 
 const LIST: Array[Dictionary] = [
-	{ "id": "guadarrama", "name": "The bridge", "place": "Sierra de Guadarrama", "date": "30 May 1937", "path": "res://scenes/missions/bridge.tscn" },
+	{ "id": "guadarrama", "name": "The bridge", "place": "Sierra de Guadarrama", "date": "May 1937", "path": "res://scenes/missions/bridge.tscn" },
 	{ "id": "powder_store", "name": "The powder store", "place": "", "date": "", "path": "res://scenes/missions/powder_store.tscn" },
 	{ "id": "carchuna", "name": "Fort Carchuna", "place": "Fort Carchuna, Granada", "date": "23 May 1938", "path": "res://scenes/missions/carchuna.tscn" },
 ]

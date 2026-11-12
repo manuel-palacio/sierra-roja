@@ -25,3 +25,10 @@ func test_a_mission_without_a_note_has_none() -> void:
 	assert_eq(History.before("powder_store"), "")
 	assert_eq(History.before("nowhere"), "")
 	assert_eq(History.sources("nowhere").size(), 0)
+
+
+func test_no_day_is_given_where_the_sources_disagree() -> void:
+	# The Segovia offensive opened on 30 or 31 May, by the source.
+	assert_false(History.before("guadarrama").contains("30 May"))
+	assert_false(String(Missions.LIST[Missions.index_of("guadarrama")]["date"]).contains("30"))
+	assert_string_contains(History.before("guadarrama"), "May 1937")

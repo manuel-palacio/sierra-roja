@@ -271,3 +271,26 @@ func test_load_from_after_keeps_him_following() -> void:
 	assert_true(door.open)
 	assert_eq(prisoner.leader, dyn)
 	assert_true(prisoner.is_in_group(Unit.HUNTED))
+
+
+func test_running_after_his_leader_he_is_no_louder_than_anyone_running() -> void:
+	await _open_the_door()
+	var heard := [0]
+	var listen := func(pos: Vector3, _radius: float) -> void:
+		if BridgeBot.flat(pos, prisoner.global_position) < 0.75:
+			heard[0] += 1
+	NoiseBus.noise_emitted.connect(listen)
+	dyn.move_to(AT_DOOR + Vector3(-25, 0, 6), true)
+	await _frames(120)  # two seconds
+	NoiseBus.noise_emitted.disconnect(listen)
+	assert_true(prisoner.is_running(), "he runs when his leader runs")
+	assert_gt(heard[0], 0, "running is heard")
+	assert_lt(heard[0], 7, "but once every half second, as for anyone")
+
+
+func test_he_is_not_given_a_new_order_every_frame() -> void:
+	await _open_the_door()
+	dyn.move_to(AT_DOOR + Vector3(-25, 0, 6))
+	await _frames(120)
+	assert_lt(prisoner.orders_given, 30, "a walk of six metres is a handful of orders")
+	assert_gt(prisoner.orders_given, 0)

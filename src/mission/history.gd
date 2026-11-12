@@ -2,11 +2,12 @@ class_name History
 extends RefCounted
 ## What the player is told of the real events behind a mission: a note before it and what really
 ## happened after it. Every statement here is in the design's table of sources
-## (docs/superpowers/specs/2026-11-12-historical-campaign-design.md); nothing goes in that is not.
+## (docs/superpowers/specs/2026-11-12-historical-campaign-design.md, "Historical notes"). To say
+## something new, put it in that table with its source first.
 
 const NOTES := {
 	"guadarrama": {
-		"before": "30 May 1937. The Republic attacks towards Segovia through the Sierra de Guadarrama, to draw Franco's army away from Bilbao. Hemingway set For Whom the Bell Tolls in this offensive: a dynamiter sent behind the lines to blow a bridge as the attack begins. The bridge here is his, not history's. The Dynamiter and the Marksman are invented too, here and in every mission.",
+		"before": "The end of May 1937. The Republic attacks towards Segovia through the Sierra de Guadarrama, to draw Franco's army away from Bilbao. Hemingway set For Whom the Bell Tolls in this offensive: a dynamiter sent behind the lines to blow a bridge as the attack begins. The bridge here is his, not history's. The Dynamiter and the Marksman are invented too, here and in every mission.",
 		"after": "The attack reached La Granja and was thrown back within a week. It held up the advance on Bilbao by about two weeks.",
 		"sources": ["https://en.wikipedia.org/wiki/Segovia_Offensive"],
 	},

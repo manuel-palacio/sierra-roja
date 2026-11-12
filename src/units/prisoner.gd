@@ -10,8 +10,16 @@ const FOLLOW_DISTANCE := 1.5
 ## Farther than this from them, he moves to catch up.
 const CATCH_UP := 2.5
 
+## A new order is given only once the place to make for has moved this far.
+const REORDER := 0.75
+
 ## The specialist he follows; null while he is held.
 var leader: Specialist
+## Orders he has given himself to keep up, for tests: one a frame would be a fault.
+var orders_given := 0
+
+## Where he was last making for.
+var _making_for := Vector3.INF
 
 
 func _ready() -> void:
@@ -35,8 +43,23 @@ func _physics_process(delta: float) -> void:
 		var away := leader.global_position - global_position
 		away.y = 0.0
 		if away.length() > CATCH_UP:
-			move_to(leader.global_position - away.normalized() * FOLLOW_DISTANCE, leader.is_running())
+			_keep_up(leader.global_position - away.normalized() * FOLLOW_DISTANCE, leader.is_running())
 	super(delta)
+
+
+## Makes for a place behind the leader. He is not ordered afresh every frame: each order starts
+## a new path, and for someone running each would be heard as a first footfall.
+func _keep_up(place: Vector3, run: bool) -> void:
+	var wants_run := run and can_run and stance == Stance.STANDING
+	if _moving and wants_run == _running and place.distance_to(_making_for) < REORDER:
+		return
+	var heard_in := _noise_timer
+	var was_running := _moving and _running
+	_making_for = place
+	orders_given += 1
+	move_to(place, run)
+	if was_running:
+		_noise_timer = heard_in
 
 
 func save_state() -> Dictionary:
