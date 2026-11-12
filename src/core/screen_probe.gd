@@ -4,7 +4,7 @@ extends Node
 ## ?probe=1. window.sierraProbe() fills window.sierraGuards with the current screen position
 ## (canvas pixels) of each living guard, so a test can click one that is walking, and
 ## window.sierraState with the message and fuse countdown on screen and the first specialist's
-## ground position.
+## ground position, the mission, which missions are open and the briefing's note.
 
 
 static func enabled() -> bool:
@@ -40,5 +40,9 @@ func _publish(_args: Array) -> void:
 			"message": label.text if label.visible else "",
 			"fuse": fuse.text if fuse.visible else "",
 			"pos": [pos.x, pos.z],
+			"mission": Missions.id_at(Missions.current),
+			"open": range(Missions.LIST.size()).map(func(i: int) -> bool: return Campaign.is_open(i)),
+			"note": main.briefing.note_label.text if main.briefing != null else "",
+			"title": main.mission.title,
 		}
 	JavaScriptBridge.eval("window.sierraState = %s" % JSON.stringify(state), true)

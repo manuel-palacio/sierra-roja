@@ -9,12 +9,8 @@ signal started()
 signal mission_chosen(index: int)
 
 const TITLE := "Sierra Roja"
-const SUBTITLE := "The bridge at dawn"
-const OBJECTIVES: Array[String] = [
-	"Destroy the railway bridge with the Dynamiter's charge.",
-	"Get both of them to the extraction point on the far bank.",
-	"Lose either one and the mission fails.",
-]
+## How wide the note and the objectives run before they wrap, beside the controls.
+const TEXT_WIDTH := 470.0
 ## Input, then what it does.
 const CONTROLS: Array[Array] = [
 	["Left click", "Move the selected specialist"],
@@ -38,8 +34,11 @@ static var seen := false
 
 var title_label: Label
 var start_button: Button
-## One per mission in Missions.LIST; the one being played is disabled.
+## One per mission in Missions.LIST. The one being played is disabled, and so is any the campaign
+## has not opened yet.
 var mission_buttons: Array[Button] = []
+## What history says of the mission shown; hidden when it has no note.
+var note_label: Label
 
 var _subtitle: Label
 var _objective_box: VBoxContainer
@@ -82,31 +81,47 @@ func _init() -> void:
 	title_label = _text(TITLE, 36, Color(0.92, 0.3, 0.22))
 	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	column.add_child(title_label)
-	_subtitle = _text(SUBTITLE, 19, Color(0.8, 0.82, 0.9))
+	_subtitle = _text("", 19, Color(0.8, 0.82, 0.9))
 	_subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	column.add_child(_subtitle)
-	var missions := HBoxContainer.new()
-	missions.alignment = BoxContainer.ALIGNMENT_CENTER
-	missions.add_theme_constant_override("separation", 8)
+	var missions := GridContainer.new()
+	missions.columns = 3
+	missions.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	missions.add_theme_constant_override("h_separation", 8)
+	missions.add_theme_constant_override("v_separation", 6)
 	column.add_child(missions)
 	for i in Missions.LIST.size():
+		var entry: Dictionary = Missions.LIST[i]
 		var button := UiStyle.button(Button.new(), 13)
-		button.text = "%d. %s" % [i + 1, Missions.LIST[i]["name"]]
-		button.disabled = i == Missions.current
+		button.text = "%d  %s" % [i + 1, "%s, %s" % [entry["place"], entry["date"]] if entry["place"] != "" else entry["name"]]
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		button.pressed.connect(func() -> void: mission_chosen.emit(i))
 		missions.add_child(button)
 		mission_buttons.append(button)
 	column.add_child(HSeparator.new())
+	# The mission on the left, the controls on the right: one above the other is too tall for a
+	# small window once a mission has its history to tell.
+	var body := HBoxContainer.new()
+	body.add_theme_constant_override("separation", 28)
+	column.add_child(body)
+	var words := VBoxContainer.new()
+	words.custom_minimum_size = Vector2(TEXT_WIDTH, 0)
+	words.add_theme_constant_override("separation", 10)
+	body.add_child(words)
+	note_label = _text("", 14, Color(0.86, 0.84, 0.74))
+	note_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	note_label.custom_minimum_size = Vector2(TEXT_WIDTH, 0)
+	note_label.visible = false
+	words.add_child(note_label)
 	_objective_box = VBoxContainer.new()
 	_objective_box.add_theme_constant_override("separation", 6)
-	column.add_child(_objective_box)
-	_show_objectives(OBJECTIVES)
-	column.add_child(HSeparator.new())
+	words.add_child(_objective_box)
+	body.add_child(VSeparator.new())
 	var grid := GridContainer.new()
 	grid.columns = 2
 	grid.add_theme_constant_override("h_separation", 24)
 	grid.add_theme_constant_override("v_separation", 1)
-	column.add_child(grid)
+	body.add_child(grid)
 	for row in CONTROLS:
 		grid.add_child(_text(row[0], 14, Color(1.0, 0.85, 0.55)))
 		grid.add_child(_text(row[1], 14, Color(0.86, 0.88, 0.92)))
@@ -124,12 +139,17 @@ func _init() -> void:
 	column.add_child(hint)
 
 
-## Shows a mission's own title and objectives, and marks it in the row of missions.
+## Shows a mission's own title, history and objectives, and marks it in the list of missions.
 func set_mission(mission: Mission, index: int) -> void:
 	_subtitle.text = mission.title
+	note_label.text = History.before(Missions.id_at(index))
+	note_label.visible = note_label.text != ""
 	_show_objectives(mission.briefing_lines)
 	for i in mission_buttons.size():
-		mission_buttons[i].disabled = i == index
+		mission_buttons[i].disabled = i == index or not Campaign.is_open(i)
+		# Neither can be pressed, but the one being played should not look shut.
+		mission_buttons[i].add_theme_color_override("font_disabled_color",
+				UiStyle.BRASS_BRIGHT if i == index else Color(0.45, 0.46, 0.5))
 
 
 func _show_objectives(lines: Array) -> void:
@@ -137,7 +157,10 @@ func _show_objectives(lines: Array) -> void:
 		_objective_box.remove_child(child)
 		child.free()
 	for line: String in lines:
-		_objective_box.add_child(_text("•  " + line, 16, Color.WHITE))
+		var label := _text("•  " + line, 16, Color.WHITE)
+		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		label.custom_minimum_size = Vector2(TEXT_WIDTH, 0)
+		_objective_box.add_child(label)
 
 
 func _input(event: InputEvent) -> void:

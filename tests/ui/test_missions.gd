@@ -2,7 +2,12 @@ extends GutTest
 ## More than one mission: the list, choosing one, and going on to the next.
 
 
+func before_each() -> void:
+	Campaign.reset()
+
+
 func after_each() -> void:
+	Campaign.reset()
 	Missions.current = 0
 	Briefing.seen = false
 	get_tree().paused = false
@@ -58,6 +63,7 @@ func test_the_game_loads_the_chosen_mission_with_its_own_words() -> void:
 
 
 func test_the_briefing_offers_the_other_missions() -> void:
+	Campaign.mark_won(Missions.id_at(0))
 	var main := await _game()
 	var b: Briefing = main.open_briefing()
 	assert_eq(b.mission_buttons.size(), Missions.LIST.size())
@@ -85,17 +91,42 @@ func test_winning_offers_the_next_mission_until_there_is_none() -> void:
 	assert_eq(reloads[0], 1)
 
 
-func test_no_next_mission_after_the_last_or_after_a_loss() -> void:
+func test_after_the_last_mission_the_way_on_is_back_to_the_list() -> void:
 	Missions.choose(Missions.LIST.size() - 1)
 	var main := await _game()
+	var reloads := [0]
+	main.reload_action = func() -> void: reloads[0] += 1
 	main.rules.result = MissionRules.Result.WON
 	main.rules.result_changed.emit(MissionRules.Result.WON)
-	assert_false(main.hud.end_screen.next_button.visible, "that was the last one")
-	Missions.choose(0)
+	assert_true(main.hud.end_screen.next_button.visible)
+	assert_eq(main.hud.end_screen.next_button.text, "Back to the missions")
+	main.hud.end_screen.next_button.pressed.emit()
+	assert_eq(Missions.current, 0)
+	assert_eq(reloads[0], 1)
+
+
+func test_no_way_on_after_a_loss() -> void:
 	var first := await _game()
 	first.rules.result = MissionRules.Result.LOST
 	first.rules.result_changed.emit(MissionRules.Result.LOST)
 	assert_false(first.hud.end_screen.next_button.visible, "a lost mission is retried, not skipped")
+
+
+func test_winning_is_remembered_and_opens_the_next() -> void:
+	var main := await _game()
+	assert_false(Campaign.is_open(1))
+	main.rules.result = MissionRules.Result.WON
+	main.rules.result_changed.emit(MissionRules.Result.WON)
+	assert_true(Campaign.is_won(Missions.id_at(0)))
+	assert_true(Campaign.is_open(1))
+	assert_string_contains(main.hud.end_screen.note_label.text, "La Granja")
+
+
+func test_losing_is_not_remembered_as_a_win() -> void:
+	var main := await _game()
+	main.rules.result = MissionRules.Result.LOST
+	main.rules.result_changed.emit(MissionRules.Result.LOST)
+	assert_false(Campaign.is_won(Missions.id_at(0)))
 
 
 func test_old_ids_open_the_reframed_missions() -> void:

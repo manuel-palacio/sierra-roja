@@ -47,6 +47,10 @@ func _ready() -> void:
 	rules = MissionRules.new()
 	add_child(rules)
 	rules.setup(mission, specialists)
+	# A win is remembered before anything is shown of it: it opens the next mission.
+	rules.result_changed.connect(func(r: MissionRules.Result) -> void:
+		if r == MissionRules.Result.WON:
+			Campaign.mark_won(Missions.id_at(Missions.current)))
 	player_input = PlayerInput.new()
 	add_child(player_input)
 	player_input.setup(camera, specialists)  # selects the Dynamiter
@@ -64,8 +68,12 @@ func _ready() -> void:
 	hud = (load("res://scenes/ui/hud.tscn") as PackedScene).instantiate() as Hud
 	add_child(hud)
 	hud.setup(player_input, rules, specialists, overlay)
-	hud.end_screen.offer_next = Missions.has_next()
-	hud.end_screen.next_pressed.connect(func() -> void: go_to_mission(Missions.current + 1))
+	hud.end_screen.mission_id = Missions.id_at(Missions.current)
+	hud.end_screen.offer_next = true
+	if not Missions.has_next():
+		hud.end_screen.next_button.text = "Back to the missions"
+	hud.end_screen.next_pressed.connect(func() -> void:
+		go_to_mission(Missions.current + 1 if Missions.has_next() else 0))
 	add_child(_vignette())
 	var objective_marker := ObjectiveMarker.new()
 	add_child(objective_marker)

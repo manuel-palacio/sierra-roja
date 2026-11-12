@@ -50,3 +50,48 @@ test('a plain visit opens on the briefing and Space starts it without errors', a
   await page.waitForTimeout(500);
   expect(errors).toEqual([]);
 });
+
+// The campaign in the real build: the first mission's history is told, later missions are shut
+// until the one before is won, wins are kept in the browser, and rubbish there is ignored.
+const probe = (page) => page.evaluate(() => { window.sierraProbe(); return window.sierraState; });
+const open = async (page, stored) => {
+  await page.addInitScript((value) => {
+    if (value === null) localStorage.removeItem('sierra-roja-campaign');
+    else localStorage.setItem('sierra-roja-campaign', value);
+  }, stored);
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.goto('/?probe=1&briefing=1');
+  await page.waitForFunction(() => window.sierraStarted === true);
+  await page.waitForFunction(() => typeof window.sierraProbe === 'function');
+  await page.waitForTimeout(800);
+};
+
+test('a new player sees the first mission and its history, and the rest shut', async ({ page }) => {
+  const errors = [];
+  page.on('console', (msg) => { if (msg.type() === 'error') errors.push(msg.text()); });
+  await open(page, null);
+  const state = await probe(page);
+  expect(state.mission).toBe('guadarrama');
+  expect(state.note).toContain('30 May 1937');
+  expect(state.open[0]).toBe(true);
+  expect(state.open.slice(1).every((o) => o === false)).toBe(true);
+  await page.screenshot({ path: 'build/e2e/briefing-campaign.png' });
+  expect(errors).toEqual([]);
+});
+
+test('a stored win opens the next mission', async ({ page }) => {
+  await open(page, '["guadarrama"]');
+  const state = await probe(page);
+  expect(state.open[1]).toBe(true);
+  expect(state.open[2]).toBe(false);
+});
+
+test('rubbish in the stored campaign is ignored and the game still starts', async ({ page }) => {
+  const errors = [];
+  page.on('console', (msg) => { if (msg.type() === 'error') errors.push(msg.text()); });
+  await open(page, '{');
+  const state = await probe(page);
+  expect(state.open[0]).toBe(true);
+  expect(state.open[1]).toBe(false);
+  expect(errors).toEqual([]);
+});

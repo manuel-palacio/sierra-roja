@@ -7,10 +7,12 @@ var starts := 0
 func before_each() -> void:
 	starts = 0
 	Briefing.seen = false
+	Campaign.reset()
 
 
 func after_each() -> void:
 	get_tree().paused = false
+	Campaign.reset()
 
 
 func _briefing() -> Briefing:
@@ -35,7 +37,7 @@ func _all_text(node: Node) -> String:
 
 
 func test_it_says_what_to_do_and_how() -> void:
-	var b := _briefing()
+	var b := _shown(0)
 	var text := _all_text(b)
 	assert_eq(b.title_label.text, "Sierra Roja")
 	assert_string_contains(text, "The bridge at dawn")
@@ -168,3 +170,54 @@ func test_a_click_on_ground_nobody_can_reach_is_refused_not_walked_round_to() ->
 	main.player_input.picker = func(_pos: Vector2) -> Dictionary: return { "collider": null, "position": spot }
 	main.player_input.handle_event(click)
 	assert_eq(ordered.size(), 1)
+
+
+## The briefing as it is for one of the missions.
+func _shown(index: int) -> Briefing:
+	var b := _briefing()
+	var m: Mission = autofree(Mission.new())
+	b.set_mission(m, index)
+	return b
+
+
+func test_locked_missions_cannot_be_chosen() -> void:
+	var b := _shown(0)
+	assert_true(b.mission_buttons[0].disabled, "the one shown")
+	for i in range(1, b.mission_buttons.size()):
+		assert_true(b.mission_buttons[i].disabled, "mission %d is not open yet" % (i + 1))
+
+
+func test_won_mission_opens_the_next_button() -> void:
+	Campaign.mark_won(Missions.id_at(0))
+	var b := _shown(0)
+	assert_false(b.mission_buttons[1].disabled)
+	assert_true(b.mission_buttons[2].disabled)
+
+
+func test_note_is_shown_for_a_mission_that_has_one() -> void:
+	var b := _shown(Missions.index_of("guadarrama"))
+	assert_true(b.note_label.visible)
+	assert_string_contains(b.note_label.text, "30 May 1937")
+
+
+func test_note_is_hidden_for_a_mission_without_one() -> void:
+	var b := _shown(Missions.index_of("powder_store"))
+	assert_false(b.note_label.visible)
+
+
+func test_button_names_place_and_date() -> void:
+	var b := _shown(0)
+	assert_eq(b.mission_buttons[0].text, "1  Sierra de Guadarrama, 30 May 1937")
+	assert_eq(b.mission_buttons[Missions.index_of("powder_store")].text, "2  The powder store")
+
+
+func test_it_shows_the_missions_own_title_and_lines() -> void:
+	var b := _briefing()
+	var m: Mission = autofree(Mission.new())
+	m.title = "Somewhere else"
+	m.briefing_lines = PackedStringArray(["Do the one thing."])
+	b.set_mission(m, 0)
+	var text := _all_text(b)
+	assert_string_contains(text, "Somewhere else")
+	assert_string_contains(text, "Do the one thing.")
+	assert_false(text.contains("railway bridge"))
