@@ -69,24 +69,24 @@ CRATES = [
     ("CrateRoad", 9.5, PLAIN, 19.5, 1.4, 1.4),
 ]
 
-PINES = ["tree_pineTallA", "tree_pineTallB", "tree_pineRoundA", "tree_pineRoundC", "tree_pineTallC", "tree_pineRoundE"]
-OAKS = ["tree_oak_dark", "tree_oak", "tree_detailed"]
+PINES = ["tree:pine"]
+OAKS = ["tree:olive"]
 WHOLE_MAP = [(-49, -39), (49, -39), (49, 39), (-49, 39)]
 NORTH = [(-49, -39), (49, -39), (49, -16), (-49, -16)]
 SOUTH = [(-49, 15), (49, 15), (49, 39), (-49, 39)]
 # Kept open: the ways in, the start and the camp.
 CLEAR = [(5, 16), (5, 19), (24, 0), (-13, -7.5), (44, 12), (-44, 32), (-44, 35), (30, 2), (-20, 28)]
 SCATTERS = [
-    ("NorthPines", True, PINES, NORTH, 30, 31, 5.0, (3.2, 4.4), 3.0, (0.5, 3.0, 0.5), 32),
-    ("Olives", True, OAKS, SOUTH, 16, 32, 6.5, (3.4, 4.4), 3.5, (0.6, 3.0, 0.6), 25),
+    ("NorthPines", True, PINES, NORTH, 30, 31, 5.0, (0.85, 1.2), 3.0, (0.5, 3.0, 0.5), 32),
+    ("Olives", True, OAKS, SOUTH, 16, 32, 6.5, (0.85, 1.2), 3.5, (0.6, 3.0, 0.6), 25),
     ("TallRocks", True, ["rock_tallA", "rock_tallB"], WHOLE_MAP, 10, 33, 9.0, (2.0, 2.6), 3.5, (1.4, 2.0, 1.4), 28),
     ("FlatRocks", True, ["rock_largeA", "rock_largeB", "rock_largeC"], WHOLE_MAP, 16, 34, 7.0, (2.2, 2.8), 3.5, (1.8, 0.9, 1.8), 28),
-    ("Bushes", False, ["plant_bush", "plant_bushLarge", "plant_bushSmall", "plant_bushDetailed"], WHOLE_MAP, 170, 35, 2.2, (2.4, 3.8), 1.5, None, 34),
+    ("Bushes", False, ["tree:bush"], WHOLE_MAP, 170, 35, 2.2, (0.7, 1.4), 1.5, None, 34),
     ("Grass", False, ["grass", "grass_large", "grass_leafs", "grass_leafsLarge"], WHOLE_MAP, 900, 36, 0.7, (2.0, 3.2), 0.9, None, 36),
     ("Wheat", False, ["crops_wheatStageB"], [(-24, 28.5), (-6, 28.5), (-6, 38), (-24, 38)], 420, 42, 0.55, (2.4, 3.2), 0.3, None, 30),
     ("Poppies", False, ["flower_redA", "flower_redB", "flower_redC"], WHOLE_MAP, 280, 37, 0.6, (1.3, 2.0), 1.0, None, 30),
     ("Broom", False, ["flower_yellowA", "flower_yellowB", "flower_yellowC"], WHOLE_MAP, 160, 38, 0.8, (1.3, 2.1), 1.0, None, 34),
-    ("Saplings", False, ["tree_thin", "tree_small", "tree_default"], WHOLE_MAP, 22, 39, 6.0, (2.2, 3.0), 3.0, None, 30),
+    ("Saplings", False, ["tree:sapling"], WHOLE_MAP, 22, 39, 6.0, (0.8, 1.3), 3.0, None, 30),
     ("Deadwood", False, ["stump_round", "log_stack", "log", "stump_old"], WHOLE_MAP, 18, 40, 5.0, (2.6, 3.4), 2.0, None, 30),
     ("Pebbles", False, ["rock_smallA", "rock_smallB", "rock_smallC", "stone_smallA", "stone_smallB"], WHOLE_MAP, 140, 41, 1.2, (1.5, 2.6), 1.0, None, 40),
 ]

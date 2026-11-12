@@ -22,7 +22,9 @@ OUT = Path(__file__).resolve().parent.parent / "assets/characters/soldier"
 SKIN, HAIR, JACKET, TROUSERS, BOOTS, BELT = range(6)
 REGIONS = 8  # squares in a palette
 # Heights in metres on the 1.83 m mannequin.
-HAIRLINE = 1.71
+# Hair covers the crown, and the back of the head down to the nape; the face is left clear.
+CROWN = 1.765
+NAPE = 1.64
 BELT_BAND = (1.03, 1.10)
 BOOT_TOP = 0.30
 WAIST = 1.06
@@ -42,9 +44,9 @@ COMPONENT = {5126: np.float32, 5123: np.uint16, 5121: np.uint8, 5125: np.uint32}
 WIDTH = {"SCALAR": 1, "VEC2": 2, "VEC3": 3, "VEC4": 4, "MAT4": 16}
 
 
-def region_of(bone: str, y: float) -> int:
+def region_of(bone: str, y: float, z: float) -> int:
     if "head" in bone:
-        return HAIR if y > HAIRLINE else SKIN
+        return HAIR if y > CROWN or (y > NAPE and z < -0.015) else SKIN
     if "neck" in bone or "hand" in bone or "f_" in bone or "thumb" in bone:
         return SKIN
     if "foot" in bone or "toe" in bone:
@@ -95,7 +97,7 @@ def main(source: str) -> None:
         weights = read(primitive.attributes.WEIGHTS_0)
         triangles = read(primitive.indices).reshape(-1, 3)
         lead = joints[np.arange(len(joints)), weights.argmax(axis=1)]
-        of_vertex = np.array([region_of(bones[lead[i]], position[i, 1]) for i in range(len(position))])
+        of_vertex = np.array([region_of(bones[lead[i]], position[i, 1], position[i, 2]) for i in range(len(position))])
         # One region per triangle (the commonest among its corners), and a copy of each vertex for
         # every region that uses it, so no triangle's texture coordinates run across the palette.
         remap, order, faces = {}, [], []

@@ -85,6 +85,8 @@ def write_scene(m):
     model_ids = {}
     for scatter in SCATTERS:
         for model in scatter[2]:
+            if model.startswith("tree:"):
+                continue
             if model not in model_ids:
                 model_ids[model] = f"m_{model}"
                 o.append(f'[ext_resource type="PackedScene" path="{NATURE}{model}.glb" id="m_{model}"]')
@@ -183,8 +185,10 @@ def write_scene(m):
 
     def scatter_node(parent, entry):
         name, _, models, area, count, seed, spacing, scale, clear, blocker, slope = entry
-        lines = [f'[node name="{name}" type="Node3D" parent="{parent}"]', 'script = ExtResource("7_scatter")',
-                 "models = Array[PackedScene]([" + ", ".join(f'ExtResource("{model_ids[m]}")' for m in models) + "])",
+        # "tree:<kind>" in place of kit models scatters trees made by TreeBuilder.
+        what = (f'tree_kind = &"{models[0][5:]}"' if models[0].startswith("tree:") else
+                "models = Array[PackedScene]([" + ", ".join(f'ExtResource("{model_ids[m]}")' for m in models) + "])")
+        lines = [f'[node name="{name}" type="Node3D" parent="{parent}"]', 'script = ExtResource("7_scatter")', what,
                  f"area = {v2(area)}", f"count = {count}", f"seed = {seed}", f"min_spacing = {float(spacing)}",
                  f"max_slope_deg = {float(slope)}", "scale_range = Vector2(%s, %s)" % scale, f"keep_clear = {float(clear)}",
                  f"clear_points = {v2(CLEAR)}"]

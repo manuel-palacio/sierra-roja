@@ -41,6 +41,8 @@ const TEXTURED := {
 }
 
 @export var models: Array[PackedScene] = []
+## Instead of kit models: a kind of generated tree (see TreeBuilder.KINDS), in its variants.
+@export var tree_kind := &""
 ## Polygon on the ground plane (x, z).
 @export var area := PackedVector2Array()
 @export var count := 50
@@ -76,10 +78,11 @@ func build(mission: Mission) -> void:
 	_transforms.clear()
 	_model_of.clear()
 	var land := mission.terrain()
-	if land == null or models.is_empty() or area.size() < 3:
+	var kinds := _kinds()
+	if land == null or kinds == 0 or area.size() < 3:
 		return
 	_place(mission, land)
-	for m in models.size():
+	for m in kinds:
 		_add_multimeshes(m)
 	if blocker_size != Vector3.ZERO:
 		var body := StaticBody3D.new()
@@ -110,7 +113,7 @@ func _place(mission: Mission, land: Terrain) -> void:
 		var p := Vector2(rng.randf_range(box.position.x, box.end.x), rng.randf_range(box.position.y, box.end.y))
 		var turn := rng.randf_range(0.0, TAU)
 		var size := rng.randf_range(scale_range.x, scale_range.y)
-		var model := rng.randi_range(0, models.size() - 1)
+		var model := rng.randi_range(0, _kinds() - 1)
 		if not _fits(p, land, avoid, boxes):
 			continue
 		var at := Vector3(p.x, land.height_at(p.x, p.y), p.y)
@@ -195,6 +198,9 @@ func _add_multimeshes(model: int) -> void:
 			places.append(_transforms[i])
 	if places.is_empty():
 		return
+	if tree_kind != &"":
+		_add_multimesh(TreeBuilder.variants(tree_kind)[model], Transform3D.IDENTITY, places)
+		return
 	var scene := models[model].instantiate()
 	for node in scene.find_children("*", "MeshInstance3D", true, false) + ([scene] if scene is MeshInstance3D else []):
 		var source := node as MeshInstance3D
@@ -206,16 +212,25 @@ func _add_multimeshes(model: int) -> void:
 			if walker == scene:
 				break
 			walker = walker.get_parent()
-		var multi := MultiMesh.new()
-		multi.transform_format = MultiMesh.TRANSFORM_3D
-		multi.mesh = _in_one_colour(source.mesh) if flat_colour.a > 0.0 else in_palette(source.mesh)
-		multi.instance_count = places.size()
-		for i in places.size():
-			multi.set_instance_transform(i, places[i] * inner)
-		var holder := MultiMeshInstance3D.new()
-		holder.multimesh = multi
-		add_child(holder)
+		_add_multimesh(_in_one_colour(source.mesh) if flat_colour.a > 0.0 else in_palette(source.mesh), inner, places)
 	scene.free()
+
+
+## How many different things this scatter chooses between for each copy.
+func _kinds() -> int:
+	return TreeBuilder.variants(tree_kind).size() if tree_kind != &"" else models.size()
+
+
+func _add_multimesh(mesh: Mesh, inner: Transform3D, places: Array[Transform3D]) -> void:
+	var multi := MultiMesh.new()
+	multi.transform_format = MultiMesh.TRANSFORM_3D
+	multi.mesh = mesh
+	multi.instance_count = places.size()
+	for i in places.size():
+		multi.set_instance_transform(i, places[i] * inner)
+	var holder := MultiMeshInstance3D.new()
+	holder.multimesh = multi
+	add_child(holder)
 
 
 ## The mesh with each palette material swapped for its recoloured twin.

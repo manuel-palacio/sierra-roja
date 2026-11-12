@@ -10,24 +10,11 @@
 [ext_resource type="Script" path="res://src/terrain/sleepers.gd" id="8_sleepers"]
 [ext_resource type="Shader" path="res://assets/shaders/water.gdshader" id="9_water"]
 [ext_resource type="Script" path="res://src/terrain/campfire.gd" id="10_campfire"]
-[ext_resource type="PackedScene" path="res://assets/props/nature/tree_pineTallA.glb" id="m_tree_pineTallA"]
-[ext_resource type="PackedScene" path="res://assets/props/nature/tree_pineTallB.glb" id="m_tree_pineTallB"]
-[ext_resource type="PackedScene" path="res://assets/props/nature/tree_pineRoundA.glb" id="m_tree_pineRoundA"]
-[ext_resource type="PackedScene" path="res://assets/props/nature/tree_pineRoundC.glb" id="m_tree_pineRoundC"]
-[ext_resource type="PackedScene" path="res://assets/props/nature/tree_pineTallC.glb" id="m_tree_pineTallC"]
-[ext_resource type="PackedScene" path="res://assets/props/nature/tree_pineRoundE.glb" id="m_tree_pineRoundE"]
-[ext_resource type="PackedScene" path="res://assets/props/nature/tree_oak_dark.glb" id="m_tree_oak_dark"]
-[ext_resource type="PackedScene" path="res://assets/props/nature/tree_oak.glb" id="m_tree_oak"]
-[ext_resource type="PackedScene" path="res://assets/props/nature/tree_detailed.glb" id="m_tree_detailed"]
 [ext_resource type="PackedScene" path="res://assets/props/nature/rock_tallA.glb" id="m_rock_tallA"]
 [ext_resource type="PackedScene" path="res://assets/props/nature/rock_tallB.glb" id="m_rock_tallB"]
 [ext_resource type="PackedScene" path="res://assets/props/nature/rock_largeA.glb" id="m_rock_largeA"]
 [ext_resource type="PackedScene" path="res://assets/props/nature/rock_largeB.glb" id="m_rock_largeB"]
 [ext_resource type="PackedScene" path="res://assets/props/nature/rock_largeC.glb" id="m_rock_largeC"]
-[ext_resource type="PackedScene" path="res://assets/props/nature/plant_bush.glb" id="m_plant_bush"]
-[ext_resource type="PackedScene" path="res://assets/props/nature/plant_bushLarge.glb" id="m_plant_bushLarge"]
-[ext_resource type="PackedScene" path="res://assets/props/nature/plant_bushSmall.glb" id="m_plant_bushSmall"]
-[ext_resource type="PackedScene" path="res://assets/props/nature/plant_bushDetailed.glb" id="m_plant_bushDetailed"]
 [ext_resource type="PackedScene" path="res://assets/props/nature/grass.glb" id="m_grass"]
 [ext_resource type="PackedScene" path="res://assets/props/nature/grass_large.glb" id="m_grass_large"]
 [ext_resource type="PackedScene" path="res://assets/props/nature/grass_leafs.glb" id="m_grass_leafs"]
@@ -39,9 +26,6 @@
 [ext_resource type="PackedScene" path="res://assets/props/nature/flower_yellowA.glb" id="m_flower_yellowA"]
 [ext_resource type="PackedScene" path="res://assets/props/nature/flower_yellowB.glb" id="m_flower_yellowB"]
 [ext_resource type="PackedScene" path="res://assets/props/nature/flower_yellowC.glb" id="m_flower_yellowC"]
-[ext_resource type="PackedScene" path="res://assets/props/nature/tree_thin.glb" id="m_tree_thin"]
-[ext_resource type="PackedScene" path="res://assets/props/nature/tree_small.glb" id="m_tree_small"]
-[ext_resource type="PackedScene" path="res://assets/props/nature/tree_default.glb" id="m_tree_default"]
 [ext_resource type="PackedScene" path="res://assets/props/nature/stump_round.glb" id="m_stump_round"]
 [ext_resource type="PackedScene" path="res://assets/props/nature/log_stack.glb" id="m_log_stack"]
 [ext_resource type="PackedScene" path="res://assets/props/nature/log.glb" id="m_log"]
@@ -385,26 +369,26 @@ ruin = true
 
 [node name="NorthPines" type="Node3D" parent="Nav"]
 script = ExtResource("7_scatter")
-models = Array[PackedScene]([ExtResource("m_tree_pineTallA"), ExtResource("m_tree_pineTallB"), ExtResource("m_tree_pineRoundA"), ExtResource("m_tree_pineRoundC"), ExtResource("m_tree_pineTallC"), ExtResource("m_tree_pineRoundE")])
+tree_kind = &"pine"
 area = PackedVector2Array(-49, -39, 49, -39, 49, -16, -49, -16)
 count = 30
 seed = 31
 min_spacing = 5.0
 max_slope_deg = 32.0
-scale_range = Vector2(3.2, 4.4)
+scale_range = Vector2(0.85, 1.2)
 keep_clear = 3.0
 clear_points = PackedVector2Array(5, 16, 5, 19, 24, 0, -13, -7.5, 44, 12, -44, 32, -44, 35, 30, 2, -20, 28)
 blocker_size = Vector3(0.5, 3.0, 0.5)
 
 [node name="Olives" type="Node3D" parent="Nav"]
 script = ExtResource("7_scatter")
-models = Array[PackedScene]([ExtResource("m_tree_oak_dark"), ExtResource("m_tree_oak"), ExtResource("m_tree_detailed")])
+tree_kind = &"olive"
 area = PackedVector2Array(-49, 15, 49, 15, 49, 39, -49, 39)
 count = 16
 seed = 32
 min_spacing = 6.5
 max_slope_deg = 25.0
-scale_range = Vector2(3.4, 4.4)
+scale_range = Vector2(0.85, 1.2)
 keep_clear = 3.5
 clear_points = PackedVector2Array(5, 16, 5, 19, 24, 0, -13, -7.5, 44, 12, -44, 32, -44, 35, 30, 2, -20, 28)
 blocker_size = Vector3(0.6, 3.0, 0.6)
@@ -475,13 +459,13 @@ shape = SubResource("Box_prop6")
 
 [node name="Bushes" type="Node3D" parent="Scenery"]
 script = ExtResource("7_scatter")
-models = Array[PackedScene]([ExtResource("m_plant_bush"), ExtResource("m_plant_bushLarge"), ExtResource("m_plant_bushSmall"), ExtResource("m_plant_bushDetailed")])
+tree_kind = &"bush"
 area = PackedVector2Array(-49, -39, 49, -39, 49, 39, -49, 39)
 count = 170
 seed = 35
 min_spacing = 2.2
 max_slope_deg = 34.0
-scale_range = Vector2(2.4, 3.8)
+scale_range = Vector2(0.7, 1.4)
 keep_clear = 1.5
 clear_points = PackedVector2Array(5, 16, 5, 19, 24, 0, -13, -7.5, 44, 12, -44, 32, -44, 35, 30, 2, -20, 28)
 
@@ -536,13 +520,13 @@ clear_points = PackedVector2Array(5, 16, 5, 19, 24, 0, -13, -7.5, 44, 12, -44, 3
 
 [node name="Saplings" type="Node3D" parent="Scenery"]
 script = ExtResource("7_scatter")
-models = Array[PackedScene]([ExtResource("m_tree_thin"), ExtResource("m_tree_small"), ExtResource("m_tree_default")])
+tree_kind = &"sapling"
 area = PackedVector2Array(-49, -39, 49, -39, 49, 39, -49, 39)
 count = 22
 seed = 39
 min_spacing = 6.0
 max_slope_deg = 30.0
-scale_range = Vector2(2.2, 3.0)
+scale_range = Vector2(0.8, 1.3)
 keep_clear = 3.0
 clear_points = PackedVector2Array(5, 16, 5, 19, 24, 0, -13, -7.5, 44, 12, -44, 32, -44, 35, 30, 2, -20, 28)
 

@@ -11,6 +11,9 @@ func _ready() -> void:
 	var animation: String = args[1] if args.size() > 1 else ""
 	var at: float = float(args[2]) if args.size() > 2 else 0.4
 	var yaw: float = float(args[3]) if args.size() > 3 else 45.0
+	var view: float = float(args[4]) if args.size() > 4 else 3.6
+	var look_at_height: float = float(args[5]) if args.size() > 5 else 0.9
+	var pitch: float = float(args[6]) if args.size() > 6 else -35.0
 	get_window().size = Vector2i(1200, 520)
 	var env := WorldEnvironment.new()
 	env.environment = Environment.new()
@@ -32,10 +35,10 @@ func _ready() -> void:
 	add_child(ground)
 	var camera := Camera3D.new()
 	camera.projection = Camera3D.PROJECTION_ORTHOGONAL
-	camera.size = 3.6
-	camera.rotation_degrees = Vector3(-35, yaw, 0)
+	camera.size = view
+	camera.rotation_degrees = Vector3(pitch, yaw, 0)
 	add_child(camera)
-	camera.position = Vector3(0, 0.9, 0) + camera.basis.z * 20.0
+	camera.position = Vector3(0, look_at_height, 0) + camera.basis.z * 20.0
 	camera.current = true
 	for i in SCENES.size():
 		var unit: Node3D = load(SCENES[i]).instantiate()

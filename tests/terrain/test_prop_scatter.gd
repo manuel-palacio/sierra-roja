@@ -1,7 +1,7 @@
 extends GutTest
 ## Scattered props on a small mission with a road, a patrol route and a house.
 
-const PINE := preload("res://assets/props/nature/tree_pineTallA.glb")
+const PINE := preload("res://assets/props/nature/rock_tallA.glb")
 const AREA: Array[Vector2] = [Vector2(-18, -12), Vector2(18, -12), Vector2(18, 12), Vector2(-18, 12)]
 
 var mission: Mission
@@ -166,3 +166,21 @@ func test_a_flat_colour_replaces_the_models_own_materials() -> void:
 		var mesh := (node as MultiMeshInstance3D).multimesh.mesh
 		for i in mesh.get_surface_count():
 			assert_eq((mesh.surface_get_material(i) as BaseMaterial3D).albedo_color, Color(0.8, 0.66, 0.3, 1.0))
+
+
+func test_a_scatter_of_generated_trees_needs_no_models() -> void:
+	var s := _scatter(true)
+	s.models = []
+	s.tree_kind = &"oak"
+	await _built()
+	assert_gt(s.transforms().size(), 10)
+	var total := 0
+	var meshes := {}
+	for node in s.find_children("*", "MultiMeshInstance3D", true, false):
+		var multi := (node as MultiMeshInstance3D).multimesh
+		total += multi.instance_count
+		meshes[multi.mesh] = true
+		assert_true(multi.mesh in TreeBuilder.variants(&"oak"))
+	assert_eq(total, s.transforms().size(), "one tree per place")
+	assert_gt(meshes.size(), 1, "more than one variant in use")
+	assert_eq(s.find_children("*", "CollisionShape3D", true, false).size(), total, "each with its trunk to walk round")

@@ -75,7 +75,7 @@ func test_each_unit_carries_its_own_kit_on_its_bones() -> void:
 		var unit := _unit(scene)
 		var kit: StringName = (unit.get_node("UnitVisual") as UnitVisual).kit
 		var pieces := _gear(unit)
-		assert_eq(pieces.size(), (SoldierGear.KITS[kit] as Array).size(), "every piece of the %s kit" % kit)
+		assert_eq(pieces.size(), SoldierGear.pieces(kit).size(), "a face and every piece of the %s kit" % kit)
 		for piece in pieces:
 			assert_true((piece.get_parent() as BoneAttachment3D).bone_idx >= 0, "rides a real bone")
 			assert_not_null(piece.get_active_material(0))
@@ -86,7 +86,7 @@ func test_each_unit_carries_its_own_kit_on_its_bones() -> void:
 func test_a_helmet_sits_on_the_head_and_follows_it_down() -> void:
 	var unit := _unit(GUARD)
 	await _settle(unit)
-	var helmet := _gear(unit)[0]
+	var helmet := _gear(unit)[SoldierGear.FACE.size() + 1]
 	assert_almost_eq(helmet.global_position.y - unit.global_position.y, _head_height(unit) + 0.12, 0.15,
 			"on the head while standing")
 	unit.set_stance(Unit.Stance.CRAWLING)
@@ -146,7 +146,7 @@ func test_a_body_is_the_guard_fallen_in_uniform_and_kit() -> void:
 	add_child_autofree(body)
 	await get_tree().process_frame
 	assert_eq(_uniforms(body).keys(), ["uniform-guard.png"])
-	assert_eq(_gear(body).size(), (SoldierGear.KITS[&"guard"] as Array).size(), "helmet and rifle still on it")
+	assert_eq(_gear(body).size(), SoldierGear.pieces(&"guard").size(), "helmet and rifle still on it")
 	var player := body.find_children("*", "AnimationPlayer", true, false)[0] as AnimationPlayer
 	assert_eq(player.assigned_animation, String(UnitVisual.DIE))
 	assert_almost_eq(player.current_animation_position, player.get_animation(UnitVisual.DIE).length, 0.05, "already down")
@@ -300,3 +300,17 @@ func test_guards_get_a_ground_ring_only_when_markers_are_asked_for() -> void:
 	if ring != null:
 		assert_true((ring.material_override as StandardMaterial3D).no_depth_test)
 		assert_gt(ring.color.r, ring.color.b, "in the guards' warm colour")
+
+
+func test_every_soldier_has_a_face() -> void:
+	for scene in [GUARD, DYNAMITER, MARKSMAN]:
+		var unit := _unit(scene)
+		await _settle(unit)
+		var on_face := 0
+		for piece in _gear(unit):
+			var up := piece.global_position.y - unit.global_position.y
+			if (piece.get_parent() as BoneAttachment3D).bone_name == "DEF-head" and up < _head_height(unit) + 0.22:
+				on_face += 1
+		assert_gte(on_face, SoldierGear.FACE.size(), "eyes, brows, nose and mouth on %s" % scene)
+	assert_eq(SoldierGear.pieces(&"guard").size(), SoldierGear.pieces(&"dynamiter").size() + 1 + SoldierGear.KITS[&"guard"].size() - SoldierGear.KITS[&"dynamiter"].size(),
+			"guards wear a moustache; the Dynamiter is clean-shaven")

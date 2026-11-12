@@ -80,7 +80,7 @@ CRATES = [
 
 
 # Scattered kit models. Blocking ones go under Nav/ and stop feet and eyes.
-PINES = ["tree_pineTallA", "tree_pineTallB", "tree_pineRoundA", "tree_pineRoundC", "tree_pineTallC", "tree_pineRoundE"]
+PINES = ["tree:pine"]
 WHOLE_MAP = [(-54, -39), (54, -39), (54, 39), (-54, 39)]
 HILL = [(-54, -39), (-10, -39), (-10, -24), (-20, -17), (-44, -17), (-54, -20)]
 NORTH_EAST = [(8, -39), (54, -39), (54, -10), (12, -10)]
@@ -91,19 +91,19 @@ CLEAR = [(-53.5, 12.5), (-52, 13.5), (-53.5, -9.5), (-50, -14.5), (-42, -15), (-
          (-20, -10.5), (-21.5, -12), (-15, 10), (-11, 30), (-30, 36), (44.5, 10), (46, 20)]
 # name, blocking, models, area, count, seed, spacing, scale range, keep clear, blocker size, max slope
 SCATTERS = [
-    ("HillPines", True, PINES, HILL, 36, 11, 4.5, (3.2, 4.4), 3.0, (0.5, 3.0, 0.5), 32),
-    ("NorthEastPines", True, PINES, NORTH_EAST, 24, 12, 5.0, (3.2, 4.4), 3.0, (0.5, 3.0, 0.5), 32),
-    ("SouthWestTrees", True, ["tree_oak_dark", "tree_oak", "tree_detailed"], SOUTH_WEST, 9, 13, 8.0, (3.6, 4.6), 3.5, (0.6, 3.0, 0.6), 25),
-    ("SouthEastTrees", True, ["tree_oak_dark", "tree_oak", "tree_detailed"], SOUTH_EAST, 8, 14, 8.0, (3.6, 4.6), 3.5, (0.6, 3.0, 0.6), 25),
+    ("HillPines", True, PINES, HILL, 36, 11, 4.5, (0.85, 1.2), 3.0, (0.5, 3.0, 0.5), 32),
+    ("NorthEastPines", True, PINES, NORTH_EAST, 24, 12, 5.0, (0.85, 1.2), 3.0, (0.5, 3.0, 0.5), 32),
+    ("SouthWestTrees", True, ["tree:oak"], SOUTH_WEST, 9, 13, 8.0, (0.85, 1.2), 3.5, (0.6, 3.0, 0.6), 25),
+    ("SouthEastTrees", True, ["tree:olive"], SOUTH_EAST, 8, 14, 8.0, (0.85, 1.2), 3.5, (0.6, 3.0, 0.6), 25),
     ("TallRocks", True, ["rock_tallA", "rock_tallB"], WHOLE_MAP, 14, 15, 9.0, (2.0, 2.6), 3.5, (1.4, 2.0, 1.4), 28),
     ("FlatRocks", True, ["rock_largeA", "rock_largeB", "rock_largeC"], WHOLE_MAP, 20, 16, 7.0, (2.2, 2.8), 3.5, (1.8, 0.9, 1.8), 28),
-    ("Bushes", False, ["plant_bush", "plant_bushLarge", "plant_bushSmall", "plant_bushDetailed"], WHOLE_MAP, 190, 17, 2.2, (2.4, 3.8), 1.5, None, 34),
+    ("Bushes", False, ["tree:bush"], WHOLE_MAP, 190, 17, 2.2, (0.7, 1.4), 1.5, None, 34),
     ("Grass", False, ["grass", "grass_large", "grass_leafs", "grass_leafsLarge"], WHOLE_MAP, 1000, 18, 0.7, (2.0, 3.2), 0.9, None, 36),
     ("Wheat", False, ["crops_wheatStageB"], [(-23.2, 18.8), (-14.2, 18.8), (-14.2, 25.2), (-23.2, 25.2)], 260, 25, 0.5, (2.4, 3.2), 0.3, None, 30),
     ("Poppies", False, ["flower_redA", "flower_redB", "flower_redC"], WHOLE_MAP, 300, 21, 0.6, (1.3, 2.0), 1.0, None, 30),
     ("Broom", False, ["flower_yellowA", "flower_yellowB", "flower_yellowC"], WHOLE_MAP, 170, 22, 0.8, (1.3, 2.1), 1.0, None, 34),
     ("Thistles", False, ["flower_purpleA", "flower_purpleB"], WHOLE_MAP, 80, 23, 1.0, (1.3, 2.0), 1.0, None, 34),
-    ("Saplings", False, ["tree_thin", "tree_small", "tree_default"], WHOLE_MAP, 26, 24, 6.0, (2.2, 3.0), 3.0, None, 30),
+    ("Saplings", False, ["tree:sapling"], WHOLE_MAP, 26, 24, 6.0, (0.8, 1.3), 3.0, None, 30),
     ("Deadwood", False, ["stump_round", "log_stack", "log", "stump_old"], WHOLE_MAP, 22, 20, 5.0, (2.6, 3.4), 2.0, None, 30),
     ("Pebbles", False, ["rock_smallA", "rock_smallB", "rock_smallC", "stone_smallA", "stone_smallB"], WHOLE_MAP, 160, 19, 1.2, (1.5, 2.6), 1.0, None, 40),
 ]

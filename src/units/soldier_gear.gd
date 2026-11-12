@@ -53,6 +53,19 @@ const KITS := {
 	],
 }
 
+## What every soldier has under the hat: eyes, brows, a nose and a mouth, so a face looks back
+## when the camera is close.
+const FACE := [
+	{ "bone": "DEF-head", "shape": "sphere", "size": Vector3(0.030, 0.022, 0.02), "at": Vector3(0.036, 1.698, 0.092), "color": Color(0.08, 0.06, 0.05) },
+	{ "bone": "DEF-head", "shape": "sphere", "size": Vector3(0.030, 0.022, 0.02), "at": Vector3(-0.036, 1.698, 0.092), "color": Color(0.08, 0.06, 0.05) },
+	{ "bone": "DEF-head", "shape": "box", "size": Vector3(0.042, 0.010, 0.015), "at": Vector3(0.037, 1.722, 0.094), "turn": Vector3(0, 0, -8), "color": Color(0.20, 0.14, 0.10) },
+	{ "bone": "DEF-head", "shape": "box", "size": Vector3(0.042, 0.010, 0.015), "at": Vector3(-0.037, 1.722, 0.094), "turn": Vector3(0, 0, 8), "color": Color(0.20, 0.14, 0.10) },
+	{ "bone": "DEF-head", "shape": "box", "size": Vector3(0.026, 0.050, 0.034), "at": Vector3(0, 1.672, 0.104), "color": Color(0.72, 0.52, 0.40) },
+	{ "bone": "DEF-head", "shape": "box", "size": Vector3(0.058, 0.012, 0.012), "at": Vector3(0, 1.626, 0.094), "color": Color(0.42, 0.22, 0.18) },
+]
+## Kit name -> a moustache or stubble colour for its mouth line, where it has one.
+const WHISKERS := { &"guard": Color(0.16, 0.11, 0.08), &"marksman": Color(0.30, 0.20, 0.13) }
+
 static var _materials: Dictionary = {}
 
 
@@ -71,7 +84,7 @@ static func equip(model: Node3D, kit: StringName) -> Array[MeshInstance3D]:
 		to_skeleton = node.transform * to_skeleton
 		node = node.get_parent() as Node3D
 	to_skeleton = to_skeleton.affine_inverse()
-	for piece: Dictionary in KITS[kit]:
+	for piece: Dictionary in pieces(kit):
 		var bone_name: String = HAND if piece.has("held") else piece["bone"]
 		var bone := skeleton.find_bone(bone_name)
 		if bone < 0:
@@ -111,6 +124,19 @@ static func _held(skeleton: Skeleton3D, piece: Dictionary) -> Transform3D:
 	var length: float = piece["held"]
 	var centre := hand + along * (0.08 + length / 2.0 - float(piece["grip"])) + up * 0.07
 	return Transform3D(Basis(along, up, side), centre)
+
+
+## Everything a kit puts on a model: the face, then what it wears and carries.
+static func pieces(kit: StringName) -> Array:
+	var out: Array = []
+	for part: Dictionary in FACE:
+		out.append(part)
+	if WHISKERS.has(kit):
+		# A moustache over the mouth.
+		out.append({ "bone": "DEF-head", "shape": "box", "size": Vector3(0.078, 0.022, 0.018),
+				"at": Vector3(0, 1.642, 0.098), "color": WHISKERS[kit] })
+	out.append_array(KITS[kit])
+	return out
 
 
 static func _shape(kind: String, size: Vector3) -> Mesh:
