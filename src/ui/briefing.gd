@@ -5,6 +5,8 @@ extends CanvasLayer
 ## Display only: whoever opens it decides what `started` means.
 
 signal started()
+## Another mission was picked from the row of missions: its index in Missions.LIST.
+signal mission_chosen(index: int)
 
 const TITLE := "Sierra Roja"
 const SUBTITLE := "The bridge at dawn"
@@ -36,6 +38,11 @@ static var seen := false
 
 var title_label: Label
 var start_button: Button
+## One per mission in Missions.LIST; the one being played is disabled.
+var mission_buttons: Array[Button] = []
+
+var _subtitle: Label
+var _objective_box: VBoxContainer
 
 var _done := false
 
@@ -80,12 +87,26 @@ func _init() -> void:
 	title_label = _text(TITLE, 36, Color(0.92, 0.3, 0.22))
 	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	column.add_child(title_label)
-	var subtitle := _text(SUBTITLE, 19, Color(0.8, 0.82, 0.9))
-	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	column.add_child(subtitle)
+	_subtitle = _text(SUBTITLE, 19, Color(0.8, 0.82, 0.9))
+	_subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	column.add_child(_subtitle)
+	var missions := HBoxContainer.new()
+	missions.alignment = BoxContainer.ALIGNMENT_CENTER
+	missions.add_theme_constant_override("separation", 8)
+	column.add_child(missions)
+	for i in Missions.LIST.size():
+		var button := Button.new()
+		button.text = "%d. %s" % [i + 1, Missions.LIST[i]["name"]]
+		button.add_theme_font_size_override("font_size", 13)
+		button.disabled = i == Missions.current
+		button.pressed.connect(func() -> void: mission_chosen.emit(i))
+		missions.add_child(button)
+		mission_buttons.append(button)
 	column.add_child(HSeparator.new())
-	for line in OBJECTIVES:
-		column.add_child(_text("•  " + line, 16, Color.WHITE))
+	_objective_box = VBoxContainer.new()
+	_objective_box.add_theme_constant_override("separation", 6)
+	column.add_child(_objective_box)
+	_show_objectives(OBJECTIVES)
 	column.add_child(HSeparator.new())
 	var grid := GridContainer.new()
 	grid.columns = 2
@@ -108,6 +129,22 @@ func _init() -> void:
 	var hint := _text("Enter or Space also start  ·  Credits and licences: /credits.txt", 13, Color(0.6, 0.63, 0.7))
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	column.add_child(hint)
+
+
+## Shows a mission's own title and objectives, and marks it in the row of missions.
+func set_mission(mission: Mission, index: int) -> void:
+	_subtitle.text = mission.title
+	_show_objectives(mission.objectives)
+	for i in mission_buttons.size():
+		mission_buttons[i].disabled = i == index
+
+
+func _show_objectives(lines: Array) -> void:
+	for child in _objective_box.get_children():
+		_objective_box.remove_child(child)
+		child.free()
+	for line: String in lines:
+		_objective_box.add_child(_text("•  " + line, 16, Color.WHITE))
 
 
 func _input(event: InputEvent) -> void:

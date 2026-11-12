@@ -1,8 +1,8 @@
 # Sierra Roja
 
 A real-time stealth tactics game for the desktop browser, set in the Spanish Civil War. You command two
-fictional Republican guerrillas, the Dynamiter and the Marksman, through one night mission: blow up the
-Nationalist railway bridge, then get both of them to the extraction pad. Low-poly 3D, isometric
+fictional Republican guerrillas, the Dynamiter and the Marksman, through dawn raids: blow up a
+Nationalist railway bridge, then an ammunition store, and get both of them out each time. Low-poly 3D, isometric
 camera, Godot 4.7 (Compatibility renderer, single-threaded web export). "Sierra Roja" is a working title.
 
 ## Controls
@@ -26,11 +26,15 @@ camera, Godot 4.7 (Compatibility renderer, single-threaded web export). "Sierra 
 The game opens on a briefing with the objectives and these controls; `Start`, `Enter` or `Space`
 begins. Sound starts after your first click or key press (browser rule).
 
-The map is authored as numbers in `tools/make_bridge_map.py`, which writes the land
-(`resources/missions/bridge_land.tres`) and the mission scene; `tools/map_preview.gd` draws the
-result from above. The soldier model and its uniforms come from
-`tools/make_soldier.py`; helmets, caps, rifles and bags are in `src/units/soldier_gear.gd`, and
-`tools/unit_preview.gd` renders the units close up.
+There are two missions, the bridge and the powder store; the briefing has a button for each, a
+win offers the next, and `?mission=powder_store` in the address starts on the second.
+
+Each mission's map is authored as tables of numbers in its own file (`tools/make_bridge_map.py`,
+`tools/make_powder_map.py`), which `tools/mapgen.py` turns into the land
+(`resources/missions/<name>_land.tres`) and the mission scene; `tools/map_preview.gd` draws the
+result from above. A new mission is a new table file and a line in `src/mission/missions.gd`. The
+soldier model and its uniforms come from `tools/make_soldier.py`; helmets, caps, rifles and bags
+are in `src/units/soldier_gear.gd`, and `tools/unit_preview.gd` renders the units close up.
 
 ## Run it locally
 

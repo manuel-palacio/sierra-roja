@@ -6,7 +6,6 @@ extends CanvasLayer
 
 const EDGE_MARGIN := 56.0
 const COLOR := Color(1.0, 0.86, 0.35)
-const BRIDGE_TEXT := "Bridge"
 const EXTRACTION_TEXT := "Extraction"
 ## The on-screen arrow hangs this far above the place, in pixels, and bobs by a few more.
 const HANG := 46.0
@@ -74,7 +73,7 @@ func _process(delta: float) -> void:
 	target = place.global_position
 	if _rules.bridge_destroyed:
 		target.y = _mission.ground_height(target.x, target.z)
-	var name_text := EXTRACTION_TEXT if _rules.bridge_destroyed else BRIDGE_TEXT
+	var name_text := EXTRACTION_TEXT if _rules.bridge_destroyed else _mission.target_name
 	var view := _camera.get_viewport().get_visible_rect().size
 	var p := placement(_camera.unproject_position(target), view)
 	on_screen = p["on_screen"]

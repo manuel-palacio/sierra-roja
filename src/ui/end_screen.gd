@@ -4,11 +4,15 @@ extends Control
 ## itself is whatever the HUD hands it.
 
 signal restart_pressed()
+signal next_pressed()
 
 var title_label: Label
 ## Why, under a failure.
 var reason_label: Label
 var restart_button: Button
+## Shown after a win when there is another mission to go on to.
+var next_button: Button
+var offer_next := false
 
 
 func _init() -> void:
@@ -41,11 +45,18 @@ func _init() -> void:
 	restart_button.process_mode = Node.PROCESS_MODE_ALWAYS
 	restart_button.pressed.connect(func() -> void: restart_pressed.emit())
 	box.add_child(restart_button)
+	next_button = Button.new()
+	next_button.text = "Next mission"
+	next_button.process_mode = Node.PROCESS_MODE_ALWAYS
+	next_button.visible = false
+	next_button.pressed.connect(func() -> void: next_pressed.emit())
+	box.add_child(next_button)
 
 
 func show_result(result: MissionRules.Result, reason := "") -> void:
 	reason_label.text = reason
 	reason_label.visible = reason != ""
+	next_button.visible = offer_next and result == MissionRules.Result.WON
 	match result:
 		MissionRules.Result.WON:
 			title_label.text = "Mission complete"

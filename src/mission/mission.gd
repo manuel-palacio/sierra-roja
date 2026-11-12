@@ -33,6 +33,19 @@ const STANDING_RAY_TOP := 100.0
 ## How far below the deck still counts as on the span.
 const SPAN_DEPTH := 1.5
 
+## What the player is told. The defaults are the bridge mission's.
+@export var title := "The bridge at dawn"
+## The thing to destroy, as the objective pointer names it.
+@export var target_name := "Bridge"
+@export var objective_text := "Destroy the bridge"
+@export var destroyed_text := "Bridge destroyed"
+## The briefing's lines.
+@export var objectives := PackedStringArray([
+	"Destroy the railway bridge with the Dynamiter's charge.",
+	"Get both of them to the extraction point on the far bank.",
+	"Lose either one and the mission fails.",
+])
+
 ## Ground-plane extent (x, z in metres) the camera may show.
 @export var bounds_rect := Rect2(-40.0, -30.0, 80.0, 60.0)
 
@@ -45,6 +58,8 @@ var nav_bakes := 0
 var _guard_routes: Dictionary = {}
 ## The deck while the bridge is down, out of the tree, for a load that wants it back.
 var _intact_deck: CSGBox3D
+## The same for a target that is a stack of stores (Nav/TargetStack).
+var _intact_stack: Node3D
 ## Only the newest deferred rebake runs.
 var _rebake_request := 0
 var _scenery_built := false
@@ -63,8 +78,11 @@ func _ready() -> void:
 
 
 func _notification(what: int) -> void:
-	if what == NOTIFICATION_PREDELETE and is_instance_valid(_intact_deck):
-		_intact_deck.free()
+	if what == NOTIFICATION_PREDELETE:
+		if is_instance_valid(_intact_deck):
+			_intact_deck.free()
+		if is_instance_valid(_intact_stack):
+			_intact_stack.free()
 
 
 func specialists() -> Array[Specialist]:
@@ -235,8 +253,11 @@ func spawn_specialists() -> Array[Specialist]:
 ## replace, are meshes only: no collision, and the navmesh bake never sees them. Safe to call twice.
 func break_bridge() -> void:
 	var region := _region()
+	if region == null:
+		return
+	_break_stack(region)
 	var deck := get_node_or_null("Nav/BridgeDeck")
-	if region == null or deck == null:
+	if deck == null:
 		return
 	region.remove_child(deck)
 	_intact_deck = deck
@@ -264,6 +285,59 @@ func break_bridge() -> void:
 	_rebake_next_frame()
 
 
+## A target that is a stack of stores goes up: the stack leaves the map (and the navmesh, at the
+## rebake) and a scorched, smoking patch is left where it stood. Safe to call twice.
+func _break_stack(region: NavigationRegion3D) -> void:
+	var stack := region.get_node_or_null("TargetStack") as Node3D
+	if stack == null:
+		return
+	region.remove_child(stack)
+	_intact_stack = stack
+	var wreck := Node3D.new()
+	wreck.name = "TargetWreck"
+	add_child(wreck)
+	var at := bridge_target().global_position if bridge_target() else Vector3.ZERO
+	wreck.global_position = Vector3(at.x, ground_height(at.x, at.z) + 0.03, at.z)
+	var scorch := MeshInstance3D.new()
+	var disc := CylinderMesh.new()
+	disc.top_radius = 3.2
+	disc.bottom_radius = 3.2
+	disc.height = 0.04
+	disc.radial_segments = 20
+	var soot := StandardMaterial3D.new()
+	soot.albedo_color = Color(0.06, 0.05, 0.05)
+	soot.roughness = 1.0
+	disc.material = soot
+	scorch.mesh = disc
+	wreck.add_child(scorch)
+	var smoke := CPUParticles3D.new()
+	smoke.amount = 26
+	smoke.lifetime = 5.0
+	smoke.direction = Vector3(0.2, 1.0, 0.1)
+	smoke.spread = 14.0
+	smoke.gravity = Vector3.ZERO
+	smoke.initial_velocity_min = 0.8
+	smoke.initial_velocity_max = 1.6
+	smoke.scale_amount_min = 0.8
+	smoke.scale_amount_max = 2.2
+	smoke.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
+	smoke.emission_sphere_radius = 1.4
+	var puff := SphereMesh.new()
+	puff.radius = 0.5
+	puff.height = 1.0
+	puff.radial_segments = 6
+	puff.rings = 3
+	var haze := StandardMaterial3D.new()
+	haze.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	haze.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	haze.albedo_color = Color(0.12, 0.12, 0.13, 0.5)
+	puff.material = haze
+	smoke.mesh = puff
+	smoke.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	wreck.add_child(smoke)
+	_rebake_next_frame()
+
+
 ## Whether a point is on the bridge's span over the gorge (not the abutments, not the gorge floor).
 func on_span(pos: Vector3) -> bool:
 	var deck := (_intact_deck if _intact_deck != null else get_node_or_null("Nav/BridgeDeck")) as CSGBox3D
@@ -276,7 +350,16 @@ func on_span(pos: Vector3) -> bool:
 ## Undoes break_bridge, for a load whose save has the bridge whole. Safe to call on a whole bridge.
 func repair_bridge() -> void:
 	var region := _region()
-	if region == null or _intact_deck == null:
+	if region == null:
+		return
+	if _intact_stack != null:
+		var wreck := get_node_or_null("TargetWreck")
+		if wreck != null:
+			wreck.free()
+		region.add_child(_intact_stack)
+		_intact_stack = null
+		_rebake_next_frame()
+	if _intact_deck == null:
 		return
 	var stubs := region.get_node_or_null("BridgeBroken")
 	if stubs != null:

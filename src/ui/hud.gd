@@ -6,7 +6,7 @@ extends CanvasLayer
 ## playing are the only widgets that take the mouse; everything else ignores it so clicks and edge
 ## scrolling reach the game.
 
-const OBJECTIVE_BRIDGE := "Objective: Destroy the bridge"
+const OBJECTIVE_PREFIX := "Objective: "
 const OBJECTIVE_ESCAPE := "Objective: Reach the extraction point"
 const MESSAGE_SECONDS := 3.0
 const REFRESH_INTERVAL := 0.1
@@ -78,7 +78,7 @@ func setup(input: PlayerInput, rules: MissionRules, specialists: Array[Specialis
 	input.order_refused.connect(show_message)
 	input.guard_clicked.connect(func(g: Guard) -> void: overlay.show_for(g))
 	rules.result_changed.connect(func(r: MissionRules.Result) -> void: end_screen.show_result(r, rules.loss_reason()))
-	rules.bridge_blown.connect(func() -> void: show_message("Bridge destroyed"))
+	rules.bridge_blown.connect(func() -> void: show_message(rules.mission().destroyed_text))
 	rules.charge_too_far.connect(func() -> void: show_message("The charge was too far from the bridge"))
 	end_screen.show_result(rules.result, rules.loss_reason())
 	refresh()
@@ -123,7 +123,8 @@ func refresh() -> void:
 	_refresh_fuse()
 	alarm_label.text = "Alarm: %d" % _rules.alarm_level
 	alarm_label.modulate = Color(1, 0.4, 0.3) if _rules.alarm_level > 0 else Color.WHITE
-	objective_label.text = OBJECTIVE_ESCAPE if _rules.bridge_destroyed else OBJECTIVE_BRIDGE
+	objective_label.text = OBJECTIVE_ESCAPE if _rules.bridge_destroyed \
+			else OBJECTIVE_PREFIX + _rules.mission().objective_text
 	objective_label.visible = _rules.result == MissionRules.Result.RUNNING
 	pause_box.visible = _input.is_paused()
 

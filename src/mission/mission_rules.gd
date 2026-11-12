@@ -61,6 +61,11 @@ func setup(mission: Mission, specialists: Array[Specialist]) -> void:
 	get_tree().node_added.connect(_on_node_added)
 
 
+## The mission these rules judge.
+func mission() -> Mission:
+	return _mission
+
+
 func at_extraction(s: Specialist) -> bool:
 	return s.alive and _in_extraction.has(s)
 

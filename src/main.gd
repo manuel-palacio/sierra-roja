@@ -2,7 +2,8 @@ extends Node3D
 ## Loads the mission, validates it and starts the camera. An invalid mission is a
 ## content bug: debug builds stop with exit code 1, release builds log the errors.
 
-const MISSION_SCENE := "res://scenes/missions/bridge.tscn"
+## Starts the game again; with another mission chosen in Missions, on that one. Tests replace it.
+var reload_action := func() -> void: get_tree().reload_current_scene()
 
 var mission: Mission
 var camera: IsoCamera
@@ -21,7 +22,7 @@ func _ready() -> void:
 		add_child(PerfProbe.new())
 	if ScreenProbe.enabled():
 		add_child(ScreenProbe.new())
-	mission = load(MISSION_SCENE).instantiate()
+	mission = load(Missions.path()).instantiate()
 	add_child(mission)
 	camera = IsoCamera.new()
 	camera.bounds = mission.bounds_rect
@@ -58,6 +59,8 @@ func _ready() -> void:
 	hud = (load("res://scenes/ui/hud.tscn") as PackedScene).instantiate() as Hud
 	add_child(hud)
 	hud.setup(player_input, rules, specialists, overlay)
+	hud.end_screen.offer_next = Missions.has_next()
+	hud.end_screen.next_pressed.connect(func() -> void: go_to_mission(Missions.current + 1))
 	add_child(_vignette())
 	var objective_marker := ObjectiveMarker.new()
 	add_child(objective_marker)
@@ -84,6 +87,8 @@ func _ready() -> void:
 func open_briefing() -> Briefing:
 	briefing = Briefing.new()
 	add_child(briefing)
+	briefing.set_mission(mission, Missions.current)
+	briefing.mission_chosen.connect(go_to_mission)
 	player_input.orders_enabled = false
 	camera.edge_scroll_enabled = false
 	briefing.started.connect(func() -> void:
@@ -93,6 +98,14 @@ func open_briefing() -> Briefing:
 		player_input.set_paused(false)
 		player_input.orders_enabled = rules.result == MissionRules.Result.RUNNING)
 	return briefing
+
+
+## Leaves this mission for another one of Missions.LIST, starting with its briefing.
+func go_to_mission(index: int) -> void:
+	Missions.choose(index)
+	Briefing.seen = false
+	get_tree().paused = false
+	reload_action.call()
 
 
 func _show_selection(_chosen: Specialist) -> void:
