@@ -154,3 +154,15 @@ func test_blocking_props_stop_feet_and_eyes() -> void:
 	var on_nav := NavigationServer3D.map_get_closest_point(mission.nav_map(), p)
 	assert_gt(Vector2(on_nav.x - p.x, on_nav.z - p.z).length(), 0.3, "no navmesh at the trunk")
 	assert_false(Perception.line_clear(mission, p + Vector3(-0.6, 1, 0), p + Vector3(0.6, 1, 0)), "the trunk blocks sight")
+
+
+func test_a_flat_colour_replaces_the_models_own_materials() -> void:
+	var s := _scatter()
+	s.flat_colour = Color(0.8, 0.66, 0.3)
+	await _built()
+	var holders := s.find_children("*", "MultiMeshInstance3D", true, false)
+	assert_gt(holders.size(), 0)
+	for node in holders:
+		var mesh := (node as MultiMeshInstance3D).multimesh.mesh
+		for i in mesh.get_surface_count():
+			assert_eq((mesh.surface_get_material(i) as BaseMaterial3D).albedo_color, Color(0.8, 0.66, 0.3, 1.0))

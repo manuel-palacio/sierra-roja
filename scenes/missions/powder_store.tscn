@@ -32,6 +32,7 @@
 [ext_resource type="PackedScene" path="res://assets/props/nature/grass_large.glb" id="m_grass_large"]
 [ext_resource type="PackedScene" path="res://assets/props/nature/grass_leafs.glb" id="m_grass_leafs"]
 [ext_resource type="PackedScene" path="res://assets/props/nature/grass_leafsLarge.glb" id="m_grass_leafsLarge"]
+[ext_resource type="PackedScene" path="res://assets/props/nature/crops_wheatStageB.glb" id="m_crops_wheatStageB"]
 [ext_resource type="PackedScene" path="res://assets/props/nature/flower_redA.glb" id="m_flower_redA"]
 [ext_resource type="PackedScene" path="res://assets/props/nature/flower_redB.glb" id="m_flower_redB"]
 [ext_resource type="PackedScene" path="res://assets/props/nature/flower_redC.glb" id="m_flower_redC"]
@@ -53,9 +54,8 @@
 [ext_resource type="Texture2D" path="res://assets/textures/steel.jpg" id="t_steel"]
 [ext_resource type="Texture2D" path="res://assets/textures/planks.jpg" id="t_planks"]
 [ext_resource type="Texture2D" path="res://assets/textures/stone_wall.jpg" id="t_stone_wall"]
-[ext_resource type="PackedScene" path="res://assets/props/survival/barrel.glb" id="m_barrel"]
-[ext_resource type="PackedScene" path="res://assets/props/survival/box.glb" id="m_box"]
-[ext_resource type="PackedScene" path="res://assets/props/survival/box-large.glb" id="m_box-large"]
+[ext_resource type="Texture2D" path="res://assets/textures/planks_normal.jpg" id="n_planks"]
+[ext_resource type="Texture2D" path="res://assets/textures/stone_wall_normal.jpg" id="n_stone_wall"]
 [ext_resource type="PackedScene" path="res://assets/props/survival/tent.glb" id="m_tent"]
 
 [sub_resource type="NavigationMesh" id="NavMesh_bridge"]
@@ -83,6 +83,8 @@ albedo_texture = ExtResource("t_planks")
 uv1_triplanar = true
 uv1_world_triplanar = true
 uv1_scale = Vector3(0.8, 0.8, 0.8)
+normal_enabled = true
+normal_texture = ExtResource("n_planks")
 roughness = 1.0
 
 [sub_resource type="StandardMaterial3D" id="m_stone"]
@@ -91,6 +93,8 @@ albedo_texture = ExtResource("t_stone_wall")
 uv1_triplanar = true
 uv1_world_triplanar = true
 uv1_scale = Vector3(0.4, 0.4, 0.4)
+normal_enabled = true
+normal_texture = ExtResource("n_stone_wall")
 roughness = 1.0
 
 [sub_resource type="StandardMaterial3D" id="m_rail"]
@@ -107,6 +111,14 @@ roughness = 1.0
 
 [sub_resource type="StandardMaterial3D" id="m_barrier"]
 albedo_color = Color(0.8, 0.2, 0.15, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="m_drum"]
+albedo_color = Color(0.45, 0.55, 0.42, 1)
+albedo_texture = ExtResource("t_steel")
+uv1_triplanar = true
+uv1_world_triplanar = true
+uv1_scale = Vector3(0.9, 0.9, 0.9)
 roughness = 1.0
 
 [sub_resource type="Curve3D" id="Curve_1"]
@@ -154,19 +166,47 @@ point_count = 2
 [sub_resource type="BoxShape3D" id="Box_prop1"]
 size = Vector3(1.0, 1.4, 1.0)
 
+[sub_resource type="CylinderMesh" id="Mesh_prop1"]
+material = SubResource("m_drum")
+top_radius = 0.5
+bottom_radius = 0.5
+height = 1.4
+radial_segments = 12
+rings = 1
+
 [sub_resource type="BoxShape3D" id="Box_prop2"]
 size = Vector3(1.0, 1.4, 1.0)
+
+[sub_resource type="CylinderMesh" id="Mesh_prop2"]
+material = SubResource("m_drum")
+top_radius = 0.5
+bottom_radius = 0.5
+height = 1.4
+radial_segments = 12
+rings = 1
 
 [sub_resource type="BoxShape3D" id="Box_prop3"]
 size = Vector3(1.3, 1.1, 2.1)
 
+[sub_resource type="BoxMesh" id="Mesh_prop3"]
+material = SubResource("m_crate")
+size = Vector3(1.3, 1.1, 2.1)
+
 [sub_resource type="BoxShape3D" id="Box_prop4"]
+size = Vector3(1.1, 1.1, 1.1)
+
+[sub_resource type="BoxMesh" id="Mesh_prop4"]
+material = SubResource("m_crate")
 size = Vector3(1.1, 1.1, 1.1)
 
 [sub_resource type="BoxShape3D" id="Box_prop5"]
 size = Vector3(2.5, 1.9, 2.5)
 
 [sub_resource type="BoxShape3D" id="Box_prop6"]
+size = Vector3(1.3, 1.1, 2.1)
+
+[sub_resource type="BoxMesh" id="Mesh_prop6"]
+material = SubResource("m_crate")
 size = Vector3(1.3, 1.1, 2.1)
 
 [sub_resource type="BoxShape3D" id="Box_extraction"]
@@ -457,6 +497,19 @@ scale_range = Vector2(2.0, 3.2)
 keep_clear = 0.9
 clear_points = PackedVector2Array(5, 16, 5, 19, 24, 0, -13, -7.5, 44, 12, -44, 32, -44, 35, 30, 2, -20, 28)
 
+[node name="Wheat" type="Node3D" parent="Scenery"]
+script = ExtResource("7_scatter")
+models = Array[PackedScene]([ExtResource("m_crops_wheatStageB")])
+area = PackedVector2Array(-24, 28.5, -6, 28.5, -6, 38, -24, 38)
+count = 420
+seed = 42
+min_spacing = 0.55
+max_slope_deg = 30.0
+scale_range = Vector2(2.4, 3.2)
+keep_clear = 0.3
+clear_points = PackedVector2Array(5, 16, 5, 19, 24, 0, -13, -7.5, 44, 12, -44, 32, -44, 35, 30, 2, -20, 28)
+flat_colour = Color(0.8, 0.66, 0.3, 1)
+
 [node name="Poppies" type="Node3D" parent="Scenery"]
 script = ExtResource("7_scatter")
 models = Array[PackedScene]([ExtResource("m_flower_redA"), ExtResource("m_flower_redB"), ExtResource("m_flower_redC")])
@@ -517,23 +570,28 @@ scale_range = Vector2(1.5, 2.6)
 keep_clear = 1.0
 clear_points = PackedVector2Array(5, 16, 5, 19, 24, 0, -13, -7.5, 44, 12, -44, 32, -44, 35, 30, 2, -20, 28)
 
-[node name="Prop1" parent="Scenery" instance=ExtResource("m_barrel")]
-transform = Transform3D(4.2000, 0, -0.0000, 0, 4.2, 0, 0.0000, 0, 4.2000, 16.2, -1.0, -3.6)
+[node name="Prop1" type="MeshInstance3D" parent="Scenery"]
+transform = Transform3D(1.0000, 0, -0.0000, 0, 1, 0, 0.0000, 0, 1.0000, 16.2, -0.4, -3.6)
+mesh = SubResource("Mesh_prop1")
 
-[node name="Prop2" parent="Scenery" instance=ExtResource("m_barrel")]
-transform = Transform3D(2.2693, 0, -3.5342, 0, 4.2, 0, 3.5342, 0, 2.2693, 17.4, -1.0, -3.4)
+[node name="Prop2" type="MeshInstance3D" parent="Scenery"]
+transform = Transform3D(0.5403, 0, -0.8415, 0, 1, 0, 0.8415, 0, 0.5403, 17.4, -0.4, -3.4)
+mesh = SubResource("Mesh_prop2")
 
-[node name="Prop3" parent="Scenery" instance=ExtResource("m_box-large")]
-transform = Transform3D(4.3123, 0, -0.8741, 0, 4.4, 0, 0.8741, 0, 4.3123, -8.0, -1.0, 10.2)
+[node name="Prop3" type="MeshInstance3D" parent="Scenery"]
+transform = Transform3D(0.9801, 0, -0.1987, 0, 1, 0, 0.1987, 0, 0.9801, -8.0, -0.5499999999999999, 10.2)
+mesh = SubResource("Mesh_prop3")
 
-[node name="Prop4" parent="Scenery" instance=ExtResource("m_box")]
-transform = Transform3D(3.6315, 0, -2.4844, 0, 4.4, 0, 2.4844, 0, 3.6315, 12.6, -1.0, 10.9)
+[node name="Prop4" type="MeshInstance3D" parent="Scenery"]
+transform = Transform3D(0.8253, 0, -0.5646, 0, 1, 0, 0.5646, 0, 0.8253, 12.6, -0.5499999999999999, 10.9)
+mesh = SubResource("Mesh_prop4")
 
 [node name="Prop5" parent="Scenery" instance=ExtResource("m_tent")]
 transform = Transform3D(-2.9425, 0, -4.0425, 0, 5.0, 0, 4.0425, 0, -2.9425, 47.6, -1.0, 15.0)
 
-[node name="Prop6" parent="Scenery" instance=ExtResource("m_box-large")]
-transform = Transform3D(2.7351, 0, -3.4466, 0, 4.4, 0, 3.4466, 0, 2.7351, 47.4, -1.0, 9.0)
+[node name="Prop6" type="MeshInstance3D" parent="Scenery"]
+transform = Transform3D(0.6216, 0, -0.7833, 0, 1, 0, 0.7833, 0, 0.6216, 47.4, -0.5499999999999999, 9.0)
+mesh = SubResource("Mesh_prop6")
 
 [node name="Lamp1" type="OmniLight3D" parent="Scenery"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.2, 2.2, 13.6)

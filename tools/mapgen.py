@@ -17,6 +17,10 @@ ADD, SET = 0, 1
 NATURE = "res://assets/props/nature/"
 SURVIVAL = "res://assets/props/survival/"
 LAMP_HEIGHT = 3.2
+# Scatters drawn in one flat colour, by name.
+FLAT_COLOURS = {"Wheat": (0.80, 0.66, 0.30)}
+# Props drawn as plain textured shapes instead of kit models.
+PLAIN_SHAPES = ("barrel", "box", "box-large")
 
 DEFAULTS = dict(SEED=7, NOISE=0.45, NAV_FLOOR=-6, BRIDGE=False, TARGET=(0, 0, 0), TARGET_STACK=[], WALLS=[], BUILDINGS=[],
                 CRATES=[], SCATTERS=[], CLEAR=[], PLACED=[], LAMPS=[], TEXTS={})
@@ -86,7 +90,9 @@ def write_scene(m):
                 o.append(f'[ext_resource type="PackedScene" path="{NATURE}{model}.glb" id="m_{model}"]')
     for texture in ("steel", "planks", "stone_wall"):
         o.append(f'[ext_resource type="Texture2D" path="res://assets/textures/{texture}.jpg" id="t_{texture}"]')
-    for model in sorted({entry[0] for entry in PLACED}):
+    for texture in ("planks", "stone_wall"):
+        o.append(f'[ext_resource type="Texture2D" path="res://assets/textures/{texture}_normal.jpg" id="n_{texture}"]')
+    for model in sorted({entry[0] for entry in PLACED} - set(PLAIN_SHAPES)):
         model_ids[model] = f"m_{model}"
         o.append(f'[ext_resource type="PackedScene" path="{SURVIVAL}{model}.glb" id="m_{model}"]')
     o += ["",
@@ -102,12 +108,14 @@ def write_scene(m):
     materials = {"m_steel": ((0.55, 0.57, 0.62), "steel", 0.5), "m_crate": ((0.95, 0.85, 0.72), "planks", 0.8),
                  "m_stone": ((0.9, 0.86, 0.8), "stone_wall", 0.4), "m_rail": ((0.2, 0.2, 0.22), None, 0),
                  "m_pad": ((0.2, 0.7, 0.3), None, 0), "m_post": ((0.12, 0.12, 0.13), None, 0),
-                 "m_barrier": ((0.8, 0.2, 0.15), None, 0)}
+                 "m_barrier": ((0.8, 0.2, 0.15), None, 0), "m_drum": ((0.45, 0.55, 0.42), "steel", 0.9)}
     for name, ((r, g, b), texture, tiling) in materials.items():
         o += [f'[sub_resource type="StandardMaterial3D" id="{name}"]', f"albedo_color = Color({r}, {g}, {b}, 1)"]
         if texture:
             o += [f'albedo_texture = ExtResource("t_{texture}")', "uv1_triplanar = true", "uv1_world_triplanar = true",
                   f"uv1_scale = Vector3({tiling}, {tiling}, {tiling})"]
+            if texture in ("planks", "stone_wall"):
+                o += ["normal_enabled = true", f'normal_texture = ExtResource("n_{texture}")']
         o += ["roughness = 1.0", ""]
     for i, (_, points) in enumerate(GUARDS):
         flat = ", ".join(f"0, 0, 0, 0, 0, 0, {x}, 0.0, {z}" for x, z in points)
@@ -118,6 +126,13 @@ def write_scene(m):
     for i, entry in enumerate(PLACED):
         if entry[6]:
             o += [f'[sub_resource type="BoxShape3D" id="Box_prop{i + 1}"]', "size = Vector3(%s, %s, %s)" % entry[6], ""]
+        if entry[0] == "barrel":
+            o += [f'[sub_resource type="CylinderMesh" id="Mesh_prop{i + 1}"]', 'material = SubResource("m_drum")',
+                  f"top_radius = {entry[6][0] / 2.0}", f"bottom_radius = {entry[6][0] / 2.0}", f"height = {entry[6][1]}",
+                  "radial_segments = 12", "rings = 1", ""]
+        elif entry[0] in PLAIN_SHAPES:
+            o += [f'[sub_resource type="BoxMesh" id="Mesh_prop{i + 1}"]', 'material = SubResource("m_crate")',
+                  "size = Vector3(%s, %s, %s)" % entry[6], ""]
     o += ['[sub_resource type="BoxShape3D" id="Box_extraction"]', "size = Vector3(6, 3, 6)", "",
           '[sub_resource type="ShaderMaterial" id="m_water"]', 'shader = ExtResource("9_water")', "",
           '[sub_resource type="PlaneMesh" id="Mesh_water"]', 'material = SubResource("m_water")', "size = Vector2(44, 260)", "",
@@ -175,6 +190,8 @@ def write_scene(m):
                  f"clear_points = {v2(CLEAR)}"]
         if blocker:
             lines.append("blocker_size = Vector3(%s, %s, %s)" % blocker)
+        if name in FLAT_COLOURS:
+            lines.append("flat_colour = Color(%s, %s, %s, 1)" % FLAT_COLOURS[name])
         return lines + [""]
 
     for entry in SCATTERS:
@@ -214,7 +231,15 @@ def write_scene(m):
               'material = SubResource("m_barrier")', "",
               '[node name="BarrierPost" type="CSGBox3D" parent="Scenery"]', at(-32.8, PLAIN + 0.95, 8.2), "size = Vector3(0.3, 1.9, 0.3)",
               'material = SubResource("m_post")', ""]
-    for i, (model, x, ground, z, scale, turn, _solid) in enumerate(PLACED):
+    for i, (model, x, ground, z, scale, turn, solid) in enumerate(PLACED):
+        if model in PLAIN_SHAPES:
+            # Boxes and barrels are made here, planked and rusted like everything else built,
+            # in the size of the box that makes them solid.
+            c, sn = math.cos(turn), math.sin(turn)
+            o += [f'[node name="Prop{i + 1}" type="MeshInstance3D" parent="Scenery"]',
+                  f"transform = Transform3D({c:.4f}, 0, {-sn:.4f}, 0, 1, 0, {sn:.4f}, 0, {c:.4f}, {x}, {ground + solid[1] / 2.0 - 0.1}, {z})",
+                  f'mesh = SubResource("Mesh_prop{i + 1}")', ""]
+            continue
         c, sn = math.cos(turn) * scale, math.sin(turn) * scale
         o += [f'[node name="Prop{i + 1}" parent="Scenery" instance=ExtResource("{model_ids[model]}")]',
               f"transform = Transform3D({c:.4f}, 0, {-sn:.4f}, 0, {scale}, 0, {sn:.4f}, 0, {c:.4f}, {x}, {ground}, {z})", ""]

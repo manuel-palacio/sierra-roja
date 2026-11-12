@@ -10,9 +10,20 @@ const TEXTURES := {
 	&"roof": preload("res://assets/textures/roof_tiles.jpg"),
 	&"planks": preload("res://assets/textures/planks.jpg"),
 	&"steel": preload("res://assets/textures/steel.jpg"),
+	&"rock": preload("res://assets/textures/rock.jpg"),
+	&"bark": preload("res://assets/textures/bark.jpg"),
+	&"leaves": preload("res://assets/textures/grass.jpg"),
+}
+## The relief of the ones that have any.
+const NORMALS := {
+	&"stone": preload("res://assets/textures/stone_wall_normal.jpg"),
+	&"roof": preload("res://assets/textures/roof_tiles_normal.jpg"),
+	&"planks": preload("res://assets/textures/planks_normal.jpg"),
+	&"rock": preload("res://assets/textures/rock_normal.jpg"),
 }
 ## Texture repeats per metre.
-const TILING := { &"stone": 0.45, &"plaster": 0.3, &"roof": 0.55, &"planks": 0.7, &"steel": 0.5 }
+const TILING := { &"stone": 0.45, &"plaster": 0.3, &"roof": 0.55, &"planks": 0.7, &"steel": 0.5, &"rock": 0.3,
+		&"bark": 0.8, &"leaves": 0.55 }
 
 static var _made: Dictionary = {}
 
@@ -29,5 +40,9 @@ static func material(kind: StringName, tint := Color.WHITE) -> StandardMaterial3
 		m.uv1_scale = Vector3.ONE * float(TILING[kind])
 		m.roughness = 1.0
 		m.metallic_specular = 0.1
+		if NORMALS.has(kind):
+			m.normal_enabled = true
+			m.normal_texture = NORMALS[kind]
+			m.normal_scale = 1.2
 		_made[key] = m
 	return _made[key]

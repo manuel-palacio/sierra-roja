@@ -26,6 +26,18 @@ const PALETTE := {
 	"colorYellow": Color(0.93, 0.76, 0.14),
 	"colorPurple": Color(0.52, 0.32, 0.68),
 	"colorWhite": Color(0.92, 0.90, 0.84),
+	"wheat": Color(0.80, 0.66, 0.30),
+}
+## Materials that carry a texture as well, with the tint to lay over it: rock for stones, bark
+## for trunks, a mottled green for foliage. The rest are flat colours from PALETTE.
+const TEXTURED := {
+	"dirt": [&"rock", Color(0.95, 0.90, 0.86)],
+	"_defaultMat": [&"rock", Color(1.0, 0.96, 0.92)],
+	"stone": [&"rock", Color(0.95, 0.92, 0.90)],
+	"woodBarkDark": [&"bark", Color(0.75, 0.68, 0.62)],
+	"woodBark": [&"bark", Color(0.95, 0.88, 0.80)],
+	"leafsDark": [&"leaves", Color(0.20, 0.46, 0.19)],
+	"leafsGreen": [&"leaves", Color(0.36, 0.58, 0.22)],
 }
 
 @export var models: Array[PackedScene] = []
@@ -41,6 +53,9 @@ const PALETTE := {
 @export var keep_clear := 2.5
 ## More places to keep clear of: trails and hiding spots the map wants open.
 @export var clear_points := PackedVector2Array()
+## With any opacity: every surface of every copy is this one flat colour, whatever the model's
+## own materials are (a field of wheat).
+@export var flat_colour := Color(0, 0, 0, 0)
 ## Non-zero: every copy blocks with a box this size, standing on the ground.
 @export var blocker_size := Vector3.ZERO
 
@@ -193,7 +208,7 @@ func _add_multimeshes(model: int) -> void:
 			walker = walker.get_parent()
 		var multi := MultiMesh.new()
 		multi.transform_format = MultiMesh.TRANSFORM_3D
-		multi.mesh = in_palette(source.mesh)
+		multi.mesh = _in_one_colour(source.mesh) if flat_colour.a > 0.0 else in_palette(source.mesh)
 		multi.instance_count = places.size()
 		for i in places.size():
 			multi.set_instance_transform(i, places[i] * inner)
@@ -211,13 +226,28 @@ static func in_palette(mesh: Mesh) -> Mesh:
 		if material == null or not PALETTE.has(material.resource_name):
 			continue
 		if not _recoloured.has(material.resource_name):
-			var twin := material.duplicate() as BaseMaterial3D
-			twin.albedo_color = PALETTE[material.resource_name]
-			twin.roughness = 1.0
-			twin.metallic = 0.0
-			twin.metallic_specular = 0.1
+			var twin: BaseMaterial3D
+			if TEXTURED.has(material.resource_name):
+				var texture: Array = TEXTURED[material.resource_name]
+				twin = Surfaces.material(texture[0], texture[1])
+			else:
+				twin = material.duplicate() as BaseMaterial3D
+				twin.albedo_color = PALETTE[material.resource_name]
+				twin.roughness = 1.0
+				twin.metallic = 0.0
+				twin.metallic_specular = 0.1
 			_recoloured[material.resource_name] = twin
 		if copy == null:
 			copy = mesh.duplicate()
 		copy.surface_set_material(i, _recoloured[material.resource_name])
 	return copy if copy != null else mesh
+
+
+func _in_one_colour(mesh: Mesh) -> Mesh:
+	var material := StandardMaterial3D.new()
+	material.albedo_color = Color(flat_colour, 1.0)
+	material.roughness = 1.0
+	var copy: Mesh = mesh.duplicate()
+	for i in copy.get_surface_count():
+		copy.surface_set_material(i, material)
+	return copy

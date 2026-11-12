@@ -17,6 +17,10 @@ const TEXTURES := {
 	"road": preload("res://assets/textures/road.jpg"),
 	"ballast": preload("res://assets/textures/ballast.jpg"),
 	"rock": preload("res://assets/textures/rock.jpg"),
+	"grass_normal": preload("res://assets/textures/grass_normal.jpg"),
+	"earth_normal": preload("res://assets/textures/earth_normal.jpg"),
+	"road_normal": preload("res://assets/textures/road_normal.jpg"),
+	"rock_normal": preload("res://assets/textures/rock_normal.jpg"),
 }
 ## What the land dissolves into past the edge of the map: the morning haze. main.tscn's
 ## background is the same colour.

@@ -99,6 +99,7 @@ SCATTERS = [
     ("FlatRocks", True, ["rock_largeA", "rock_largeB", "rock_largeC"], WHOLE_MAP, 20, 16, 7.0, (2.2, 2.8), 3.5, (1.8, 0.9, 1.8), 28),
     ("Bushes", False, ["plant_bush", "plant_bushLarge", "plant_bushSmall", "plant_bushDetailed"], WHOLE_MAP, 190, 17, 2.2, (2.4, 3.8), 1.5, None, 34),
     ("Grass", False, ["grass", "grass_large", "grass_leafs", "grass_leafsLarge"], WHOLE_MAP, 1000, 18, 0.7, (2.0, 3.2), 0.9, None, 36),
+    ("Wheat", False, ["crops_wheatStageB"], [(-23.2, 18.8), (-14.2, 18.8), (-14.2, 25.2), (-23.2, 25.2)], 260, 25, 0.5, (2.4, 3.2), 0.3, None, 30),
     ("Poppies", False, ["flower_redA", "flower_redB", "flower_redC"], WHOLE_MAP, 300, 21, 0.6, (1.3, 2.0), 1.0, None, 30),
     ("Broom", False, ["flower_yellowA", "flower_yellowB", "flower_yellowC"], WHOLE_MAP, 170, 22, 0.8, (1.3, 2.1), 1.0, None, 34),
     ("Thistles", False, ["flower_purpleA", "flower_purpleB"], WHOLE_MAP, 80, 23, 1.0, (1.3, 2.0), 1.0, None, 34),
