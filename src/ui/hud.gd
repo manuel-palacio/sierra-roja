@@ -8,6 +8,8 @@ extends CanvasLayer
 
 const OBJECTIVE_PREFIX := "Objective: "
 const OBJECTIVE_ESCAPE := "Objective: Reach the extraction point"
+const ABILITY_BUTTON_SIZE := Vector2(74, 86)
+const PORTRAIT_SIZE := Vector2(76, 76)
 const MESSAGE_SECONDS := 3.0
 const REFRESH_INTERVAL := 0.1
 
@@ -118,7 +120,10 @@ func refresh() -> void:
 		health_bars[i].max_value = s.stats.max_hp
 		health_bars[i].value = s.hp
 		stance_labels[i].visible = s.stance == Unit.Stance.CRAWLING
-		_portraits[i].modulate = Color.WHITE if s in _input.selected_units() else Color(1, 1, 1, 0.6)
+		var chosen := s in _input.selected_units()
+		_portraits[i].modulate = Color.WHITE if chosen else Color(1, 1, 1, 0.62)
+		_portraits[i].add_theme_stylebox_override("panel", UiStyle.box(UiStyle.PANEL,
+				UiStyle.BRASS_BRIGHT if chosen else UiStyle.BRASS, 3 if chosen else 2))
 	_refresh_abilities()
 	_refresh_fuse()
 	alarm_label.text = "Alarm: %d" % _rules.alarm_level
@@ -138,9 +143,15 @@ func _refresh_abilities() -> void:
 		ability_buttons.clear()
 		if s != null:
 			for id in s.abilities:
-				var button := Button.new()
+				var button := UiStyle.button(Button.new(), 15)
 				button.process_mode = Node.PROCESS_MODE_ALWAYS
 				button.focus_mode = Control.FOCUS_NONE
+				button.icon = UiStyle.ICONS.get(StringName(id))
+				button.expand_icon = true
+				button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+				button.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
+				button.custom_minimum_size = ABILITY_BUTTON_SIZE
+				button.tooltip_text = LABELS.get(StringName(id), id)
 				button.pressed.connect(func() -> void: _input.arm_ability(StringName(id)))
 				_ability_row.add_child(button)
 				ability_buttons[id] = button
@@ -149,12 +160,16 @@ func _refresh_abilities() -> void:
 	for id in ability_buttons:
 		var ability: Ability = _bar_owner.abilities[id]
 		var button: Button = ability_buttons[id]
-		var text := "%s %s" % [KEYS.get(StringName(id), "?"), LABELS.get(StringName(id), id)]
+		# Under the picture: the key, and how many are left where that is counted.
+		var text: String = KEYS.get(StringName(id), "?")
 		if ability.ammo >= 0:
-			text += " x%d" % ability.ammo
+			text += "  x%d" % ability.ammo
 		button.text = text
 		button.disabled = ability.ammo == 0
-		button.modulate = Color(1, 0.9, 0.4) if _input.armed_ability == StringName(id) else Color.WHITE
+		var armed := _input.armed_ability == StringName(id)
+		button.add_theme_stylebox_override("normal", UiStyle.box(UiStyle.PANEL_DEEP if armed else UiStyle.PANEL,
+				UiStyle.BRASS_BRIGHT if armed else UiStyle.BRASS, 3 if armed else 2, 6))
+		button.modulate = Color(1, 0.95, 0.75) if armed else Color.WHITE
 
 
 func _refresh_fuse() -> void:
@@ -216,6 +231,15 @@ func _build_top() -> void:
 	var row := _control(HBoxContainer.new())
 	row.add_theme_constant_override("separation", 16)
 	top_bar.add_child(row)
+	# Alarm, objective and fuse sit together on a framed plate; messages run on beside it.
+	var plate := _control(PanelContainer.new()) as PanelContainer
+	plate.add_theme_stylebox_override("panel", UiStyle.box(UiStyle.PANEL, UiStyle.BRASS, 2, 7))
+	plate.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	row.add_child(plate)
+	var message_row := row
+	row = _control(HBoxContainer.new())
+	row.add_theme_constant_override("separation", 18)
+	plate.add_child(row)
 	alarm_label = _label("Alarm: 0")
 	row.add_child(alarm_label)
 	objective_label = _label("")
@@ -229,7 +253,7 @@ func _build_top() -> void:
 	message_label.visible = false
 	message_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	message_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	row.add_child(message_label)
+	message_row.add_child(message_label)
 
 
 func _build_bottom() -> void:
@@ -253,18 +277,32 @@ func _build_portraits() -> void:
 	var row := bottom_bar.get_child(0) as HBoxContainer
 	for i in _specialists.size():
 		var s := _specialists[i]
+		var who := &"dynamiter" if s.has_ability("charge") else &"marksman"
 		var panel := _control(PanelContainer.new()) as PanelContainer
+		panel.add_theme_stylebox_override("panel", UiStyle.box())
+		var across := _control(HBoxContainer.new())
+		across.add_theme_constant_override("separation", 10)
+		panel.add_child(across)
+		var picture := TextureRect.new()
+		picture.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		picture.texture = UiStyle.PORTRAITS[who]
+		picture.custom_minimum_size = PORTRAIT_SIZE
+		picture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		picture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		across.add_child(picture)
 		var box := _control(VBoxContainer.new())
-		panel.add_child(box)
-		box.add_child(_label("%d  %s" % [i + 1, "Dynamiter" if s.has_ability("charge") else "Marksman"]))
+		box.add_theme_constant_override("separation", 5)
+		across.add_child(box)
+		box.add_child(_label("%d  %s" % [i + 1, "Dynamiter" if who == &"dynamiter" else "Marksman"]))
 		var bar := ProgressBar.new()
 		bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		bar.custom_minimum_size = Vector2(140, 14)
+		bar.custom_minimum_size = Vector2(132, 12)
 		bar.show_percentage = false
-		bar.add_theme_stylebox_override("fill", _flat(Color(0.3, 0.8, 0.35)))
-		bar.add_theme_stylebox_override("background", _flat(Color(0.1, 0.1, 0.1, 0.8)))
+		bar.add_theme_stylebox_override("fill", _flat(Color(0.42, 0.66, 0.28)))
+		bar.add_theme_stylebox_override("background", UiStyle.box(Color(0.05, 0.05, 0.04, 0.9), Color(UiStyle.BRASS, 0.6), 1, 0))
 		box.add_child(bar)
 		var stance := _label("Crawling")
+		UiStyle.label(stance, 15, UiStyle.BRASS_BRIGHT)
 		stance.visible = false
 		box.add_child(stance)
 		stance_labels.append(stance)
@@ -288,7 +326,7 @@ func _build_center() -> void:
 	box.add_child(paused)
 	box.add_child(_label("Space to resume"))
 	(box.get_child(1) as Label).horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	restart_button = Button.new()
+	restart_button = UiStyle.button(Button.new(), 18)
 	restart_button.text = "Restart"
 	restart_button.process_mode = Node.PROCESS_MODE_ALWAYS
 	restart_button.focus_mode = Control.FOCUS_NONE
@@ -311,7 +349,5 @@ static func _label(text: String) -> Label:
 	var l := Label.new()
 	l.text = text
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	l.add_theme_font_size_override("font_size", 20)
-	l.add_theme_color_override("font_outline_color", Color.BLACK)
-	l.add_theme_constant_override("outline_size", 6)
+	UiStyle.label(l, 19)
 	return l

@@ -72,12 +72,7 @@ func _init() -> void:
 	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(center)
 	var panel := PanelContainer.new()
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.07, 0.08, 0.11, 0.94)
-	style.border_color = Color(0.55, 0.16, 0.12)
-	style.set_border_width_all(2)
-	style.set_corner_radius_all(6)
-	style.set_content_margin_all(20)
+	var style := UiStyle.box(UiStyle.PANEL_DEEP, UiStyle.BRASS, 2, 20)
 	panel.add_theme_stylebox_override("panel", style)
 	center.add_child(panel)
 	var column := VBoxContainer.new()
@@ -95,9 +90,8 @@ func _init() -> void:
 	missions.add_theme_constant_override("separation", 8)
 	column.add_child(missions)
 	for i in Missions.LIST.size():
-		var button := Button.new()
+		var button := UiStyle.button(Button.new(), 13)
 		button.text = "%d. %s" % [i + 1, Missions.LIST[i]["name"]]
-		button.add_theme_font_size_override("font_size", 13)
 		button.disabled = i == Missions.current
 		button.pressed.connect(func() -> void: mission_chosen.emit(i))
 		missions.add_child(button)
@@ -116,9 +110,8 @@ func _init() -> void:
 	for row in CONTROLS:
 		grid.add_child(_text(row[0], 14, Color(1.0, 0.85, 0.55)))
 		grid.add_child(_text(row[1], 14, Color(0.86, 0.88, 0.92)))
-	start_button = Button.new()
+	start_button = UiStyle.button(Button.new(), 22)
 	start_button.text = "Start"
-	start_button.add_theme_font_size_override("font_size", 22)
 	start_button.custom_minimum_size = Vector2(220, 42)
 	start_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	start_button.pressed.connect(begin)
@@ -172,6 +165,6 @@ func begin() -> void:
 static func _text(text: String, size: int, color: Color) -> Label:
 	var label := Label.new()
 	label.text = text
-	label.add_theme_font_size_override("font_size", size)
-	label.add_theme_color_override("font_color", color)
+	UiStyle.label(label, size, color)
+	label.add_theme_constant_override("outline_size", 0)
 	return label

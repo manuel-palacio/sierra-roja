@@ -317,3 +317,46 @@ func test_objective_line_goes_when_the_mission_ends() -> void:
 	rules.result = MissionRules.Result.RUNNING
 	hud.refresh()
 	assert_true(hud.objective_label.visible)
+
+
+# --- Pictures on the panels ---
+
+func test_each_specialist_has_a_portrait_and_the_selected_one_a_bright_frame() -> void:
+	hud.refresh()
+	assert_eq(hud._portraits.size(), 2)
+	var pictures := {}
+	for panel in hud._portraits:
+		var found := panel.find_children("*", "TextureRect", true, false)
+		assert_eq(found.size(), 1)
+		pictures[(found[0] as TextureRect).texture] = true
+	assert_eq(pictures.size(), 2, "a different face for each")
+	var frame := func(i: int) -> Color:
+		return (hud._portraits[i].get_theme_stylebox("panel") as StyleBoxFlat).border_color
+	assert_eq(frame.call(0), UiStyle.BRASS_BRIGHT, "the Dynamiter is selected")
+	assert_eq(frame.call(1), UiStyle.BRASS)
+	input.select(specs[1])
+	hud.refresh()
+	assert_eq(frame.call(1), UiStyle.BRASS_BRIGHT)
+	assert_eq(frame.call(0), UiStyle.BRASS)
+
+
+func test_ability_buttons_show_a_picture_the_key_and_what_is_left() -> void:
+	hud.refresh()
+	for id in ["knife", "charge", "pistol", "carry"]:
+		var button := hud.ability_buttons[id] as Button
+		assert_eq(button.icon, UiStyle.ICONS[StringName(id)], id)
+		assert_eq(button.tooltip_text, Hud.LABELS[StringName(id)], "its name on hover")
+	assert_eq((hud.ability_buttons["knife"] as Button).text, "Q", "the knife is not counted")
+	assert_eq((hud.ability_buttons["charge"] as Button).text, "E  x2")
+	input.select(specs[1])
+	hud.refresh()
+	assert_eq((hud.ability_buttons["rifle"] as Button).icon, UiStyle.ICONS[&"rifle"])
+
+
+func test_an_armed_ability_has_a_bright_frame() -> void:
+	hud.refresh()
+	var knife := hud.ability_buttons["knife"] as Button
+	assert_eq((knife.get_theme_stylebox("normal") as StyleBoxFlat).border_color, UiStyle.BRASS)
+	input.arm_ability(&"knife")
+	hud.refresh()
+	assert_eq((knife.get_theme_stylebox("normal") as StyleBoxFlat).border_color, UiStyle.BRASS_BRIGHT)

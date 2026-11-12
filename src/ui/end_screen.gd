@@ -32,20 +32,20 @@ func _init() -> void:
 	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	center.add_child(box)
 	title_label = Label.new()
-	title_label.add_theme_font_size_override("font_size", 48)
+	UiStyle.label(title_label, 48, UiStyle.BRASS_BRIGHT)
 	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(title_label)
 	reason_label = Label.new()
-	reason_label.add_theme_font_size_override("font_size", 20)
+	UiStyle.label(reason_label, 20)
 	reason_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	reason_label.visible = false
 	box.add_child(reason_label)
-	restart_button = Button.new()
+	restart_button = UiStyle.button(Button.new(), 20)
 	restart_button.text = "Restart"
 	restart_button.process_mode = Node.PROCESS_MODE_ALWAYS
 	restart_button.pressed.connect(func() -> void: restart_pressed.emit())
 	box.add_child(restart_button)
-	next_button = Button.new()
+	next_button = UiStyle.button(Button.new(), 20)
 	next_button.text = "Next mission"
 	next_button.process_mode = Node.PROCESS_MODE_ALWAYS
 	next_button.visible = false
