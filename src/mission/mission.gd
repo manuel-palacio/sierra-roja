@@ -182,6 +182,8 @@ func build_scenery() -> void:
 	for node in find_children("*", "StaticBody3D", true, false):
 		if node is StoneWall or node is Building:
 			node.build(ground)
+		elif node.has_method("stand"):
+			node.stand(ground)
 	# Scatters go last: they keep clear of the walls and buildings.
 	for node in find_children("*", "Node3D", true, false):
 		if node is PropScatter:

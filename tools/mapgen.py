@@ -23,7 +23,7 @@ FLAT_COLOURS = {"Wheat": (0.74, 0.62, 0.32)}
 PLAIN_SHAPES = ("barrel", "box", "box-large")
 
 DEFAULTS = dict(SEED=7, NOISE=0.45, NAV_FLOOR=-6, BRIDGE=False, TARGET=(0, 0, 0), TARGET_STACK=[], WALLS=[], BUILDINGS=[],
-                CRATES=[], SCATTERS=[], CLEAR=[], PLACED=[], LAMPS=[], TEXTS={}, POLE_LINES=[])
+                CRATES=[], SCATTERS=[], CLEAR=[], PLACED=[], LAMPS=[], TEXTS={}, POLE_LINES=[], RIVER_COURSE=[], TOWERS=[], CARTS=[])
 
 
 def mission(**tables):
@@ -82,7 +82,9 @@ def write_scene(m):
          '[ext_resource type="Script" path="res://src/terrain/sleepers.gd" id="8_sleepers"]',
          '[ext_resource type="Shader" path="res://assets/shaders/water.gdshader" id="9_water"]',
          '[ext_resource type="Script" path="res://src/terrain/campfire.gd" id="10_campfire"]',
-         '[ext_resource type="Script" path="res://src/terrain/telegraph_pole.gd" id="11_pole"]']
+         '[ext_resource type="Script" path="res://src/terrain/telegraph_pole.gd" id="11_pole"]',
+         '[ext_resource type="Script" path="res://src/terrain/watchtower.gd" id="12_tower"]',
+         '[ext_resource type="Script" path="res://src/terrain/cart.gd" id="13_cart"]']
     model_ids = {}
     for scatter in SCATTERS:
         for model in scatter[2]:
@@ -137,7 +139,11 @@ def write_scene(m):
             o += [f'[sub_resource type="BoxMesh" id="Mesh_prop{i + 1}"]', 'material = SubResource("m_crate")',
                   "size = Vector3(%s, %s, %s)" % entry[6], ""]
     o += ['[sub_resource type="BoxShape3D" id="Box_extraction"]', "size = Vector3(6, 3, 6)", "",
-          '[sub_resource type="ShaderMaterial" id="m_water"]', 'shader = ExtResource("9_water")', "",
+          '[sub_resource type="ShaderMaterial" id="m_water"]', 'shader = ExtResource("9_water")']
+    if m.RIVER_COURSE:
+        course = list(m.RIVER_COURSE) + [m.RIVER_COURSE[-1]] * (8 - len(m.RIVER_COURSE))
+        o += [f"shader_parameter/course = {v2(course)}", f"shader_parameter/course_points = {len(m.RIVER_COURSE)}"]
+    o += ["",
           '[sub_resource type="PlaneMesh" id="Mesh_water"]', 'material = SubResource("m_water")', "size = Vector2(44, 260)", "",
           '[sub_resource type="StandardMaterial3D" id="m_lamp"]', "shading_mode = 0", "albedo_color = Color(1, 0.86, 0.55, 1)", "",
           '[sub_resource type="SphereMesh" id="Mesh_bulb"]', 'material = SubResource("m_lamp")', "radius = 0.16", "height = 0.32",
@@ -186,6 +192,14 @@ def write_scene(m):
               f"transform = Transform3D({c:.5f}, 0, {-s:.5f}, 0, 1, 0, {s:.5f}, 0, {c:.5f}, {x}, 0, {z})",
               'script = ExtResource("6_building")', "size = Vector3(%s, %s, %s)" % size,
               f"roof_height = {roof}", f"ruin = {'true' if ruin else 'false'}", ""]
+
+    # Watchtowers (x, z) and carts (x, z, turn in radians): solid, set on the ground by the mission.
+    for i, (x, z) in enumerate(m.TOWERS):
+        o += [f'[node name="Watchtower{i + 1}" type="StaticBody3D" parent="Nav"]', 'script = ExtResource("12_tower")', at(x, 0, z), ""]
+    for i, (x, z, turn) in enumerate(m.CARTS):
+        c, sn = math.cos(turn), math.sin(turn)
+        o += [f'[node name="Cart{i + 1}" type="StaticBody3D" parent="Nav"]', 'script = ExtResource("13_cart")',
+              f"transform = Transform3D({c:.4f}, 0, {-sn:.4f}, 0, 1, 0, {sn:.4f}, 0, {c:.4f}, {x}, 0, {z})", ""]
 
     def scatter_node(parent, entry):
         name, _, models, area, count, seed, spacing, scale, clear, blocker, slope = entry

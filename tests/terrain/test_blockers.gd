@@ -186,3 +186,25 @@ func test_a_telegraph_pole_stands_on_the_ground_and_is_wired_to_the_next() -> vo
 	for m in meshes:
 		longest = maxf(longest, ((m as MeshInstance3D).mesh.get_aabb().size.z))
 	assert_almost_eq(longest, 14.0, 0.2, "the wires reach the next pole")
+
+
+func test_a_watchtower_and_a_cart_stand_on_the_ground_and_block() -> void:
+	var tower := Watchtower.new()
+	region.add_child(tower)
+	tower.position = Vector3(-8, 0, 6)
+	var cart := Cart.new()
+	region.add_child(cart)
+	cart.position = Vector3(8, 0, 6)
+	await _built()
+	for thing: StaticBody3D in [tower, cart]:
+		assert_almost_eq(thing.global_position.y, 2.0, 0.01, "set down on the land")
+		assert_eq(thing.collision_layer, Unit.LAYER_WORLD)
+		assert_gt(thing.find_children("*", "MeshInstance3D", true, false).size(), 6, "built of many pieces")
+		assert_gt(_off_navmesh(thing.global_position.x, thing.global_position.z), 0.8, "nobody walks through it")
+		assert_lt(mission.terrain().shade_at(thing.global_position.x + 1.6, thing.global_position.z), 0.95, "and it sits in shade")
+	var guard := _unit("res://scenes/units/guard.tscn", Vector3(8, 2, 9.5))
+	var spec := _unit("res://scenes/units/specialist.tscn", Vector3(8, 2, 3.0)) as Specialist
+	await wait_physics_frames(2)
+	assert_ne(_sees(guard, spec), Vision.Zone.NONE, "someone standing shows over the cart")
+	spec.set_stance(Unit.Stance.CRAWLING)
+	assert_eq(_sees(guard, spec), Vision.Zone.NONE, "lying behind it they are hidden")

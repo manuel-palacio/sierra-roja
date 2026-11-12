@@ -59,6 +59,9 @@ WALLS = [
     ([(8.6, 13.0), (8.6, 14.2), (9.8, 14.2)], 1.0, "sandbags"),
     ([(17.6, 3.2), (18.8, 3.2)], 1.0, "sandbags"),
 ]
+# A watchtower in the north-east corner of the yard, and carts in the yard and on the road.
+TOWERS = [(17.0, 8.5)]
+CARTS = [(-2.5, 8.5, 1.3), (-20.0, 14.5, 0.3)]
 # The telegraph line in along the road from the west.
 POLE_LINES = [[(-48, 5.5), (-34, 6.5), (-21, 9.5), (-9, 15.5)]]
 BUILDINGS = [
@@ -123,5 +126,5 @@ if __name__ == "__main__":
         NAME="powder_store", NODE="PowderStore", SEED=11, BOUNDS=BOUNDS, PLAIN=PLAIN, FEATURES=FEATURES,
         SPECIALIST_SPAWNS=SPECIALIST_SPAWNS, GUARDS=GUARDS, EXTRACTION=EXTRACTION, TARGET=TARGET,
         TARGET_STACK=TARGET_STACK, WALLS=WALLS, BUILDINGS=BUILDINGS, CRATES=CRATES, SCATTERS=SCATTERS,
-        CLEAR=CLEAR, PLACED=PLACED, LAMPS=LAMPS, TEXTS=TEXTS, POLE_LINES=POLE_LINES,
+        CLEAR=CLEAR, PLACED=PLACED, LAMPS=LAMPS, TEXTS=TEXTS, POLE_LINES=POLE_LINES, TOWERS=TOWERS, CARTS=CARTS,
     ))

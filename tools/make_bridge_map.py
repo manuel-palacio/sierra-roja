@@ -64,6 +64,11 @@ WALLS = [
     # A sandbagged post by the barrier.
     ([(-35.2, 6.8), (-33.4, 6.8), (-33.4, 8.0)], 1.0, "sandbags"),
 ]
+# A watchtower over the checkpoint yard, and a cart left by the field and one at the farm.
+TOWERS = [(-39.5, 19.5)]
+CARTS = [(-17.5, 30.0, 0.5), (-39.0, -22.5, 2.0)]
+# The middle of the river, for the foam along its banks: the gorge's own line.
+RIVER_COURSE = [(-6, -110), (-3, -30), (0, -9), (0, 9), (4, 30), (8, 110)]
 # Telegraph poles along the north side of the track, either side of the gorge.
 POLE_LINES = [
     [(x, -3.4) for x in (-53, -39, -25, -11)],
@@ -138,4 +143,5 @@ if __name__ == "__main__":
         NAME="bridge", NODE="Bridge", BRIDGE=True, BOUNDS=BOUNDS, PLAIN=PLAIN, FEATURES=FEATURES,
         SPECIALIST_SPAWNS=SPECIALIST_SPAWNS, GUARDS=GUARDS, EXTRACTION=EXTRACTION, WALLS=WALLS,
         BUILDINGS=BUILDINGS, CRATES=CRATES, SCATTERS=SCATTERS, CLEAR=CLEAR, PLACED=PLACED, LAMPS=LAMPS, POLE_LINES=POLE_LINES,
+        TOWERS=TOWERS, CARTS=CARTS, RIVER_COURSE=RIVER_COURSE,
     ))

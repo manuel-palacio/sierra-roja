@@ -11,6 +11,8 @@ const RUIN_COLOR := Color(0.85, 0.80, 0.72)
 const DOOR_COLOR := Color(0.45, 0.33, 0.24)
 const GLASS_COLOR := Color(0.10, 0.12, 0.16)
 const SMOKE_COLOR := Color(0.75, 0.75, 0.78, 0.35)
+const SHUTTER_COLOR := Color(0.36, 0.46, 0.34)
+const RIDGE_COLOR := Color(0.78, 0.62, 0.55)
 const WALL_THICKNESS := 0.45
 const DOOR_WIDTH := 2.6
 const EAVES := 0.35
@@ -82,6 +84,11 @@ func _add_details() -> void:
 		var at: Vector3 = window[0]
 		var pane: Vector3 = window[1]
 		_add_trim(at, pane, glass)
+		# A shutter folded back on either side of it.
+		var along := Vector3(1, 0, 0) if pane.x > 0.1 else Vector3(0, 0, 1)
+		var leaf := Vector3(0.36, 0.86, 0.05) if pane.x > 0.1 else Vector3(0.05, 0.86, 0.36)
+		for side in [-1.0, 1.0]:
+			_add_trim(at + along * side * 0.6, leaf, Surfaces.material(&"planks", SHUTTER_COLOR))
 		# A sill under it.
 		var ledge := Vector3(pane.x + 0.2 if pane.x > 0.1 else 0.16, 0.08, pane.z + 0.2 if pane.z > 0.1 else 0.16)
 		_add_trim(at + Vector3(0, -pane.y / 2.0 - 0.04, 0), ledge, frame)
@@ -89,6 +96,16 @@ func _add_details() -> void:
 			Surfaces.material(&"stone", RUIN_COLOR))
 	if roof_height <= 0.0:
 		return
+	# A row of capping tiles along the ridge, and a lean-to against the north wall with a wood pile.
+	_add_trim(Vector3(0, size.y + roof_height + 0.03, 0), Vector3(size.x + EAVES * 2.0 + 0.1, 0.12, 0.26),
+			Surfaces.material(&"roof", RIDGE_COLOR))
+	var lean := Vector3(size.x * 0.5, size.y * 0.62, 1.5)
+	_add_trim(Vector3(-size.x * 0.2, lean.y / 2.0, -hz - lean.z / 2.0), lean, Surfaces.material(&"planks", DOOR_COLOR))
+	_add_trim(Vector3(-size.x * 0.2, lean.y + 0.08, -hz - lean.z / 2.0 - 0.1), Vector3(lean.x + 0.3, 0.12, lean.z + 0.4),
+			Surfaces.material(&"roof", ROOF_COLOR))
+	for i in 3:
+		_add_trim(Vector3(size.x * 0.28, 0.14 + i * 0.26, -hz - 0.45), Vector3(1.5 - i * 0.3, 0.26, 0.7),
+				Surfaces.material(&"bark", Color(0.9, 0.82, 0.72)))
 	var chimney := Vector3(hx * 0.5, size.y + roof_height * 0.75, -hz * 0.3)
 	_add_trim(chimney, Vector3(0.5, roof_height * 1.1, 0.5), Surfaces.material(&"stone", RUIN_COLOR))
 	var smoke := CPUParticles3D.new()

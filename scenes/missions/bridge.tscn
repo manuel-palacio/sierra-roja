@@ -11,6 +11,8 @@
 [ext_resource type="Shader" path="res://assets/shaders/water.gdshader" id="9_water"]
 [ext_resource type="Script" path="res://src/terrain/campfire.gd" id="10_campfire"]
 [ext_resource type="Script" path="res://src/terrain/telegraph_pole.gd" id="11_pole"]
+[ext_resource type="Script" path="res://src/terrain/watchtower.gd" id="12_tower"]
+[ext_resource type="Script" path="res://src/terrain/cart.gd" id="13_cart"]
 [ext_resource type="PackedScene" path="res://assets/props/nature/rock_tallA.glb" id="m_rock_tallA"]
 [ext_resource type="PackedScene" path="res://assets/props/nature/rock_tallB.glb" id="m_rock_tallB"]
 [ext_resource type="PackedScene" path="res://assets/props/nature/rock_largeA.glb" id="m_rock_largeA"]
@@ -216,6 +218,8 @@ size = Vector3(6, 3, 6)
 
 [sub_resource type="ShaderMaterial" id="m_water"]
 shader = ExtResource("9_water")
+shader_parameter/course = PackedVector2Array(-6, -110, -3, -30, 0, -9, 0, 9, 4, 30, 8, 110, 8, 110, 8, 110)
+shader_parameter/course_points = 6
 
 [sub_resource type="PlaneMesh" id="Mesh_water"]
 material = SubResource("m_water")
@@ -334,6 +338,18 @@ script = ExtResource("6_building")
 size = Vector3(7, 2.6, 6)
 roof_height = 0.0
 ruin = true
+
+[node name="Watchtower1" type="StaticBody3D" parent="Nav"]
+script = ExtResource("12_tower")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -39.5, 0, 19.5)
+
+[node name="Cart1" type="StaticBody3D" parent="Nav"]
+script = ExtResource("13_cart")
+transform = Transform3D(0.8776, 0, -0.4794, 0, 1, 0, 0.4794, 0, 0.8776, -17.5, 0, 30.0)
+
+[node name="Cart2" type="StaticBody3D" parent="Nav"]
+script = ExtResource("13_cart")
+transform = Transform3D(-0.4161, 0, -0.9093, 0, 1, 0, 0.9093, 0, -0.4161, -39.0, 0, -22.5)
 
 [node name="HillPines" type="Node3D" parent="Nav"]
 script = ExtResource("7_scatter")
