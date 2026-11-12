@@ -3,6 +3,11 @@ extends Unit
 ## A guard's senses and body: looks every vision_interval, listens to NoiseBus, walks its route
 ## and fires its rifle. GuardBrain decides; this carries it out.
 ##
+## On patrol it stops at each point of its route, turns to face the next at a speed the player
+## can follow, waits a moment and walks on. A turn right about always goes clockwise seen from
+## above (east, south, west, north), so which side a guard sweeps at each end of a beat can be
+## learned.
+##
 ## Alarm sharing is wired here, through the `guards` group: each guard connects to every other
 ## guard's brain.alarm_raised and alarm_updated as it enters the tree, so it needs no Mission and survives any
 ## order of spawning.
@@ -25,6 +30,12 @@ var _fire_timer := 0.0
 var _alarm_dest := Vector3.INF
 var _stuck_time := 0.0
 var _stuck_anchor := Vector3.ZERO
+## Standing at a point of the route, turning toward the next and then waiting.
+var _looking := false
+## Radians still to turn, which way (+1 or -1 on rotation.y), and seconds still to wait.
+var _look_left := 0.0
+var _look_dir := 0.0
+var _look_pause := 0.0
 
 
 func _ready() -> void:
@@ -76,7 +87,15 @@ func vision_phase() -> float:
 	return _vision_timer
 
 
+## True while it stands at a point of its route, turning and waiting.
+func is_looking_round() -> bool:
+	return _looking
+
+
+## Sets off along the route. A guard standing on the point it would head for goes on to the next.
 func start_patrol() -> void:
+	if _route.size() > 1 and _flat_distance(_route[_waypoint]) < 0.5:
+		_waypoint = (_waypoint + 1) % _route.size()
 	_apply_state()
 
 
@@ -85,6 +104,8 @@ func advance(delta: float) -> void:
 	if not alive:
 		return
 	_update_stuck(delta)
+	if _looking:
+		_look_round(delta)
 	_vision_timer -= delta
 	if _vision_timer > 0.0:
 		return
@@ -114,6 +135,10 @@ func load_state(d: Dictionary) -> void:
 	_alarm_dest = Vector3.INF if dest == null else Vector3(dest[0], dest[1], dest[2])
 	_stuck_time = 0.0
 	_stuck_anchor = global_position
+	# A guard saved while it stood looking round has no walk order to resume.
+	_looking = false
+	if alive and brain.state == GuardBrain.State.PATROL and not _moving:
+		_begin_look()
 
 
 func _check_vision(elapsed: float) -> void:
@@ -195,7 +220,12 @@ func _update_stuck(delta: float) -> void:
 	if _stuck_time >= tuning.stuck_time - GuardBrain.EPSILON:
 		_stuck_time = 0.0
 		stop()
-		_on_arrived(self)
+		if brain.state == GuardBrain.State.PATROL:
+			# Not at a point of its route at all: no looking round, just try the next one.
+			_next_waypoint()
+			_walk_route()
+		else:
+			_on_arrived(self)
 
 
 ## However the guard died (knife, shot, blast), a Body takes its place. The Body is added to
@@ -216,9 +246,8 @@ func _on_died(_unit: Unit) -> void:
 func _on_arrived(_unit: Unit) -> void:
 	match brain.state:
 		GuardBrain.State.PATROL:
-			if not _route.is_empty():
-				_waypoint = (_waypoint + 1) % _route.size()
-			_walk_route()
+			_next_waypoint()
+			_begin_look()
 		GuardBrain.State.INVESTIGATE:
 			brain.notify_arrived()
 
@@ -232,6 +261,7 @@ func _on_state_changed(_state: GuardBrain.State) -> void:
 ## Puts the body in line with the brain's state, on a change or after a load.
 func _apply_state() -> void:
 	_alarm_dest = Vector3.INF
+	_looking = false
 	match brain.state:
 		GuardBrain.State.PATROL:
 			_walk_route()
@@ -245,6 +275,42 @@ func _apply_state() -> void:
 		GuardBrain.State.ALARM:
 			move_to(brain.goal_pos, true)
 			_alarm_dest = brain.goal_pos
+
+
+func _next_waypoint() -> void:
+	if not _route.is_empty():
+		_waypoint = (_waypoint + 1) % _route.size()
+
+
+## Stops to face the point it will walk to next.
+func _begin_look() -> void:
+	stop()
+	if _route.is_empty():
+		return
+	var to := _route[_waypoint] - global_position
+	if Vector2(to.x, to.z).length() < 0.05:
+		_walk_route()
+		return
+	var turn := wrapf(atan2(-to.x, -to.z) - rotation.y, -PI, PI)
+	# Right about: clockwise seen from above, which is rotation.y going down.
+	if absf(turn) > PI - 0.05:
+		turn = -PI
+	_looking = true
+	_look_left = absf(turn)
+	_look_dir = signf(turn)
+	_look_pause = tuning.waypoint_pause
+
+
+func _look_round(delta: float) -> void:
+	if _look_left > 0.0:
+		var step := minf(_look_left, deg_to_rad(tuning.turn_speed_deg) * delta)
+		rotation.y += _look_dir * step
+		_look_left -= step
+		return
+	_look_pause -= delta
+	if _look_pause <= GuardBrain.EPSILON:
+		_looking = false
+		_walk_route()
 
 
 func _walk_route() -> void:

@@ -222,14 +222,14 @@ material = SubResource("m_steel")
 
 [node name="CrateTrackS" type="CSGBox3D" parent="Nav"]
 use_collision = true
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0.4, 1.5)
-size = Vector3(2.2, 1.6, 1.4)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.4, 0.4, 1.35)
+size = Vector3(3.0, 1.6, 1.5)
 material = SubResource("m_crate")
 
 [node name="CrateTrackN" type="CSGBox3D" parent="Nav"]
 use_collision = true
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0.4, -1.5)
-size = Vector3(2.2, 1.6, 1.4)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.4, 0.4, -1.75)
+size = Vector3(3.0, 1.6, 1.5)
 material = SubResource("m_crate")
 
 [node name="CrateYard1" type="CSGBox3D" parent="Nav"]

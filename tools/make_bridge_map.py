@@ -79,8 +79,8 @@ BUILDINGS = [
 # The two beside the track are long and close to the rails: each hides someone lying just west of
 # it from a guard walking the rails, all the way until the guard is level with them.
 CRATES = [
-    ("CrateTrackS", -9, 0.0, 1.5, 2.2, 1.4),
-    ("CrateTrackN", -9, 0.0, -1.5, 2.2, 1.4),
+    ("CrateTrackS", -9.4, 0.0, 1.35, 3.0, 1.5),
+    ("CrateTrackN", -9.4, 0.0, -1.75, 3.0, 1.5),
     ("CrateYard1", -27, PLAIN, 14, 1.2, 1.2),
     ("CrateYard2", -34.5, PLAIN, 17.5, 1.2, 1.2),
     ("CrateYard3", -33, PLAIN, 8.5, 1.2, 1.2),

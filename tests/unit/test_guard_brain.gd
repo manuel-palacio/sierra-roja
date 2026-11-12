@@ -567,3 +567,116 @@ func test_guard_save_load_roundtrip() -> void:
 	assert_almost_eq(other.global_position, Vector3(2, 0, 3), Vector3.ONE * 0.001)
 	assert_eq(other.current_waypoint(), 1)
 	assert_eq(other.brain.state, GuardBrain.State.SUSPICIOUS)
+
+
+# --- Patrol: a guard stops at each end of its beat, turns where it can be seen to, then walks ---
+
+const EAST := Vector3(10, 0, 0)
+const WEST := Vector3(-10, 0, 0)
+
+
+## Which way a guard faces on the ground plane.
+func _facing(g: Guard) -> Vector3:
+	var f := -g.global_basis.z
+	return Vector3(f.x, 0, f.z).normalized()
+
+
+func _beat_guard() -> Guard:
+	var g := _guard(EAST)
+	g.set_route(PackedVector3Array([EAST, WEST]))
+	g.rotation.y = -PI / 2.0  # facing east, having just walked there
+	return g
+
+
+func test_patrol_starts_by_walking_to_the_next_point_without_ceremony() -> void:
+	var g := _beat_guard()
+	g.start_patrol()
+	assert_eq(g.current_waypoint(), 1, "it stands on the first point, so it heads for the second")
+	assert_false(g.is_looking_round())
+	assert_almost_eq(_target(g), WEST, Vector3.ONE * 0.01)
+
+
+func test_at_the_end_of_a_beat_a_guard_stops_turns_and_waits_before_walking_back() -> void:
+	var g := _beat_guard()
+	g.start_patrol()
+	g.global_position = WEST
+	g.rotation.y = PI / 2.0  # facing west
+	g.arrived.emit(g)
+	assert_true(g.is_looking_round())
+	assert_eq(g.current_waypoint(), 0)
+	assert_eq(g.velocity, Vector3.ZERO)
+	# Half a turn at the turn speed, then the pause.
+	var turn_seconds: float = 180.0 / g.tuning.turn_speed_deg
+	_run(g, turn_seconds * 0.5)
+	assert_true(g.is_looking_round())
+	assert_lt(absf(_facing(g).x), 0.35, "half way round it faces across its beat")
+	_run(g, turn_seconds * 0.5 + 0.1)
+	assert_almost_eq(_facing(g), Vector3(1, 0, 0), Vector3.ONE * 0.02, "now facing back the way it came")
+	assert_true(g.is_looking_round(), "and still waiting")
+	_run(g, g.tuning.waypoint_pause + 0.1)
+	assert_false(g.is_looking_round())
+	assert_almost_eq(_target(g), EAST, Vector3.ONE * 0.01)
+
+
+func test_an_about_turn_always_goes_clockwise() -> void:
+	# Seen from above with north up: east, then south, then west. A player can learn it.
+	var g := _guard(WEST)
+	g.set_route(PackedVector3Array([WEST, EAST]))
+	g.start_patrol()  # heads for the east end
+	g.global_position = EAST
+	g.rotation.y = -PI / 2.0  # and arrives there facing east
+	g.arrived.emit(g)
+	_run(g, 90.0 / g.tuning.turn_speed_deg)
+	assert_almost_eq(_facing(g), Vector3(0, 0, 1), Vector3.ONE * 0.1, "from east it swings through the south")
+	var other := _beat_guard()
+	other.start_patrol()
+	other.global_position = WEST
+	other.rotation.y = PI / 2.0
+	other.arrived.emit(other)
+	_run(other, 90.0 / other.tuning.turn_speed_deg)
+	assert_almost_eq(_facing(other), Vector3(0, 0, -1), Vector3.ONE * 0.1, "from west it swings through the north")
+
+
+func test_a_corner_is_turned_the_short_way() -> void:
+	var g := _guard(Vector3.ZERO)
+	g.set_route(PackedVector3Array([Vector3(0, 0, 0), Vector3(5, 0, 0), Vector3(5, 0, -5)]))
+	g.start_patrol()
+	g.global_position = Vector3(5, 0, 0)
+	g.rotation.y = -PI / 2.0  # arrived walking east; the next leg goes north
+	g.arrived.emit(g)
+	_run(g, 45.0 / g.tuning.turn_speed_deg)
+	var f := _facing(g)
+	assert_gt(f.x, 0.5, "between east")
+	assert_lt(f.z, -0.5, "and north: the quarter turn, not the three quarters")
+
+
+func test_an_alarm_cuts_the_look_round_short() -> void:
+	var g := _beat_guard()
+	g.start_patrol()
+	g.global_position = WEST
+	g.arrived.emit(g)
+	assert_true(g.is_looking_round())
+	g.brain.on_alarm(Vector3(0, 0, 8))
+	assert_false(g.is_looking_round())
+	assert_almost_eq(_target(g), Vector3(0, 0, 8), Vector3.ONE * 0.01)
+
+
+func test_a_guard_loaded_while_looking_round_takes_up_its_beat_again() -> void:
+	var g := _beat_guard()
+	g.start_patrol()
+	g.global_position = WEST
+	g.rotation.y = PI / 2.0
+	g.arrived.emit(g)
+	_run(g, 0.3)
+	var saved: Dictionary = JSON.parse_string(JSON.stringify(g.save_state()))
+	var other := _guard()
+	other.set_route(PackedVector3Array([EAST, WEST]))
+	other.load_state(saved)
+	assert_true(other.is_looking_round(), "it does not stand there for ever")
+	_run(other, 180.0 / other.tuning.turn_speed_deg + other.tuning.waypoint_pause + 0.2)
+	assert_false(other.is_looking_round())
+	assert_almost_eq(_target(other), EAST, Vector3.ONE * 0.01)
+
+
+func _target(g: Guard) -> Vector3:
+	return (g.get_node("NavigationAgent3D") as NavigationAgent3D).target_position
