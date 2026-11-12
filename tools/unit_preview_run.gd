@@ -24,7 +24,8 @@ func _ready() -> void:
 	env.environment.ambient_light_energy = 0.7
 	add_child(env)
 	var sun := DirectionalLight3D.new()
-	sun.rotation_degrees = Vector3(-50, -30, 0)
+	# From over the camera's shoulder, so whatever faces the camera is lit.
+	sun.rotation_degrees = Vector3(-40, yaw + 25.0, 0)
 	add_child(sun)
 	var ground := MeshInstance3D.new()
 	ground.mesh = PlaneMesh.new()

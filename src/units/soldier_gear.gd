@@ -35,7 +35,7 @@ const KITS := {
 	&"dynamiter": [
 		# Black beret, red neckerchief, and the satchel of charges on the hip.
 		{ "bone": "DEF-head", "shape": "sphere", "size": Vector3(0.33, 0.11, 0.34), "at": Vector3(0.02, 1.81, 0.0), "turn": Vector3(0, 0, -8), "color": Color(0.10, 0.10, 0.12) },
-		{ "bone": "DEF-neck", "shape": "box", "size": Vector3(0.20, 0.07, 0.19), "at": Vector3(0, 1.51, 0.02), "color": Color(0.75, 0.13, 0.10) },
+		{ "bone": "DEF-neck", "shape": "sphere", "size": Vector3(0.19, 0.075, 0.19), "at": Vector3(0, 1.515, 0.015), "color": Color(0.75, 0.13, 0.10) },
 		{ "bone": "DEF-hips", "shape": "box", "size": Vector3(0.12, 0.26, 0.30), "at": Vector3(-0.21, 0.93, 0.0), "color": CANVAS },
 		{ "held": 0.24, "thick": 0.05, "grip": 0.05, "color": GUNMETAL, "when": &"pistol" },
 		{ "held": 0.30, "thick": 0.03, "grip": 0.08, "color": BLADE, "when": &"knife" },
@@ -56,12 +56,12 @@ const KITS := {
 ## What every soldier has under the hat: eyes, brows, a nose and a mouth, so a face looks back
 ## when the camera is close.
 const FACE := [
-	{ "bone": "DEF-head", "shape": "sphere", "size": Vector3(0.030, 0.022, 0.02), "at": Vector3(0.036, 1.698, 0.092), "color": Color(0.08, 0.06, 0.05) },
-	{ "bone": "DEF-head", "shape": "sphere", "size": Vector3(0.030, 0.022, 0.02), "at": Vector3(-0.036, 1.698, 0.092), "color": Color(0.08, 0.06, 0.05) },
-	{ "bone": "DEF-head", "shape": "box", "size": Vector3(0.042, 0.010, 0.015), "at": Vector3(0.037, 1.722, 0.094), "turn": Vector3(0, 0, -8), "color": Color(0.20, 0.14, 0.10) },
-	{ "bone": "DEF-head", "shape": "box", "size": Vector3(0.042, 0.010, 0.015), "at": Vector3(-0.037, 1.722, 0.094), "turn": Vector3(0, 0, 8), "color": Color(0.20, 0.14, 0.10) },
-	{ "bone": "DEF-head", "shape": "box", "size": Vector3(0.026, 0.050, 0.034), "at": Vector3(0, 1.672, 0.104), "color": Color(0.72, 0.52, 0.40) },
-	{ "bone": "DEF-head", "shape": "box", "size": Vector3(0.058, 0.012, 0.012), "at": Vector3(0, 1.626, 0.094), "color": Color(0.42, 0.22, 0.18) },
+	{ "bone": "DEF-head", "shape": "sphere", "size": Vector3(0.036, 0.026, 0.02), "at": Vector3(0.030, 1.700, 0.101), "color": Color(0.08, 0.06, 0.05) },
+	{ "bone": "DEF-head", "shape": "sphere", "size": Vector3(0.036, 0.026, 0.02), "at": Vector3(-0.030, 1.700, 0.101), "color": Color(0.08, 0.06, 0.05) },
+	{ "bone": "DEF-head", "shape": "box", "size": Vector3(0.046, 0.012, 0.015), "at": Vector3(0.031, 1.724, 0.103), "turn": Vector3(0, 0, -8), "color": Color(0.20, 0.14, 0.10) },
+	{ "bone": "DEF-head", "shape": "box", "size": Vector3(0.046, 0.012, 0.015), "at": Vector3(-0.031, 1.724, 0.103), "turn": Vector3(0, 0, 8), "color": Color(0.20, 0.14, 0.10) },
+	{ "bone": "DEF-head", "shape": "box", "size": Vector3(0.026, 0.050, 0.034), "at": Vector3(0, 1.672, 0.106), "color": Color(0.72, 0.52, 0.40) },
+	{ "bone": "DEF-head", "shape": "box", "size": Vector3(0.056, 0.012, 0.014), "at": Vector3(0, 1.624, 0.104), "color": Color(0.42, 0.22, 0.18) },
 ]
 ## Kit name -> a moustache or stubble colour for its mouth line, where it has one.
 const WHISKERS := { &"guard": Color(0.16, 0.11, 0.08), &"marksman": Color(0.30, 0.20, 0.13) }
@@ -133,8 +133,8 @@ static func pieces(kit: StringName) -> Array:
 		out.append(part)
 	if WHISKERS.has(kit):
 		# A moustache over the mouth.
-		out.append({ "bone": "DEF-head", "shape": "box", "size": Vector3(0.078, 0.022, 0.018),
-				"at": Vector3(0, 1.642, 0.098), "color": WHISKERS[kit] })
+		out.append({ "bone": "DEF-head", "shape": "box", "size": Vector3(0.084, 0.024, 0.02),
+				"at": Vector3(0, 1.643, 0.108), "color": WHISKERS[kit] })
 	out.append_array(KITS[kit])
 	return out
 
