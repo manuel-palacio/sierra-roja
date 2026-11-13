@@ -49,16 +49,16 @@ func test_choosing_moves_through_the_list_and_stops_at_its_ends() -> void:
 func test_the_game_loads_the_chosen_mission_with_its_own_words() -> void:
 	Missions.choose(1)
 	var main := await _game()
-	assert_eq(main.mission.title, "The powder store")
+	assert_eq(main.mission.title, "The depot outside Teruel")
 	assert_eq(MissionValidator.validate(main.mission), PackedStringArray())
 	main.hud.refresh()
-	assert_eq(main.hud.objective_label.text, "Objective: Destroy the powder store")
+	assert_eq(main.hud.objective_label.text, "Objective: Destroy the depot")
 	var b: Briefing = main.open_briefing()
 	var text := ""
 	for label in b.find_children("*", "Label", true, false):
 		text += (label as Label).text + "\n"
-	assert_string_contains(text, "The powder store")
-	assert_string_contains(text, "ammunition stacked in the farm's yard")
+	assert_string_contains(text, "The depot outside Teruel")
+	assert_string_contains(text, "stores stacked in the farm's yard")
 	assert_false(text.contains("railway bridge"), "not the first mission's briefing")
 
 
@@ -133,7 +133,7 @@ func test_old_ids_open_the_reframed_missions() -> void:
 	assert_eq(Missions.index_of("guadarrama"), 0)
 	assert_eq(Missions.index_of("bridge"), Missions.index_of("guadarrama"))
 	assert_eq(Missions.index_of("bridge_night"), Missions.index_of("guadarrama"))
-	assert_eq(Missions.index_of("powder_store_night"), Missions.index_of("powder_store"))
+	assert_eq(Missions.index_of("powder_store_night"), Missions.index_of("teruel"))
 	assert_eq(Missions.index_of("nowhere"), -1)
 	assert_eq(Missions.id_at(0), "guadarrama")
 	for entry: Dictionary in Missions.LIST:
@@ -143,3 +143,11 @@ func test_old_ids_open_the_reframed_missions() -> void:
 func test_each_mission_says_where_and_when_or_neither() -> void:
 	for entry: Dictionary in Missions.LIST:
 		assert_eq(entry["place"] == "", entry["date"] == "", entry["id"])
+
+
+func test_the_powder_store_is_teruel_now() -> void:
+	assert_eq(Missions.id_at(1), "teruel")
+	assert_eq(Missions.index_of("powder_store"), 1)
+	assert_eq(Missions.index_of("powder_store_night"), 1)
+	assert_eq(Missions.LIST[1]["place"], "Teruel")
+	assert_eq(Missions.LIST[1]["date"], "December 1937")

@@ -1,6 +1,6 @@
 const { test, expect } = require('@playwright/test');
 
-// The second mission in the real build: it loads from the address, shows its own objective, and
+// The second mission in the real build (Teruel, by its old address): it loads, shows its own objective, and
 // takes an order without console errors.
 test('the powder store mission loads and plays', async ({ page }) => {
   test.setTimeout(90000);
@@ -46,7 +46,9 @@ const title = async (page, query) => {
 for (const [query, id, shown] of [
   ['mission=bridge', 'guadarrama', 'The bridge in the Guadarrama'],
   ['mission=bridge_night', 'guadarrama', 'The bridge in the Guadarrama'],
-  ['mission=powder_store_night', 'powder_store', 'The powder store'],
+  ['mission=powder_store_night', 'teruel', 'The depot outside Teruel'],
+  ['mission=powder_store', 'teruel', 'The depot outside Teruel'],
+  ['mission=teruel', 'teruel', 'The depot outside Teruel'],
   ['mission=carchuna', 'carchuna', 'Fort Carchuna'],
   ['mission=no_such_place', 'guadarrama', 'The bridge in the Guadarrama'],
 ]) {

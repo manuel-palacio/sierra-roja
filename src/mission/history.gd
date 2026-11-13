@@ -11,6 +11,11 @@ const NOTES := {
 		"after": "The attack reached La Granja and was thrown back within a week. It held up the advance on Bilbao by about two weeks.",
 		"sources": ["https://en.wikipedia.org/wiki/Segovia_Offensive"],
 	},
+	"teruel": {
+		"before": "December 1937. The Republic attacks Teruel in falling snow, with no bombardment to announce it. A blizzard follows, and the cold goes to eighteen below. The raid on this depot is invented.",
+		"after": "The town fell to the Republic, and was lost again in February 1938.",
+		"sources": ["https://en.wikipedia.org/wiki/Battle_of_Teruel"],
+	},
 	"carchuna": {
 		"before": "May 1938. 308 Asturian soldiers, taken prisoner when the north fell, are held in the fort of Carchuna on the Granada coast, close behind the front. On the 16th four officers escaped to the Republican lines and told what they knew. On the 23rd, 35 volunteers, five of them from the International Brigades, cross by launch from Castell de Ferro. Here the two of you go in ahead of them, and one officer stands for the 308.",
 		"after": "The raiders took the fort and led the prisoners towards the Republican lines in two columns, with an artillery barrage to cover them. Twenty-five chose to stay behind.",

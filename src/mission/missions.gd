@@ -7,11 +7,12 @@ extends RefCounted
 
 const LIST: Array[Dictionary] = [
 	{ "id": "guadarrama", "name": "The bridge", "place": "Sierra de Guadarrama", "date": "May 1937", "path": "res://scenes/missions/bridge.tscn" },
-	{ "id": "powder_store", "name": "The powder store", "place": "", "date": "", "path": "res://scenes/missions/powder_store.tscn" },
+	{ "id": "teruel", "name": "The depot", "place": "Teruel", "date": "December 1937", "path": "res://scenes/missions/powder_store.tscn" },
 	{ "id": "carchuna", "name": "Fort Carchuna", "place": "Fort Carchuna, Granada", "date": "23 May 1938", "path": "res://scenes/missions/carchuna.tscn" },
 ]
 ## Ids a mission used to go by, so that old addresses still open it.
-const ALIASES := { "bridge": "guadarrama", "bridge_night": "guadarrama", "powder_store_night": "powder_store" }
+const ALIASES := { "bridge": "guadarrama", "bridge_night": "guadarrama", "powder_store": "teruel",
+		"powder_store_night": "teruel" }
 
 ## Index into LIST of the mission being played.
 static var current := 0

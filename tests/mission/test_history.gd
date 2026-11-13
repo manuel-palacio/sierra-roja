@@ -22,7 +22,6 @@ func test_the_bridge_is_owned_up_to_as_fiction() -> void:
 
 
 func test_a_mission_without_a_note_has_none() -> void:
-	assert_eq(History.before("powder_store"), "")
 	assert_eq(History.before("nowhere"), "")
 	assert_eq(History.sources("nowhere").size(), 0)
 
@@ -32,3 +31,10 @@ func test_no_day_is_given_where_the_sources_disagree() -> void:
 	assert_false(History.before("guadarrama").contains("30 May"))
 	assert_false(String(Missions.LIST[Missions.index_of("guadarrama")]["date"]).contains("30"))
 	assert_string_contains(History.before("guadarrama"), "May 1937")
+
+
+func test_teruel_has_its_notes() -> void:
+	assert_string_contains(History.before("teruel"), "December 1937")
+	assert_string_contains(History.before("teruel"), "invented")
+	assert_string_contains(History.after("teruel"), "February 1938")
+	assert_gt(History.sources("teruel").size(), 0)

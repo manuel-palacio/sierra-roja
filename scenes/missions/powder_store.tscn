@@ -20,17 +20,6 @@
 [ext_resource type="PackedScene" path="res://assets/props/nature/rock_largeA.glb" id="m_rock_largeA"]
 [ext_resource type="PackedScene" path="res://assets/props/nature/rock_largeB.glb" id="m_rock_largeB"]
 [ext_resource type="PackedScene" path="res://assets/props/nature/rock_largeC.glb" id="m_rock_largeC"]
-[ext_resource type="PackedScene" path="res://assets/props/nature/grass.glb" id="m_grass"]
-[ext_resource type="PackedScene" path="res://assets/props/nature/grass_large.glb" id="m_grass_large"]
-[ext_resource type="PackedScene" path="res://assets/props/nature/grass_leafs.glb" id="m_grass_leafs"]
-[ext_resource type="PackedScene" path="res://assets/props/nature/grass_leafsLarge.glb" id="m_grass_leafsLarge"]
-[ext_resource type="PackedScene" path="res://assets/props/nature/crops_wheatStageB.glb" id="m_crops_wheatStageB"]
-[ext_resource type="PackedScene" path="res://assets/props/nature/flower_redA.glb" id="m_flower_redA"]
-[ext_resource type="PackedScene" path="res://assets/props/nature/flower_redB.glb" id="m_flower_redB"]
-[ext_resource type="PackedScene" path="res://assets/props/nature/flower_redC.glb" id="m_flower_redC"]
-[ext_resource type="PackedScene" path="res://assets/props/nature/flower_yellowA.glb" id="m_flower_yellowA"]
-[ext_resource type="PackedScene" path="res://assets/props/nature/flower_yellowB.glb" id="m_flower_yellowB"]
-[ext_resource type="PackedScene" path="res://assets/props/nature/flower_yellowC.glb" id="m_flower_yellowC"]
 [ext_resource type="PackedScene" path="res://assets/props/nature/stump_round.glb" id="m_stump_round"]
 [ext_resource type="PackedScene" path="res://assets/props/nature/log_stack.glb" id="m_log_stack"]
 [ext_resource type="PackedScene" path="res://assets/props/nature/log.glb" id="m_log"]
@@ -234,8 +223,12 @@ rings = 1
 [node name="PowderStore" type="Node3D"]
 script = ExtResource("1_mission")
 bounds_rect = Rect2(-50, -40, 100, 80)
-title = "The powder store"
-briefing_lines = PackedStringArray("Blow up the ammunition stacked in the farm's yard with the Dynamiter's charge.", "Get both of them to the camp fire on the road east.", "Lose either one and the mission fails.")
+season = &"snow"
+light = &"overcast"
+snowfall = true
+dress = &"spain_winter"
+title = "The depot outside Teruel"
+briefing_lines = PackedStringArray("Blow up the stores stacked in the farm's yard with the Dynamiter's charge.", "Get both of them to the camp fire on the road east.", "Lose either one and the mission fails.")
 
 [node name="Nav" type="NavigationRegion3D" parent="."]
 navigation_mesh = SubResource("NavMesh_bridge")
@@ -298,64 +291,77 @@ material = SubResource("m_crate")
 script = ExtResource("5_wall")
 points = PackedVector2Array(-10, 12, 3, 12)
 wall_height = 2.3
+snowy = true
 
 [node name="Wall2" type="StaticBody3D" parent="Nav"]
 script = ExtResource("5_wall")
 points = PackedVector2Array(7, 12, 20, 12)
 wall_height = 2.3
+snowy = true
 
 [node name="Wall3" type="StaticBody3D" parent="Nav"]
 script = ExtResource("5_wall")
 points = PackedVector2Array(20, 12, 20, 2)
 wall_height = 2.3
+snowy = true
 
 [node name="Wall4" type="StaticBody3D" parent="Nav"]
 script = ExtResource("5_wall")
 points = PackedVector2Array(20, -2, 20, -12)
 wall_height = 2.3
+snowy = true
 
 [node name="Wall5" type="StaticBody3D" parent="Nav"]
 script = ExtResource("5_wall")
 points = PackedVector2Array(20, -12, -10, -12)
 wall_height = 2.3
+snowy = true
 
 [node name="Wall6" type="StaticBody3D" parent="Nav"]
 script = ExtResource("5_wall")
 points = PackedVector2Array(-10, -12, -10, -9)
 wall_height = 2.3
+snowy = true
 
 [node name="Wall7" type="StaticBody3D" parent="Nav"]
 script = ExtResource("5_wall")
 points = PackedVector2Array(-10, -6, -10, 12)
 wall_height = 2.3
+snowy = true
 
 [node name="Wall8" type="StaticBody3D" parent="Nav"]
 script = ExtResource("5_wall")
 points = PackedVector2Array(-24, 19, -15, 23)
+snowy = true
 
 [node name="Wall9" type="StaticBody3D" parent="Nav"]
 script = ExtResource("5_wall")
 points = PackedVector2Array(12, 21, 23, 20)
+snowy = true
 
 [node name="Wall10" type="StaticBody3D" parent="Nav"]
 script = ExtResource("5_wall")
 points = PackedVector2Array(-19, -18, -13, -23)
+snowy = true
 
 [node name="Wall11" type="StaticBody3D" parent="Nav"]
 script = ExtResource("5_wall")
 points = PackedVector2Array(27, -9, 31, 3)
+snowy = true
 
 [node name="Wall12" type="StaticBody3D" parent="Nav"]
 script = ExtResource("5_wall")
 points = PackedVector2Array(8.6, 13.0, 8.6, 14.2, 9.8, 14.2)
 wall_height = 1.0
 kind = &"sandbags"
+snowy = true
 
 [node name="Wall13" type="StaticBody3D" parent="Nav"]
 script = ExtResource("5_wall")
 points = PackedVector2Array(17.6, 3.2, 18.8, 3.2)
 wall_height = 1.0
 kind = &"sandbags"
+snowy = true
 
 [node name="Barracks" type="StaticBody3D" parent="Nav"]
 transform = Transform3D(1.00000, 0, -0.00000, 0, 1, 0, 0.00000, 0, 1.00000, -3, 0, -6.5)
@@ -364,6 +370,7 @@ size = Vector3(9, 3, 5)
 roof_height = 1.4
 ruin = false
 enterable = true
+snowy = true
 
 [node name="Shed" type="StaticBody3D" parent="Nav"]
 transform = Transform3D(1.00000, 0, -0.00000, 0, 1, 0, 0.00000, 0, 1.00000, 14.5, 0, -7.5)
@@ -372,6 +379,7 @@ size = Vector3(6, 2.8, 5)
 roof_height = 1.2
 ruin = false
 enterable = true
+snowy = true
 
 [node name="Gatehouse" type="StaticBody3D" parent="Nav"]
 transform = Transform3D(1.00000, 0, -0.00000, 0, 1, 0, 0.00000, 0, 1.00000, 10.5, 0, 8.6)
@@ -379,6 +387,7 @@ script = ExtResource("6_building")
 size = Vector3(4, 2.8, 3.4)
 roof_height = 1.2
 ruin = false
+snowy = true
 
 [node name="OldBarn" type="StaticBody3D" parent="Nav"]
 transform = Transform3D(0.95534, 0, -0.29552, 0, 1, 0, 0.29552, 0, 0.95534, -30, 0, -6)
@@ -386,31 +395,37 @@ script = ExtResource("6_building")
 size = Vector3(7, 2.4, 6)
 roof_height = 0.0
 ruin = true
+snowy = true
 
 [node name="Settled1" type="StaticBody3D" parent="Nav"]
 script = ExtResource("14_settled")
 transform = Transform3D(0.0008, 0, -1.0000, 0, 1, 0, 1.0000, 0, 0.0008, 0.5, 0, 23.0)
 kind = &"truck"
+snowy = true
 
 [node name="Settled2" type="StaticBody3D" parent="Nav"]
 script = ExtResource("14_settled")
 transform = Transform3D(1.0000, 0, -0.0000, 0, 1, 0, 0.0000, 0, 1.0000, -16.5, 0, -4.0)
 kind = &"well"
+snowy = true
 
 [node name="Settled3" type="StaticBody3D" parent="Nav"]
 script = ExtResource("14_settled")
 transform = Transform3D(1.0000, 0, -0.0000, 0, 1, 0, 0.0000, 0, 1.0000, -3.0, 0, -2.3)
 kind = &"washing_line"
+snowy = true
 
 [node name="Settled4" type="StaticBody3D" parent="Nav"]
 script = ExtResource("14_settled")
 transform = Transform3D(1.0000, 0, -0.0000, 0, 1, 0, 0.0000, 0, 1.0000, 16.0, 0, 26.5)
 kind = &"haystack"
+snowy = true
 
 [node name="Settled5" type="StaticBody3D" parent="Nav"]
 script = ExtResource("14_settled")
 transform = Transform3D(1.0000, 0, -0.0000, 0, 1, 0, 0.0000, 0, 1.0000, 20.5, 0, 29.5)
 kind = &"haystack"
+snowy = true
 
 [node name="Watchtower1" type="StaticBody3D" parent="Nav"]
 script = ExtResource("12_tower")
@@ -418,18 +433,21 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.0, 0, 8.5)
 aim_deg = 195.0
 arc_deg = 50.0
 reach = 12.0
+snowy = true
 
 [node name="Cart1" type="StaticBody3D" parent="Nav"]
 script = ExtResource("13_cart")
 transform = Transform3D(0.2675, 0, -0.9636, 0, 1, 0, 0.9636, 0, 0.2675, -2.5, 0, 8.5)
+snowy = true
 
 [node name="Cart2" type="StaticBody3D" parent="Nav"]
 script = ExtResource("13_cart")
 transform = Transform3D(0.9553, 0, -0.2955, 0, 1, 0, 0.2955, 0, 0.9553, -20.0, 0, 14.5)
+snowy = true
 
 [node name="NorthPines" type="Node3D" parent="Nav"]
 script = ExtResource("7_scatter")
-tree_kind = &"pine"
+tree_kind = &"snow_pine"
 area = PackedVector2Array(-49, -39, 49, -39, 49, -16, -49, -16)
 count = 30
 seed = 31
@@ -439,10 +457,11 @@ scale_range = Vector2(0.85, 1.2)
 keep_clear = 3.0
 clear_points = PackedVector2Array(5, 16, 5, 19, 24, 0, -13, -7.5, 44, 12, -44, 32, -44, 35, 30, 2, -20, 28)
 blocker_size = Vector3(0.5, 3.0, 0.5)
+snowy = true
 
 [node name="Olives" type="Node3D" parent="Nav"]
 script = ExtResource("7_scatter")
-tree_kind = &"olive"
+tree_kind = &"birch"
 area = PackedVector2Array(-49, 15, 49, 15, 49, 39, -49, 39)
 count = 16
 seed = 32
@@ -452,6 +471,7 @@ scale_range = Vector2(0.85, 1.2)
 keep_clear = 3.5
 clear_points = PackedVector2Array(5, 16, 5, 19, 24, 0, -13, -7.5, 44, 12, -44, 32, -44, 35, 30, 2, -20, 28)
 blocker_size = Vector3(0.6, 3.0, 0.6)
+snowy = true
 
 [node name="TallRocks" type="Node3D" parent="Nav"]
 script = ExtResource("7_scatter")
@@ -465,6 +485,7 @@ scale_range = Vector2(2.0, 2.6)
 keep_clear = 3.5
 clear_points = PackedVector2Array(5, 16, 5, 19, 24, 0, -13, -7.5, 44, 12, -44, 32, -44, 35, 30, 2, -20, 28)
 blocker_size = Vector3(1.4, 2.0, 1.4)
+snowy = true
 
 [node name="FlatRocks" type="Node3D" parent="Nav"]
 script = ExtResource("7_scatter")
@@ -478,6 +499,7 @@ scale_range = Vector2(2.2, 2.8)
 keep_clear = 3.5
 clear_points = PackedVector2Array(5, 16, 5, 19, 24, 0, -13, -7.5, 44, 12, -44, 32, -44, 35, 30, 2, -20, 28)
 blocker_size = Vector3(1.8, 0.9, 1.8)
+snowy = true
 
 [node name="PropBlocker1" type="StaticBody3D" parent="Nav"]
 transform = Transform3D(1.0000, 0, -0.0000, 0, 1, 0, 0.0000, 0, 1.0000, 16.2, -0.30000000000000004, -3.6)
@@ -519,76 +541,16 @@ shape = SubResource("Box_prop6")
 
 [node name="Bushes" type="Node3D" parent="Scenery"]
 script = ExtResource("7_scatter")
-tree_kind = &"bush"
+tree_kind = &"bare_bush"
 area = PackedVector2Array(-49, -39, 49, -39, 49, 39, -49, 39)
-count = 170
+count = 110
 seed = 35
 min_spacing = 2.2
 max_slope_deg = 34.0
 scale_range = Vector2(0.7, 1.4)
 keep_clear = 1.5
 clear_points = PackedVector2Array(5, 16, 5, 19, 24, 0, -13, -7.5, 44, 12, -44, 32, -44, 35, 30, 2, -20, 28)
-
-[node name="Grass" type="Node3D" parent="Scenery"]
-script = ExtResource("7_scatter")
-models = Array[PackedScene]([ExtResource("m_grass"), ExtResource("m_grass_large"), ExtResource("m_grass_leafs"), ExtResource("m_grass_leafsLarge")])
-area = PackedVector2Array(-49, -39, 49, -39, 49, 39, -49, 39)
-count = 900
-seed = 36
-min_spacing = 0.7
-max_slope_deg = 36.0
-scale_range = Vector2(2.0, 3.2)
-keep_clear = 0.9
-clear_points = PackedVector2Array(5, 16, 5, 19, 24, 0, -13, -7.5, 44, 12, -44, 32, -44, 35, 30, 2, -20, 28)
-
-[node name="Wheat" type="Node3D" parent="Scenery"]
-script = ExtResource("7_scatter")
-models = Array[PackedScene]([ExtResource("m_crops_wheatStageB")])
-area = PackedVector2Array(-24, 28.5, -6, 28.5, -6, 38, -24, 38)
-count = 420
-seed = 42
-min_spacing = 0.55
-max_slope_deg = 30.0
-scale_range = Vector2(2.4, 3.2)
-keep_clear = 0.3
-clear_points = PackedVector2Array(5, 16, 5, 19, 24, 0, -13, -7.5, 44, 12, -44, 32, -44, 35, 30, 2, -20, 28)
-flat_colour = Color(0.74, 0.62, 0.32, 1)
-
-[node name="Poppies" type="Node3D" parent="Scenery"]
-script = ExtResource("7_scatter")
-models = Array[PackedScene]([ExtResource("m_flower_redA"), ExtResource("m_flower_redB"), ExtResource("m_flower_redC")])
-area = PackedVector2Array(-49, -39, 49, -39, 49, 39, -49, 39)
-count = 180
-seed = 37
-min_spacing = 0.6
-max_slope_deg = 30.0
-scale_range = Vector2(1.3, 2.0)
-keep_clear = 1.0
-clear_points = PackedVector2Array(5, 16, 5, 19, 24, 0, -13, -7.5, 44, 12, -44, 32, -44, 35, 30, 2, -20, 28)
-
-[node name="Broom" type="Node3D" parent="Scenery"]
-script = ExtResource("7_scatter")
-models = Array[PackedScene]([ExtResource("m_flower_yellowA"), ExtResource("m_flower_yellowB"), ExtResource("m_flower_yellowC")])
-area = PackedVector2Array(-49, -39, 49, -39, 49, 39, -49, 39)
-count = 160
-seed = 38
-min_spacing = 0.8
-max_slope_deg = 34.0
-scale_range = Vector2(1.3, 2.1)
-keep_clear = 1.0
-clear_points = PackedVector2Array(5, 16, 5, 19, 24, 0, -13, -7.5, 44, 12, -44, 32, -44, 35, 30, 2, -20, 28)
-
-[node name="Saplings" type="Node3D" parent="Scenery"]
-script = ExtResource("7_scatter")
-tree_kind = &"sapling"
-area = PackedVector2Array(-49, -39, 49, -39, 49, 39, -49, 39)
-count = 22
-seed = 39
-min_spacing = 6.0
-max_slope_deg = 30.0
-scale_range = Vector2(0.8, 1.3)
-keep_clear = 3.0
-clear_points = PackedVector2Array(5, 16, 5, 19, 24, 0, -13, -7.5, 44, 12, -44, 32, -44, 35, 30, 2, -20, 28)
+snowy = true
 
 [node name="Deadwood" type="Node3D" parent="Scenery"]
 script = ExtResource("7_scatter")
@@ -601,6 +563,7 @@ max_slope_deg = 30.0
 scale_range = Vector2(2.6, 3.4)
 keep_clear = 2.0
 clear_points = PackedVector2Array(5, 16, 5, 19, 24, 0, -13, -7.5, 44, 12, -44, 32, -44, 35, 30, 2, -20, 28)
+snowy = true
 
 [node name="Pebbles" type="Node3D" parent="Scenery"]
 script = ExtResource("7_scatter")
@@ -613,6 +576,7 @@ max_slope_deg = 40.0
 scale_range = Vector2(1.5, 2.6)
 keep_clear = 1.0
 clear_points = PackedVector2Array(5, 16, 5, 19, 24, 0, -13, -7.5, 44, 12, -44, 32, -44, 35, 30, 2, -20, 28)
+snowy = true
 
 [node name="Prop1" type="MeshInstance3D" parent="Scenery"]
 transform = Transform3D(1.0000, 0, -0.0000, 0, 1, 0, 0.0000, 0, 1.0000, 16.2, -0.4, -3.6)
@@ -787,9 +751,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, -1.0, 1.7)
 
 [node name="Destroy" type="Node" parent="Objectives"]
 script = ExtResource("15_destroy")
-hud_text = "Destroy the powder store"
-marker_name = "Powder store"
-done_text = "Powder store destroyed"
+hud_text = "Destroy the depot"
+marker_name = "Depot"
+done_text = "Depot destroyed"
 target = NodePath("BridgeTarget")
 
 [node name="Guard1" parent="Guards" instance=ExtResource("2_guard")]

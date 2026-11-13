@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""The powder store mission's map, as tables. Run to rewrite its land and scene:
+"""The Teruel mission's map (the depot, once the powder store), as tables. Run to rewrite its land and scene:
 
     python3 tools/make_powder_map.py && godot --headless --path . -s tools/map_preview.gd -- /tmp/map.png res://scenes/missions/powder_store.tscn
 
-A walled farm on a plain between two hills, used as an ammunition store. The squad comes up
+December 1937, outside Teruel, under snow and a lid of cloud. A walled farm on a plain between
+two hills, used as a supply depot. The squad comes up
 from the south-west, gets in by the south gate, the east gate or the gap in the west wall, blows
 the stack in the yard and leaves by the road east.
 """
@@ -85,8 +86,10 @@ CRATES = [
     ("CrateRoad", 9.5, PLAIN, 19.5, 1.4, 1.4),
 ]
 
-PINES = ["tree:pine"]
-OAKS = ["tree:olive"]
+# Winter: pines under snow, and bare birches where the olives stood (the same places: what
+# blocks feet and eyes has not moved since this was the powder store).
+PINES = ["tree:snow_pine"]
+OAKS = ["tree:birch"]
 WHOLE_MAP = [(-49, -39), (49, -39), (49, 39), (-49, 39)]
 NORTH = [(-49, -39), (49, -39), (49, -16), (-49, -16)]
 SOUTH = [(-49, 15), (49, 15), (49, 39), (-49, 39)]
@@ -97,12 +100,7 @@ SCATTERS = [
     ("Olives", True, OAKS, SOUTH, 16, 32, 6.5, (0.85, 1.2), 3.5, (0.6, 3.0, 0.6), 25),
     ("TallRocks", True, ["rock_tallA", "rock_tallB"], WHOLE_MAP, 10, 33, 9.0, (2.0, 2.6), 3.5, (1.4, 2.0, 1.4), 28),
     ("FlatRocks", True, ["rock_largeA", "rock_largeB", "rock_largeC"], WHOLE_MAP, 16, 34, 7.0, (2.2, 2.8), 3.5, (1.8, 0.9, 1.8), 28),
-    ("Bushes", False, ["tree:bush"], WHOLE_MAP, 170, 35, 2.2, (0.7, 1.4), 1.5, None, 34),
-    ("Grass", False, ["grass", "grass_large", "grass_leafs", "grass_leafsLarge"], WHOLE_MAP, 900, 36, 0.7, (2.0, 3.2), 0.9, None, 36),
-    ("Wheat", False, ["crops_wheatStageB"], [(-24, 28.5), (-6, 28.5), (-6, 38), (-24, 38)], 420, 42, 0.55, (2.4, 3.2), 0.3, None, 30),
-    ("Poppies", False, ["flower_redA", "flower_redB", "flower_redC"], WHOLE_MAP, 180, 37, 0.6, (1.3, 2.0), 1.0, None, 30),
-    ("Broom", False, ["flower_yellowA", "flower_yellowB", "flower_yellowC"], WHOLE_MAP, 160, 38, 0.8, (1.3, 2.1), 1.0, None, 34),
-    ("Saplings", False, ["tree:sapling"], WHOLE_MAP, 22, 39, 6.0, (0.8, 1.3), 3.0, None, 30),
+    ("Bushes", False, ["tree:bare_bush"], WHOLE_MAP, 110, 35, 2.2, (0.7, 1.4), 1.5, None, 34),
     ("Deadwood", False, ["stump_round", "log_stack", "log", "stump_old"], WHOLE_MAP, 18, 40, 5.0, (2.6, 3.4), 2.0, None, 30),
     ("Pebbles", False, ["rock_smallA", "rock_smallB", "rock_smallC", "stone_smallA", "stone_smallB"], WHOLE_MAP, 140, 41, 1.2, (1.5, 2.6), 1.0, None, 40),
 ]
@@ -117,12 +115,12 @@ PLACED = [
 ]
 LAMPS = [(2.2, 13.6, PLAIN), (21.4, 3.2, PLAIN), (1.5, 0.5, PLAIN), (12.5, -1.5, PLAIN)]
 TEXTS = {
-    "title": "The powder store",
-    "target_name": "Powder store",
-    "objective_text": "Destroy the powder store",
-    "destroyed_text": "Powder store destroyed",
+    "title": "The depot outside Teruel",
+    "target_name": "Depot",
+    "objective_text": "Destroy the depot",
+    "destroyed_text": "Depot destroyed",
     "objectives": [
-        "Blow up the ammunition stacked in the farm's yard with the Dynamiter's charge.",
+        "Blow up the stores stacked in the farm's yard with the Dynamiter's charge.",
         "Get both of them to the camp fire on the road east.",
         "Lose either one and the mission fails.",
     ],
@@ -131,7 +129,7 @@ TEXTS = {
 
 if __name__ == "__main__":
     tables = dict(
-        NODE="PowderStore", SEED=11, BOUNDS=BOUNDS, PLAIN=PLAIN, FEATURES=FEATURES,
+        NODE="PowderStore", SEASON="snow", LIGHT="overcast", SNOWFALL=True, DRESS="spain_winter", SEED=11, BOUNDS=BOUNDS, PLAIN=PLAIN, FEATURES=FEATURES,
         SPECIALIST_SPAWNS=SPECIALIST_SPAWNS, GUARDS=GUARDS, EXTRACTION=EXTRACTION, TARGET=TARGET,
         TARGET_STACK=TARGET_STACK, WALLS=WALLS, BUILDINGS=BUILDINGS, CRATES=CRATES, SCATTERS=SCATTERS,
         CLEAR=CLEAR, PLACED=PLACED, LAMPS=LAMPS, POLE_LINES=POLE_LINES, TOWERS=TOWERS, CARTS=CARTS,

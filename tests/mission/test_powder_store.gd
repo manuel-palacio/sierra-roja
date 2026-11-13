@@ -34,9 +34,9 @@ func _path_length(from: Vector3, to: Vector3) -> float:
 func test_it_is_valid_and_says_what_it_is() -> void:
 	await _built()
 	assert_eq(MissionValidator.validate(mission), PackedStringArray())
-	assert_eq(mission.title, "The powder store")
-	assert_eq(mission.objectives()[0].marker_name, "Powder store")
-	assert_eq(mission.objectives()[0].hud_text, "Destroy the powder store")
+	assert_eq(mission.title, "The depot outside Teruel")
+	assert_eq(mission.objectives()[0].marker_name, "Depot")
+	assert_eq(mission.objectives()[0].hud_text, "Destroy the depot")
 	assert_eq(mission.briefing_lines.size(), 3)
 	assert_eq(mission.guards().size(), 6)
 	assert_eq(mission.specialist_spawns().size(), 2)
@@ -132,3 +132,14 @@ func test_a_charge_outside_the_wall_is_too_far() -> void:
 	charge.advance(0.1)
 	await wait_physics_frames(2)
 	assert_false(rules.objectives_done(), "the stack cannot be blown from outside the farm")
+
+
+func test_it_is_winter_at_teruel() -> void:
+	await _built()
+	assert_eq(mission.season, &"snow")
+	assert_eq(mission.light, &"overcast")
+	assert_false(mission.night)
+	assert_true(mission.snowfall)
+	assert_eq(mission.dress, &"spain_winter")
+	assert_eq(mission.terrain().season, &"snow")
+	assert_eq(mission.briefing_lines.size(), 3)

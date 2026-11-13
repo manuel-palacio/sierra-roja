@@ -46,3 +46,11 @@ func test_what_is_stored_can_be_read_back() -> void:
 func test_an_index_off_the_list_is_not_open() -> void:
 	assert_false(Campaign.is_open(-1))
 	assert_false(Campaign.is_open(99))
+
+
+func test_a_win_stored_under_the_old_id_counts() -> void:
+	Campaign.load_from("[\"guadarrama\", \"powder_store\"]")
+	assert_true(Campaign.is_won("teruel"))
+	assert_true(Campaign.is_open(2))
+	# And it is kept under the name the mission has now.
+	assert_string_contains(Campaign.stored_text(), "teruel")

@@ -380,7 +380,7 @@ func test_loss_shows_no_note() -> void:
 
 
 func test_win_without_a_note_shows_none() -> void:
-	hud.end_screen.mission_id = "powder_store"
+	hud.end_screen.mission_id = "nowhere"
 	rules.result = MissionRules.Result.WON
 	rules.result_changed.emit(MissionRules.Result.WON)
 	assert_false(hud.end_screen.note_label.visible)

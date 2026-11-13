@@ -201,14 +201,14 @@ func test_note_is_shown_for_a_mission_that_has_one() -> void:
 
 
 func test_note_is_hidden_for_a_mission_without_one() -> void:
-	var b := _shown(Missions.index_of("powder_store"))
+	var b := _shown(-1)  # no mission: no history to tell
 	assert_false(b.note_label.visible)
 
 
 func test_button_names_place_and_date() -> void:
 	var b := _shown(0)
 	assert_eq(b.mission_buttons[0].text, "1  Sierra de Guadarrama, May 1937")
-	assert_eq(b.mission_buttons[Missions.index_of("powder_store")].text, "2  The powder store")
+	assert_eq(b.mission_buttons[Missions.index_of("teruel")].text, "2  Teruel, December 1937")
 
 
 func test_it_shows_the_missions_own_title_and_lines() -> void:
