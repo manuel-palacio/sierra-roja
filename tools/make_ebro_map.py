@@ -120,7 +120,7 @@ PLACED = [
 LAMPS = [(-27.0, -18.4, PLAIN), (4.0, -18.4, PLAIN), (34.0, -18.4, PLAIN), (-1.4, 4.6, PLAIN)]
 WATER = ("north", -31.5, 0.35)
 CROSSING = {"after": "Silence", "seconds": 25.0,
-            "boats": [((-6, -90), (-3, -31.8)), ((1, -94), (2, -31.8)), ((8, -91), (7, -31.8)), ((15, -96), (12, -31.8))]}
+            "boats": [((-6, -90), (-3, -33.4)), ((1, -94), (2, -33.4)), ((8, -91), (7, -33.4)), ((15, -96), (12, -33.4))]}
 OBJECTIVES = [
     {"kind": "silence", "sentries": ["PostWest", "PostMiddle", "PostEast"], "seconds": 300,
      "hud": "Silence the sentries", "marker": "Sentry", "done": "The bank is quiet: the boats are crossing"},

@@ -422,7 +422,7 @@ script = ExtResource("21_crossing")
 after = NodePath("Objectives/Silence")
 seconds = 25.0
 starts = PackedVector2Array(-6, -90, 1, -94, 8, -91, 15, -96)
-ends = PackedVector2Array(-3, -31.8, 2, -31.8, 7, -31.8, 12, -31.8)
+ends = PackedVector2Array(-3, -33.4, 2, -33.4, 7, -33.4, 12, -33.4)
 level = 0.35
 
 [node name="Reeds" type="Node3D" parent="Scenery"]

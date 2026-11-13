@@ -99,7 +99,7 @@ static func _boat() -> Node3D:
 	var hull := MeshInstance3D.new()
 	var box := BoxMesh.new()
 	box.size = Vector3(1.8, 0.6, 5.0)
-	box.material = Surfaces.material(&"planks", Color(0.45, 0.42, 0.36))
+	box.material = Surfaces.material(&"planks", Color(0.72, 0.66, 0.54))
 	hull.mesh = box
 	hull.position = Vector3(0, 0.2, 0)
 	boat.add_child(hull)
@@ -107,7 +107,7 @@ static func _boat() -> Node3D:
 	var load_of_men := BoxMesh.new()
 	load_of_men.size = Vector3(1.3, 0.5, 3.8)
 	var dark := StandardMaterial3D.new()
-	dark.albedo_color = Color(0.20, 0.21, 0.18)
+	dark.albedo_color = Color(0.34, 0.36, 0.30)
 	dark.roughness = 1.0
 	load_of_men.material = dark
 	men.mesh = load_of_men

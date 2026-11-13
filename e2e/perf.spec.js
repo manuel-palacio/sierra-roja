@@ -7,7 +7,7 @@ const { test, expect } = require('@playwright/test');
 // bar on the mini). The renderer string is logged so the figure can be read in context.
 test.use({ headless: process.env.PERF_HEADLESS === '1' });
 
-for (const [mission, guards] of [['guadarrama', 5], ['teruel', 6], ['carchuna', 7], ['volkhov', 7]]) {
+for (const [mission, guards] of [['guadarrama', 5], ['teruel', 6], ['carchuna', 7], ['ebro', 8], ['volkhov', 7], ['krasny_bor', 8]]) {
   test(`${mission} runs at 30 fps or better with all guards patrolling`, async ({ page }) => {
     test.setTimeout(60000);
     await page.goto(`/?perf=1&mission=${mission}`);

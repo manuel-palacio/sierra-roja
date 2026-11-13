@@ -1,7 +1,7 @@
 # Sierra Roja: third milestone design, "a campaign from history"
 
 Date: 2026-11-12
-Status: approved by Manuel on 2026-11-12 (design, then this written spec). Batch 1 is built.
+Status: approved by Manuel on 2026-11-12 (design, then this written spec). All three batches are built (2026-11-13).
 
 ## Goal
 
