@@ -314,3 +314,63 @@ func test_every_soldier_has_a_face() -> void:
 		assert_gte(on_face, SoldierGear.FACE.size(), "eyes, brows, nose and mouth on %s" % scene)
 	assert_eq(SoldierGear.pieces(&"guard").size(), SoldierGear.pieces(&"dynamiter").size() + 1 + SoldierGear.KITS[&"guard"].size() - SoldierGear.KITS[&"dynamiter"].size(),
 			"guards wear a moustache; the Dynamiter is clean-shaven")
+
+
+# --- Dress: what the mission puts on its units ---
+
+func _mission(dress: StringName) -> Mission:
+	var mission := Mission.new()
+	mission.dress = dress
+	var guards := Node3D.new()
+	guards.name = "Guards"
+	mission.add_child(guards)
+	add_child_autofree(mission)
+	return mission
+
+
+func _unit_in(mission: Mission, scene: String) -> Node3D:
+	var unit: Node3D = load(scene).instantiate()
+	mission.get_node("Guards").add_child(unit)
+	unit.set_physics_process(false)
+	return unit
+
+
+func test_a_unit_outside_any_mission_wears_its_own_kit() -> void:
+	var guard := _unit(GUARD)
+	assert_eq(_uniforms(guard).keys(), ["uniform-guard.png"])
+	assert_eq(_gear(guard).size(), SoldierGear.pieces(&"guard").size())
+
+
+func test_a_guard_in_a_mission_without_dress_is_as_today() -> void:
+	var guard := _unit_in(_mission(&""), GUARD)
+	assert_eq(_uniforms(guard).keys(), ["uniform-guard.png"])
+	assert_eq(_gear(guard).size(), SoldierGear.pieces(&"guard").size())
+
+
+func test_a_guard_in_a_russia_mission_wears_blue() -> void:
+	var guard := _unit_in(_mission(&"russia"), GUARD)
+	assert_eq(_uniforms(guard).keys(), ["uniform-guard_blue.png"])
+	assert_eq(_gear(guard).size(), SoldierGear.pieces(&"guard_blue").size())
+
+
+func test_the_pair_in_a_russia_mission_wear_white() -> void:
+	var mission := _mission(&"russia")
+	assert_eq(_uniforms(_unit_in(mission, DYNAMITER)).keys(), ["uniform-dynamiter_russia.png"])
+	assert_eq(_uniforms(_unit_in(mission, MARKSMAN)).keys(), ["uniform-marksman_russia.png"])
+
+
+func test_a_body_in_a_russia_mission_wears_blue() -> void:
+	var body := _unit_in(_mission(&"russia"), Body.SCENE)
+	assert_eq(_uniforms(body).keys(), ["uniform-guard_blue.png"])
+	assert_eq(_gear(body).size(), SoldierGear.pieces(&"guard_blue").size())
+
+
+func test_a_body_outside_a_winter_mission_is_in_khaki() -> void:
+	var body := _unit_in(_mission(&""), Body.SCENE)
+	assert_eq(_uniforms(body).keys(), ["uniform-guard.png"])
+
+
+func test_a_guard_at_teruel_wears_a_cape_over_the_same_uniform() -> void:
+	var guard := _unit_in(_mission(&"spain_winter"), GUARD)
+	assert_eq(_uniforms(guard).keys(), ["uniform-guard.png"])
+	assert_eq(_gear(guard).size(), SoldierGear.pieces(&"guard").size() + 1, "everything it had, and a cape")

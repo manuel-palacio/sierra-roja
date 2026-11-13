@@ -51,6 +51,10 @@ const SPAN_DEPTH := 1.5
 ## Snow is falling. Drawn only.
 @export var snowfall := false
 
+## Which uniforms its units wear: &"" (as their scenes have them), &"spain_winter" or &"russia".
+## See Dress.
+@export var dress := &""
+
 ## A night mission: dark, lamp-lit, and with a searchlight sweeping from every watchtower.
 @export var night := false
 

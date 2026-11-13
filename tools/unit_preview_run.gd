@@ -14,6 +14,11 @@ func _ready() -> void:
 	var view: float = float(args[4]) if args.size() > 4 else 3.6
 	var look_at_height: float = float(args[5]) if args.size() > 5 else 0.9
 	var pitch: float = float(args[6]) if args.size() > 6 else -35.0
+	# The dress of the mission they stand in: "", "spain_winter" or "russia" (see Dress).
+	var dress: String = args[7] if args.size() > 7 else ""
+	var stage := Mission.new()
+	stage.dress = StringName(dress)
+	add_child(stage)
 	get_window().size = Vector2i(1200, 520)
 	var env := WorldEnvironment.new()
 	env.environment = Environment.new()
@@ -44,7 +49,7 @@ func _ready() -> void:
 	for i in SCENES.size():
 		var unit: Node3D = load(SCENES[i]).instantiate()
 		unit.set_physics_process(false)
-		add_child(unit)
+		stage.add_child(unit)
 		unit.position = camera.basis.x * (i - (SCENES.size() - 1) / 2.0) * 1.9
 		if animation == "crawl" and unit is Unit:
 			(unit as Unit).set_stance(Unit.Stance.CRAWLING)

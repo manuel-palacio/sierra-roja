@@ -2,6 +2,7 @@
 """Makes the soldier model and its uniforms from Quaternius's Universal Animation Library (CC0).
 
     uv run --with pygltflib --with numpy --with pillow python3 tools/make_soldier.py <AnimationLibrary_Godot_Standard.glb>
+    uv run --with pygltflib --with numpy --with pillow python3 tools/make_soldier.py --palettes-only
 
 The library's mannequin is a well-proportioned, fully animated human with no clothes or colours.
 This script paints it by body part: every triangle is given one region (skin, hair, jacket,
@@ -36,6 +37,11 @@ PALETTES = {
     "marksman": ["#d4a482", "#4a3423", "#6e4c30", "#5f6450", "#2a1f19", "#3a2616"],
     # A prisoner: a dirty undershirt, army trousers, bare feet.
     "prisoner": ["#c9a084", "#2e2a26", "#b9b2a0", "#6d6a55", "#b98f76", "#8a7a5c"],
+    # The División Azul: German field grey.
+    "guard_blue": ["#d9a987", "#3a2c20", "#5c6558", "#565f52", "#1e1a17", "#2a221c"],
+    # The pair in Russia: white snow smocks.
+    "dynamiter_russia": ["#c89673", "#1c1a1c", "#e6e8ea", "#dfe2e6", "#4a4038", "#8a7a5c"],
+    "marksman_russia": ["#d4a482", "#4a3423", "#e2e5e8", "#d9dde2", "#3a2f28", "#7a6a50"],
 }
 
 # The clips the game uses or is likely to use next; the rest are left out of the model.
@@ -137,6 +143,13 @@ def main(source: str) -> None:
     gltf.save(str(OUT / "soldier.glb"))
     print("wrote soldier.glb", round(len(blob) / 1e6, 1), "MB")
 
+    write_palettes()
+
+
+def write_palettes() -> None:
+    """Every uniform's palette image. Needs no model: a new uniform is a line in PALETTES and
+    a run with --palettes-only."""
+    OUT.mkdir(parents=True, exist_ok=True)
     for name, colours in PALETTES.items():
         image = Image.new("RGB", (REGIONS * 4, 4), "#ff00ff")
         for i, colour in enumerate(colours):
@@ -146,4 +159,7 @@ def main(source: str) -> None:
 
 
 if __name__ == "__main__":
-    main(sys.argv[1])
+    if sys.argv[1:] == ["--palettes-only"]:
+        write_palettes()
+    else:
+        main(sys.argv[1])

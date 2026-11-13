@@ -10,6 +10,10 @@ const GUNMETAL := Color(0.13, 0.13, 0.14)
 const CANVAS := Color(0.55, 0.50, 0.36)
 
 const BLADE := Color(0.72, 0.74, 0.78)
+const FIELD_GREY := Color(0.33, 0.36, 0.32)
+const FUR := Color(0.38, 0.32, 0.26)
+const SHIELD_RED := Color(0.72, 0.10, 0.10)
+const SHIELD_YELLOW := Color(0.92, 0.76, 0.12)
 ## The bones of the arm that holds a weapon.
 const HAND := "DEF-hand.R"
 const FOREARM := "DEF-forearm.R"
@@ -41,6 +45,73 @@ const KITS := {
 		{ "held": 0.30, "thick": 0.03, "grip": 0.08, "color": BLADE, "when": &"knife" },
 		{ "bone": "DEF-spine.002", "shape": "box", "size": Vector3(0.05, 0.56, 0.02), "at": Vector3(0.0, 1.27, 0.125), "turn": Vector3(0, 0, 38), "color": Color(0.42, 0.37, 0.26) },
 	],
+	# Winter in Spain: what each wears, under a blanket worn over the shoulders.
+	&"guard_winter": [
+		{ "bone": "DEF-head", "shape": "sphere", "size": Vector3(0.31, 0.20, 0.34), "at": Vector3(0, 1.775, 0.01), "color": STEEL },
+		{ "bone": "DEF-head", "shape": "sphere", "size": Vector3(0.37, 0.05, 0.40), "at": Vector3(0, 1.725, 0.01), "color": STEEL },
+		{ "bone": "DEF-spine.003", "shape": "box", "size": Vector3(0.05, 1.05, 0.07), "at": Vector3(0.02, 1.28, -0.17), "turn": Vector3(0, 0, 28), "color": WOOD, "when": &"slung" },
+		{ "bone": "DEF-spine.003", "shape": "box", "size": Vector3(0.03, 0.45, 0.03), "at": Vector3(-0.19, 1.66, -0.17), "turn": Vector3(0, 0, 28), "color": GUNMETAL, "when": &"slung" },
+		{ "held": 1.05, "thick": 0.06, "grip": 0.60, "color": WOOD, "when": &"rifle" },
+		{ "held": 0.42, "thick": 0.03, "grip": -0.37, "color": GUNMETAL, "when": &"rifle" },
+		{ "bone": "DEF-spine.002", "shape": "box", "size": Vector3(0.30, 0.10, 0.06), "at": Vector3(0, 1.12, 0.13), "color": Color(0.36, 0.24, 0.14) },
+		{ "bone": "DEF-spine.003", "shape": "sphere", "size": Vector3(0.64, 0.40, 0.44), "at": Vector3(0, 1.38, -0.01), "color": Color(0.45, 0.43, 0.40) },
+	],
+	&"dynamiter_winter": [
+		{ "bone": "DEF-head", "shape": "sphere", "size": Vector3(0.33, 0.11, 0.34), "at": Vector3(0.02, 1.81, 0.0), "turn": Vector3(0, 0, -8), "color": Color(0.10, 0.10, 0.12) },
+		{ "bone": "DEF-neck", "shape": "sphere", "size": Vector3(0.19, 0.075, 0.19), "at": Vector3(0, 1.515, 0.015), "color": Color(0.75, 0.13, 0.10) },
+		{ "bone": "DEF-hips", "shape": "box", "size": Vector3(0.12, 0.26, 0.30), "at": Vector3(-0.21, 0.93, 0.0), "color": CANVAS },
+		{ "held": 0.24, "thick": 0.05, "grip": 0.05, "color": GUNMETAL, "when": &"pistol" },
+		{ "held": 0.30, "thick": 0.03, "grip": 0.08, "color": BLADE, "when": &"knife" },
+		{ "bone": "DEF-spine.002", "shape": "box", "size": Vector3(0.05, 0.56, 0.02), "at": Vector3(0.0, 1.27, 0.125), "turn": Vector3(0, 0, 38), "color": Color(0.42, 0.37, 0.26) },
+		{ "bone": "DEF-spine.003", "shape": "sphere", "size": Vector3(0.64, 0.40, 0.44), "at": Vector3(0, 1.38, -0.01), "color": Color(0.40, 0.31, 0.23) },
+	],
+	&"marksman_winter": [
+		{ "bone": "DEF-head", "shape": "sphere", "size": Vector3(0.31, 0.09, 0.36), "at": Vector3(0, 1.80, 0.03), "color": Color(0.33, 0.28, 0.22) },
+		{ "bone": "DEF-spine.003", "shape": "box", "size": Vector3(0.05, 1.25, 0.07), "at": Vector3(0.02, 1.30, -0.17), "turn": Vector3(0, 0, -30), "color": WOOD, "when": &"slung" },
+		{ "bone": "DEF-spine.003", "shape": "box", "size": Vector3(0.035, 0.30, 0.035), "at": Vector3(0.12, 1.50, -0.215), "turn": Vector3(0, 0, -30), "color": GUNMETAL, "when": &"slung" },
+		{ "held": 1.25, "thick": 0.06, "grip": 0.60, "color": WOOD, "when": &"rifle" },
+		{ "held": 0.50, "thick": 0.03, "grip": -0.57, "color": GUNMETAL, "when": &"rifle" },
+		{ "held": 0.24, "thick": 0.05, "grip": 0.05, "color": GUNMETAL, "when": &"pistol" },
+		{ "bone": "DEF-spine.002", "shape": "box", "size": Vector3(0.05, 0.56, 0.02), "at": Vector3(0.0, 1.27, 0.125), "turn": Vector3(0, 0, -38), "color": Color(0.30, 0.20, 0.12) },
+		{ "bone": "DEF-spine.003", "shape": "sphere", "size": Vector3(0.64, 0.40, 0.44), "at": Vector3(0, 1.38, -0.01), "color": Color(0.36, 0.35, 0.31) },
+	],
+	# The División Azul: the German helmet's flare in field grey, a greatcoat's skirt, and on the
+	# right sleeve the red-yellow-red shield of the Spanish volunteers. No other insignia.
+	&"guard_blue": [
+		{ "bone": "DEF-head", "shape": "sphere", "size": Vector3(0.31, 0.20, 0.34), "at": Vector3(0, 1.775, 0.01), "color": FIELD_GREY },
+		{ "bone": "DEF-head", "shape": "sphere", "size": Vector3(0.37, 0.05, 0.40), "at": Vector3(0, 1.725, 0.01), "color": FIELD_GREY },
+		{ "bone": "DEF-spine.003", "shape": "box", "size": Vector3(0.05, 1.05, 0.07), "at": Vector3(0.02, 1.28, -0.17), "turn": Vector3(0, 0, 28), "color": WOOD, "when": &"slung" },
+		{ "bone": "DEF-spine.003", "shape": "box", "size": Vector3(0.03, 0.45, 0.03), "at": Vector3(-0.19, 1.66, -0.17), "turn": Vector3(0, 0, 28), "color": GUNMETAL, "when": &"slung" },
+		{ "held": 1.05, "thick": 0.06, "grip": 0.60, "color": WOOD, "when": &"rifle" },
+		{ "held": 0.42, "thick": 0.03, "grip": -0.37, "color": GUNMETAL, "when": &"rifle" },
+		{ "bone": "DEF-spine.002", "shape": "box", "size": Vector3(0.30, 0.10, 0.06), "at": Vector3(0, 1.12, 0.13), "color": Color(0.36, 0.24, 0.14) },
+		{ "bone": "DEF-head", "shape": "sphere", "size": Vector3(0.41, 0.09, 0.40), "at": Vector3(0, 1.695, -0.035), "color": FIELD_GREY },
+		{ "bone": "DEF-hips", "shape": "box", "size": Vector3(0.37, 0.40, 0.25), "at": Vector3(0, 0.80, -0.01), "color": Color(0.36, 0.40, 0.35) },
+		{ "bone": "DEF-upper_arm.R", "shape": "box", "size": Vector3(0.03, 0.02, 0.075), "at": Vector3(-0.265, 1.502, -0.07), "color": SHIELD_RED },
+		{ "bone": "DEF-upper_arm.R", "shape": "box", "size": Vector3(0.03, 0.02, 0.075), "at": Vector3(-0.295, 1.502, -0.07), "color": SHIELD_YELLOW },
+		{ "bone": "DEF-upper_arm.R", "shape": "box", "size": Vector3(0.03, 0.02, 0.075), "at": Vector3(-0.325, 1.502, -0.07), "color": SHIELD_RED },
+	],
+	# The pair in Russia: fur caps, and their own weapons and bags.
+	&"dynamiter_russia": [
+		{ "bone": "DEF-head", "shape": "sphere", "size": Vector3(0.35, 0.21, 0.37), "at": Vector3(0, 1.785, 0.0), "color": FUR },
+		{ "bone": "DEF-head", "shape": "box", "size": Vector3(0.05, 0.15, 0.15), "at": Vector3(0.168, 1.70, -0.01), "color": FUR },
+		{ "bone": "DEF-head", "shape": "box", "size": Vector3(0.05, 0.15, 0.15), "at": Vector3(-0.168, 1.70, -0.01), "color": FUR },
+		{ "bone": "DEF-hips", "shape": "box", "size": Vector3(0.12, 0.26, 0.30), "at": Vector3(-0.21, 0.93, 0.0), "color": CANVAS },
+		{ "held": 0.24, "thick": 0.05, "grip": 0.05, "color": GUNMETAL, "when": &"pistol" },
+		{ "held": 0.30, "thick": 0.03, "grip": 0.08, "color": BLADE, "when": &"knife" },
+		{ "bone": "DEF-spine.002", "shape": "box", "size": Vector3(0.05, 0.56, 0.02), "at": Vector3(0.0, 1.27, 0.125), "turn": Vector3(0, 0, 38), "color": Color(0.42, 0.37, 0.26) },
+	],
+	&"marksman_russia": [
+		{ "bone": "DEF-head", "shape": "sphere", "size": Vector3(0.35, 0.21, 0.37), "at": Vector3(0, 1.785, 0.0), "color": FUR },
+		{ "bone": "DEF-head", "shape": "box", "size": Vector3(0.05, 0.15, 0.15), "at": Vector3(0.168, 1.70, -0.01), "color": FUR },
+		{ "bone": "DEF-head", "shape": "box", "size": Vector3(0.05, 0.15, 0.15), "at": Vector3(-0.168, 1.70, -0.01), "color": FUR },
+		{ "bone": "DEF-spine.003", "shape": "box", "size": Vector3(0.05, 1.25, 0.07), "at": Vector3(0.02, 1.30, -0.17), "turn": Vector3(0, 0, -30), "color": WOOD, "when": &"slung" },
+		{ "bone": "DEF-spine.003", "shape": "box", "size": Vector3(0.035, 0.30, 0.035), "at": Vector3(0.12, 1.50, -0.215), "turn": Vector3(0, 0, -30), "color": GUNMETAL, "when": &"slung" },
+		{ "held": 1.25, "thick": 0.06, "grip": 0.60, "color": WOOD, "when": &"rifle" },
+		{ "held": 0.50, "thick": 0.03, "grip": -0.57, "color": GUNMETAL, "when": &"rifle" },
+		{ "held": 0.24, "thick": 0.05, "grip": 0.05, "color": GUNMETAL, "when": &"pistol" },
+		{ "bone": "DEF-spine.002", "shape": "box", "size": Vector3(0.05, 0.56, 0.02), "at": Vector3(0.0, 1.27, 0.125), "turn": Vector3(0, 0, -38), "color": Color(0.30, 0.20, 0.12) },
+	],
 	# Nothing but what he was taken in.
 	&"prisoner": [],
 	&"marksman": [
@@ -67,7 +138,9 @@ const FACE := [
 ]
 ## Kit name -> a moustache or stubble colour for its mouth line, where it has one.
 const WHISKERS := { &"guard": Color(0.16, 0.11, 0.08), &"marksman": Color(0.30, 0.20, 0.13),
-		&"prisoner": Color(0.35, 0.30, 0.26) }
+		&"prisoner": Color(0.35, 0.30, 0.26), &"guard_winter": Color(0.16, 0.11, 0.08),
+		&"guard_blue": Color(0.16, 0.11, 0.08), &"marksman_winter": Color(0.30, 0.20, 0.13),
+		&"marksman_russia": Color(0.30, 0.20, 0.13) }
 
 static var _materials: Dictionary = {}
 

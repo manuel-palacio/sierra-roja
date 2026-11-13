@@ -62,8 +62,10 @@ func _ready() -> void:
 	_model = _unit.get_node_or_null("Model") as Node3D
 	if _model != null:
 		_rest = _model.transform
-		dress(_model, uniform)
-		_gear = SoldierGear.equip(_model, kit)
+		# The mission may dress its units otherwise than their scenes do.
+		var worn := Dress.of(_unit)
+		dress(_model, Dress.uniform(worn, kit, uniform))
+		_gear = SoldierGear.equip(_model, Dress.kit(worn, kit))
 		show_through(_model, silhouette)
 	_unit.acted.connect(_on_acted)
 	if not _address_read:

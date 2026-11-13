@@ -25,8 +25,9 @@ func _ready() -> void:
 	var model := get_node_or_null("Model")
 	if model == null:
 		return
-	UnitVisual.dress(model, uniform)
-	SoldierGear.equip(model, KIT)
+	var worn := Dress.of(self)
+	UnitVisual.dress(model, Dress.uniform(worn, KIT, uniform))
+	SoldierGear.equip(model, Dress.kit(worn, KIT))
 	# The guard falling, or as it fell: the last frame of its death, held.
 	for node in model.find_children("*", "AnimationPlayer", true, false):
 		var player := node as AnimationPlayer
