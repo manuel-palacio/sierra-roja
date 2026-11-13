@@ -50,6 +50,7 @@ for (const [query, id, shown] of [
   ['mission=powder_store', 'teruel', 'The depot outside Teruel'],
   ['mission=teruel', 'teruel', 'The depot outside Teruel'],
   ['mission=carchuna', 'carchuna', 'Fort Carchuna'],
+  ['mission=volkhov', 'volkhov', 'The orders'],
   ['mission=no_such_place', 'guadarrama', 'The bridge in the Guadarrama'],
 ]) {
   test(`?${query} opens ${shown}`, async ({ page }) => {

@@ -10,7 +10,7 @@ const GUNMETAL := Color(0.13, 0.13, 0.14)
 const CANVAS := Color(0.55, 0.50, 0.36)
 
 const BLADE := Color(0.72, 0.74, 0.78)
-const FIELD_GREY := Color(0.33, 0.36, 0.32)
+const FIELD_GREY := Color(0.30, 0.36, 0.39)
 const FUR := Color(0.38, 0.32, 0.26)
 const SHIELD_RED := Color(0.72, 0.10, 0.10)
 const SHIELD_YELLOW := Color(0.92, 0.76, 0.12)
@@ -86,7 +86,7 @@ const KITS := {
 		{ "held": 0.42, "thick": 0.03, "grip": -0.37, "color": GUNMETAL, "when": &"rifle" },
 		{ "bone": "DEF-spine.002", "shape": "box", "size": Vector3(0.30, 0.10, 0.06), "at": Vector3(0, 1.12, 0.13), "color": Color(0.36, 0.24, 0.14) },
 		{ "bone": "DEF-head", "shape": "sphere", "size": Vector3(0.41, 0.09, 0.40), "at": Vector3(0, 1.695, -0.035), "color": FIELD_GREY },
-		{ "bone": "DEF-hips", "shape": "box", "size": Vector3(0.37, 0.40, 0.25), "at": Vector3(0, 0.80, -0.01), "color": Color(0.36, 0.40, 0.35) },
+		{ "bone": "DEF-hips", "shape": "box", "size": Vector3(0.37, 0.40, 0.25), "at": Vector3(0, 0.80, -0.01), "color": Color(0.33, 0.40, 0.43) },
 		{ "bone": "DEF-upper_arm.R", "shape": "box", "size": Vector3(0.03, 0.02, 0.075), "at": Vector3(-0.265, 1.502, -0.07), "color": SHIELD_RED },
 		{ "bone": "DEF-upper_arm.R", "shape": "box", "size": Vector3(0.03, 0.02, 0.075), "at": Vector3(-0.295, 1.502, -0.07), "color": SHIELD_YELLOW },
 		{ "bone": "DEF-upper_arm.R", "shape": "box", "size": Vector3(0.03, 0.02, 0.075), "at": Vector3(-0.325, 1.502, -0.07), "color": SHIELD_RED },

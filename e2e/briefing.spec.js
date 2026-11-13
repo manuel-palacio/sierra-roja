@@ -5,6 +5,7 @@ const { test, expect } = require('@playwright/test');
 const pos = (page) => page.evaluate(() => { window.sierraProbe(); return window.sierraState.pos; });
 
 test('the briefing holds orders until Enter, then the game takes them', async ({ page }) => {
+  test.setTimeout(60000); // 17 s alone; close to 30 s when the perf runs share the machine
   const errors = [];
   page.on('console', (msg) => { if (msg.type() === 'error') errors.push(msg.text()); });
   page.on('pageerror', (err) => errors.push(err.message));

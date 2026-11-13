@@ -37,8 +37,9 @@ PALETTES = {
     "marksman": ["#d4a482", "#4a3423", "#6e4c30", "#5f6450", "#2a1f19", "#3a2616"],
     # A prisoner: a dirty undershirt, army trousers, bare feet.
     "prisoner": ["#c9a084", "#2e2a26", "#b9b2a0", "#6d6a55", "#b98f76", "#8a7a5c"],
-    # The División Azul: German field grey.
-    "guard_blue": ["#d9a987", "#3a2c20", "#5c6558", "#565f52", "#1e1a17", "#2a221c"],
+    # The División Azul: German field grey, kept on the cool side so that it still reads as grey
+    # under a low orange sun.
+    "guard_blue": ["#d9a987", "#3a2c20", "#56676e", "#506168", "#1e1a17", "#2a221c"],
     # The pair in Russia: white snow smocks.
     "dynamiter_russia": ["#c89673", "#1c1a1c", "#e6e8ea", "#dfe2e6", "#4a4038", "#8a7a5c"],
     "marksman_russia": ["#d4a482", "#4a3423", "#e2e5e8", "#d9dde2", "#3a2f28", "#7a6a50"],
