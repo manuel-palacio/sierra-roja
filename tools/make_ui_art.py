@@ -1,38 +1,28 @@
 #!/usr/bin/env python3
 """Makes the HUD's pictures: the two portraits and the ability icons.
 
-    mkdir -p /tmp/portraits && godot --path . -s tools/portrait_render.gd -- /tmp/portraits
-    uv run --with pillow python3 tools/make_ui_art.py /tmp/portraits
+    uv run --with pillow --with resvg-py python3 tools/make_ui_art.py
 
-The portraits are the game's own soldier models, rendered close up and then softened and reduced
-to a few tones so they read as painted miniatures rather than screenshots. The icons are drawn
-here as plain cream silhouettes: a knife, a bundle of dynamite, a pistol, a rifle, and a man
-carrying another.
+The portraits are drawn by hand as vectors in tools/portraits/, flat and hard-shadowed in the
+manner of the war's posters, and only turned into PNGs here. The icons are drawn here as plain
+cream silhouettes: a knife, a bundle of dynamite, a pistol, a rifle, and a man carrying another.
 """
-import sys
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageOps
+import resvg_py
+from PIL import Image, ImageDraw
 
 OUT = Path(__file__).resolve().parent.parent / "assets/ui"
 CREAM = (236, 222, 190, 255)
 INK = (34, 28, 20, 255)
 ICON = 96
+PORTRAITS = Path(__file__).resolve().parent / "portraits"
+PORTRAIT = 192
 
 
-def portrait(source: Path, name: str) -> None:
-    image = Image.open(source).convert("RGB")
-    side = min(image.size)
-    image = image.crop(((image.width - side) // 2, 0, (image.width + side) // 2, side)).resize((192, 192), Image.LANCZOS)
-    image = image.filter(ImageFilter.MedianFilter(3))
-    image = ImageEnhance.Contrast(image).enhance(1.15)
-    image = ImageOps.posterize(image, 5)
-    # A darkening toward the corners, as on a small oil portrait.
-    shade = Image.new("L", image.size, 0)
-    ImageDraw.Draw(shade).ellipse((-40, -50, 232, 250), fill=255)
-    shade = shade.filter(ImageFilter.GaussianBlur(26))
-    image = Image.composite(image, Image.new("RGB", image.size, (22, 20, 14)), shade)
-    image.save(OUT / f"portrait-{name}.png")
+def portrait(name: str) -> None:
+    png = resvg_py.svg_to_bytes(svg_path=str(PORTRAITS / f"{name}.svg"), width=PORTRAIT)
+    (OUT / f"portrait-{name}.png").write_bytes(png)
     print("wrote", f"portrait-{name}.png")
 
 
@@ -89,9 +79,7 @@ def carry(d, s):
 
 
 if __name__ == "__main__":
-    renders = Path(sys.argv[1]) if len(sys.argv) > 1 else None
-    if renders:
-        for who in ("dynamiter", "marksman"):
-            portrait(renders / f"{who}.png", who)
+    for who in ("dynamiter", "marksman"):
+        portrait(who)
     for name, draw_it in (("knife", knife), ("charge", charge), ("pistol", pistol), ("rifle", rifle), ("carry", carry)):
         icon(name, draw_it)

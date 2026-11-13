@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+  <!-- The dynamiter: black beret, red neckerchief, blue mono, a lit bundle at his shoulder. -->
+  <rect width="192" height="192" fill="#b8862c"/>
+  <g fill="#c99a3a">
+    <path d="M96 84 L-20 -10 L20 -10 Z"/><path d="M96 84 L60 -10 L96 -10 Z"/>
+    <path d="M96 84 L134 -10 L172 -10 Z"/><path d="M96 84 L202 10 L202 44 Z"/>
+    <path d="M96 84 L202 84 L202 120 Z"/><path d="M96 84 L202 160 L202 202 Z"/>
+    <path d="M96 84 L-10 12 L-10 46 Z"/><path d="M96 84 L-10 86 L-10 122 Z"/>
+    <path d="M96 84 L-10 162 L-10 202 Z"/>
+  </g>
+  <g stroke="#1e1912" stroke-width="2.5" stroke-linejoin="round">
+    <!-- dynamite -->
+    <g transform="rotate(14 150 150)">
+      <path d="M150 122 C150 110 158 108 160 98" fill="none" stroke-width="5"/>
+      <path d="M150 122 C150 110 158 108 160 98" fill="none" stroke="#ecdebe" stroke-width="2"/>
+      <rect x="132" y="120" width="12" height="80" fill="#a63a22"/>
+      <rect x="144" y="120" width="12" height="80" fill="#c04a2a"/>
+      <rect x="156" y="120" width="12" height="80" fill="#8a2c1a"/>
+      <rect x="130" y="140" width="40" height="8" fill="#ecdebe"/>
+    </g>
+    <path d="M164 82 l3 8 8 -2 -5 7 6 6 -9 0 -2 9 -4 -8 -8 3 5 -7 -6 -6 9 1 Z" fill="#f6d667"/>
+    <!-- mono -->
+    <path d="M14 196 L26 152 L70 134 L96 162 L122 134 L166 152 L178 196 Z" fill="#48688c"/>
+    <path d="M96 162 L122 134 L166 152 L178 196 L96 196 Z" fill="#2a3f5a" stroke="none"/>
+    <path d="M58 196 L60 168 M134 196 L132 168" fill="none"/>
+    <!-- neck -->
+    <path d="M78 116 L114 116 L118 146 L74 146 Z" fill="#8a5636"/>
+    <!-- neckerchief -->
+    <path d="M70 130 L96 144 L122 130 L128 146 L106 160 L100 180 L92 180 L86 160 L64 146 Z" fill="#c8361f"/>
+    <path d="M96 144 L122 130 L128 146 L106 160 L100 180 L96 180 Z" fill="#8a2114" stroke="none"/>
+    <path d="M88 152 L96 144 L104 152 L96 160 Z" fill="#c8361f"/>
+    <!-- ears -->
+    <path d="M67 86 L61 84 L62 100 L68 104 Z" fill="#d9a273"/>
+    <path d="M125 86 L131 84 L130 100 L124 104 Z" fill="#8a5636"/>
+    <!-- face -->
+    <path d="M66 62 L126 62 L127 98 L119 120 L105 134 L89 134 L74 120 L66 98 Z" fill="#dfa978"/>
+  </g>
+  <!-- the shadowed side -->
+  <path d="M99 64 L125 64 L126 98 L118 119 L104 133 L97 133 L98 112 L104 109 L100 96 L99 80 Z" fill="#8f5a3a"/>
+  <!-- stubble -->
+  <path d="M67 100 L74 120 L89 134 L105 134 L119 120 L126 100 L117 111 L107 113 L96 110 L85 113 L75 111 Z" fill="#1e1912" opacity="0.32"/>
+  <g fill="#1e1912">
+    <!-- brows, eyes -->
+    <path d="M71 84 L91 81 L93 86 L72 88 Z"/><path d="M103 81 L122 84 L121 88 L102 86 Z"/>
+    <path d="M76 90 L90 90 L88 95 L79 95 Z"/><path d="M105 90 L119 90 L117 95 L107 95 Z"/>
+    <!-- nose, mouth -->
+    <path d="M91 107 L99 110 L104 107 L102 112 L94 112 Z"/>
+    <path d="M85 119 L96 121 L108 119 L107 123 L96 125 L86 123 Z"/>
+    <!-- sideburns -->
+    <path d="M66 64 L73 64 L71 92 L66 86 Z"/><path d="M126 64 L120 64 L122 90 L127 86 Z"/>
+    <!-- beret -->
+    <path d="M52 66 C44 38 88 22 126 30 C150 35 152 58 138 66 C120 74 80 72 52 70 Z" stroke="#1e1912" stroke-width="2.5" stroke-linejoin="round"/>
+    <path d="M98 27 L100 20 L103 21 L102 28 Z"/>
+  </g>
+  <path d="M60 58 C62 44 84 34 108 34 C90 40 74 48 68 62 Z" fill="#4a505e"/>
+  <g fill="#ecdebe"><circle cx="85" cy="92" r="1.4"/><circle cx="113" cy="92" r="1.4"/></g>
+</svg>
