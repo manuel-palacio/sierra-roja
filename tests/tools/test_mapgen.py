@@ -1,7 +1,7 @@
 """The map generator refuses what it does not know, so a misspelt table cannot write a scene
 that quietly looks or plays otherwise than meant.
 
-    python3 -m unittest discover -s tests/tools -t .
+    python3 -m unittest discover -s tests/tools
 """
 import sys
 import unittest
@@ -86,6 +86,22 @@ class Cut(unittest.TestCase):
     def test_a_cut_objective_with_nothing_to_cut_is_refused(self):
         with self.assertRaises(ValueError):
             mapgen.mission(OBJECTIVES=[{"kind": "cut", "hud": "h", "marker": "m", "done": "d"}])
+
+
+class SilentSlips(unittest.TestCase):
+    def test_predawn_without_night_is_refused(self):
+        with self.assertRaises(ValueError) as caught:
+            mapgen.mission(LIGHT="predawn")
+        self.assertIn("NIGHT", str(caught.exception))
+
+    def test_boats_waiting_on_an_objective_that_is_not_there_are_refused(self):
+        boats = {"after": "Silence", "seconds": 25.0, "boats": [((0, -90), (0, -30))]}
+        with self.assertRaises(ValueError) as caught:
+            mapgen.mission(CROSSING=boats)
+        self.assertIn("Silence", str(caught.exception))
+        guards = [("Post", [(0, 0), (1, 0)])]
+        mapgen.mission(GUARDS=guards, CROSSING=boats, OBJECTIVES=[
+            {"kind": "silence", "sentries": ["Post"], "seconds": 60, "hud": "h", "marker": "m", "done": "d"}])
 
 
 class Water(unittest.TestCase):

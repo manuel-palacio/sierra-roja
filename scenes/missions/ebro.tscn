@@ -227,7 +227,7 @@ script = ExtResource("1_mission")
 bounds_rect = Rect2(-55, -45, 110, 90)
 night = true
 title = "The crossing"
-briefing_lines = PackedStringArray("Silence the three sentries on the bank before the boats set out. The clock is at the top of the screen.", "Not a shot, not a shout: an alarm anywhere before the last of them is down and the boats come in under fire.", "Then both of you to the landing. Lose either one and the mission fails.")
+briefing_lines = PackedStringArray("Silence the three sentries on the bank before the boats set out. The clock is at the top of the screen.", "Not a shot, not a shout: a shot fired or an alarm raised before the last of them is down, and the boats come in under fire.", "Then both of you to the landing. Lose either one and the mission fails.")
 
 [node name="Nav" type="NavigationRegion3D" parent="."]
 navigation_mesh = SubResource("NavMesh_bridge")

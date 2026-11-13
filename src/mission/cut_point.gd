@@ -51,6 +51,8 @@ func can_interact(user: Specialist) -> bool:
 func interact(user: Specialist) -> void:
 	if not can_interact(user):
 		return
+	# F at the pole halts him there: the work is done standing still.
+	user.stop()
 	cutter = user
 	progress = 0.0
 

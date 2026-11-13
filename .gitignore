@@ -7,3 +7,6 @@ playwright-report/
 logs/
 LOCAL.md
 ops/com.sierraroja.serve.plist
+
+# Python bytecode from the map tools and their tests
+__pycache__/

@@ -294,3 +294,15 @@ func test_validator_wants_points_that_can_be_stood_at() -> void:
 	assert_string_contains("\n".join(MissionValidator.validate(mission)), "there is no cut point at Nowhere")
 	objective.points = []
 	assert_string_contains("\n".join(MissionValidator.validate(mission)), "there is nothing to cut")
+
+
+func test_f_pressed_on_the_move_stops_him_there_and_the_cut_goes_on() -> void:
+	dyn.global_position = AT_POLE + Vector3(0.9, 0, 0.6)
+	dyn.move_to(AT_POLE)
+	await _seconds(0.05)
+	assert_true(dyn.is_moving(), "precondition: still walking up to it")
+	_f()
+	assert_eq(points[0].cutter, dyn)
+	assert_false(dyn.is_moving(), "F at the pole halts him")
+	await _seconds(4.1)
+	assert_true(points[0].cut, "he stood still as told, and it is cut")

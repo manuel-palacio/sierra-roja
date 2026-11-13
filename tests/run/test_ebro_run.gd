@@ -38,7 +38,8 @@ func test_shooting_the_first_sentry_loses_it() -> void:
 	assert_true(_bot.shot_fired, "he had the shot")
 	assert_eq(_bot.silence.sentries_left(), 2, "and it told")
 	assert_eq(_bot.rules.result, MissionRules.Result.LOST)
-	assert_eq(_bot.rules.loss_reason(), SilenceObjective.ALARM_TEXT)
+	assert_eq(_bot.rules.loss_reason(), SilenceObjective.SHOT_TEXT)
+	assert_lt(_bot.elapsed, 2.0, "at once: nobody has to come and look")
 
 
 func test_doing_nothing_loses_it_to_the_clock() -> void:

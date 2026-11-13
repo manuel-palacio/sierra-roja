@@ -129,7 +129,7 @@ TEXTS = {
     "title": "The crossing",
     "objectives": [
         "Silence the three sentries on the bank before the boats set out. The clock is at the top of the screen.",
-        "Not a shot, not a shout: an alarm anywhere before the last of them is down and the boats come in under fire.",
+        "Not a shot, not a shout: a shot fired or an alarm raised before the last of them is down, and the boats come in under fire.",
         "Then both of you to the landing. Lose either one and the mission fails.",
     ],
 }

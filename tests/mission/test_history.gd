@@ -72,3 +72,9 @@ func test_every_mission_now_has_its_history() -> void:
 		assert_ne(History.before(entry["id"]), "", entry["id"])
 		assert_ne(History.after(entry["id"]), "", entry["id"])
 		assert_ne(entry["place"], "", entry["id"])
+
+
+func test_the_notes_say_no_more_than_their_rows() -> void:
+	assert_false(History.before("ebro").contains("Army of the Ebro"), "the row says the Republican army")
+	assert_false(History.after("krasny_bor").contains("three quarters"), "the row says 70 to 75 in a hundred")
+	assert_string_contains(History.after("krasny_bor"), "nearly six years")

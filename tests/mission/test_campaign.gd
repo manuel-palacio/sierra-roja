@@ -61,5 +61,7 @@ func test_a_mission_added_in_the_middle_shuts_what_came_after_it_but_keeps_the_w
 	assert_true(Campaign.is_won("volkhov"), "the win is kept")
 	assert_true(Campaign.is_open(Missions.index_of("ebro")))
 	assert_false(Campaign.is_open(Missions.index_of("volkhov")), "but the Ebro comes first now")
+	assert_false(Campaign.is_open(Missions.index_of("krasny_bor")), "and nothing after a mission still to win is open")
 	Campaign.mark_won("ebro")
 	assert_true(Campaign.is_open(Missions.index_of("volkhov")))
+	assert_true(Campaign.is_open(Missions.index_of("krasny_bor")), "the Volkhov was won already")

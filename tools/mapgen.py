@@ -52,6 +52,13 @@ def mission(**tables):
     for table, known in KNOWN.items():
         if getattr(m, table) not in known:
             raise ValueError("%s is %r; it can be one of %s" % (table, getattr(m, table), sorted(known)))
+    if m.LIGHT == "predawn" and not m.NIGHT:
+        raise ValueError("LIGHT is 'predawn', which is a kind of night: it needs NIGHT=True")
+    if m.CROSSING:
+        made = {"destroy": "Destroy", "rescue": "Rescue", "steal": "Steal", "silence": "Silence", "cut": "Cut"}
+        names = [made.get(o.get("kind")) for o in (m.OBJECTIVES or [{"kind": "destroy"}])]
+        if m.CROSSING["after"] not in names:
+            raise ValueError("the CROSSING waits on %r, which is not an objective of this mission" % m.CROSSING["after"])
     # SEA is the old way of saying water to the south.
     if m.SEA and not m.WATER:
         m.WATER = ("south",) + tuple(m.SEA)

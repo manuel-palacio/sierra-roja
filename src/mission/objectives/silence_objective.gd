@@ -2,11 +2,15 @@ class_name SilenceObjective
 extends Objective
 ## Met when every named sentry is dead. Until then it is against a clock, and against any alarm:
 ## the clock running out, or any guard of the mission reaching ALARM, and it can no longer be met.
-## Once the last sentry is down neither matters any more. How a sentry dies is no part of this:
-## a shot kills him as well as a knife, but a shot is heard.
+## A shot fired before then is an alarm in itself, whoever is near enough to hear it: the bank is
+## awake. Once the last sentry is down none of this matters any more. This is a rule of this
+## objective only: what guards see, hear and do about it is as everywhere else.
 
 const TOO_LATE_TEXT := "The boats came in under the sentries' guns"
 const ALARM_TEXT := "The alarm was raised before the boats crossed"
+const SHOT_TEXT := "A shot was heard along the bank before the boats crossed"
+## A noise this loud or louder is a shot (or a blast): a pistol's, the quietest, carries this far.
+const SHOT_NOISE := 15.0
 
 ## The sentries, by their names under the mission's Guards node.
 @export var sentries: PackedStringArray
@@ -19,6 +23,8 @@ var time_left := 0.0
 var _reason := ""
 ## A guard has been in ALARM since the last time this was reset, even if he is dead by now.
 var _alarm_raised := false
+## A shot has been fired since then.
+var _shot_heard := false
 
 
 func _ready() -> void:
@@ -27,6 +33,8 @@ func _ready() -> void:
 
 func setup(mission: Mission, rules: MissionRules) -> void:
 	super(mission, rules)
+	if not NoiseBus.noise_emitted.is_connected(_on_noise):
+		NoiseBus.noise_emitted.connect(_on_noise)
 	for guard in mission.guards():
 		_listen_to(guard)
 
@@ -82,7 +90,10 @@ func update() -> void:
 		_listen_to(guard)
 		if guard.alive and guard.brain.state == GuardBrain.State.ALARM:
 			_alarm_raised = true
-	if _alarm_raised:
+	if _shot_heard:
+		failed = true
+		_reason = SHOT_TEXT
+	elif _alarm_raised:
 		failed = true
 		_reason = ALARM_TEXT
 	elif time_left <= 0.0:
@@ -104,6 +115,7 @@ func load_state(d: Dictionary) -> void:
 	super(d)
 	time_left = float(d["time_left"])
 	_alarm_raised = false
+	_shot_heard = false
 	_reason = ""
 
 
@@ -142,6 +154,11 @@ func _named() -> Array[Guard]:
 func _listen_to(guard: Guard) -> void:
 	if not guard.brain.state_changed.is_connected(_on_guard_state):
 		guard.brain.state_changed.connect(_on_guard_state)
+
+
+func _on_noise(_pos: Vector3, radius: float) -> void:
+	if radius >= SHOT_NOISE and not done:
+		_shot_heard = true
 
 
 func _on_guard_state(state: GuardBrain.State) -> void:

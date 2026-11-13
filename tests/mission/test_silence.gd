@@ -132,8 +132,9 @@ func test_a_rifle_shot_that_kills_a_sentry_brings_the_alarm_and_the_loss() -> vo
 	while rules.result == MissionRules.Result.RUNNING and waited < 60 * 40:
 		await get_tree().physics_frame
 		waited += 1
-	assert_eq(rules.result, MissionRules.Result.LOST, "but the shot was heard")
-	assert_eq(rules.loss_reason(), SilenceObjective.ALARM_TEXT)
+	await _frames(2)
+	assert_eq(rules.result, MissionRules.Result.LOST, "but it was a shot")
+	assert_eq(rules.loss_reason(), SilenceObjective.SHOT_TEXT)
 
 
 func test_a_body_found_before_the_last_is_down_loses_it() -> void:
@@ -234,3 +235,68 @@ func test_validator_wants_sentries_that_exist() -> void:
 	objective.sentries = PackedStringArray(["Guard1"])
 	objective.seconds = 0.0
 	assert_string_contains("\n".join(MissionValidator.validate(mission)), "the clock has no time on it")
+
+
+# --- A shot is an alarm ---
+
+func test_a_shot_fired_before_the_bank_is_quiet_loses_it_whoever_hears() -> void:
+	# Far from every guard: nobody is near enough to hear it, and it is still a shot on the bank.
+	var mark := specs[1]
+	mark.global_position = Vector3(0, 0, 0)
+	NoiseBus.emit_noise(mark.global_position, AbilityTuning.defaults().rifle_noise_radius)
+	await _frames(2)
+	assert_eq(rules.result, MissionRules.Result.LOST)
+	assert_eq(rules.loss_reason(), SilenceObjective.SHOT_TEXT)
+
+
+func test_a_pistol_shot_loses_it_too() -> void:
+	NoiseBus.emit_noise(Vector3.ZERO, AbilityTuning.defaults().pistol_noise_radius)
+	await _frames(2)
+	assert_eq(rules.loss_reason(), SilenceObjective.SHOT_TEXT)
+
+
+func test_running_feet_are_not_a_shot() -> void:
+	NoiseBus.emit_noise(Vector3.ZERO, specs[0].stats.run_noise_radius)
+	await _frames(2)
+	assert_eq(rules.result, MissionRules.Result.RUNNING)
+
+
+func test_a_shot_that_kills_the_last_sentry_still_meets_it() -> void:
+	_kill(0)
+	_kill(1)
+	await _frames(2)
+	NoiseBus.emit_noise(Vector3.ZERO, AbilityTuning.defaults().rifle_noise_radius)
+	_kill(2)
+	await _frames(2)
+	assert_true(objective.done, "the dead are counted first")
+	assert_eq(rules.result, MissionRules.Result.RUNNING)
+
+
+func test_a_shot_after_the_bank_is_quiet_changes_nothing() -> void:
+	for i in 3:
+		_kill(i)
+	await _frames(2)
+	NoiseBus.emit_noise(Vector3.ZERO, AbilityTuning.defaults().rifle_noise_radius)
+	await _frames(2)
+	assert_false(objective.failed)
+
+
+func test_a_load_forgets_a_shot_heard_since_the_save() -> void:
+	var d := _saved()
+	NoiseBus.emit_noise(Vector3.ZERO, AbilityTuning.defaults().rifle_noise_radius)
+	mission.load_state(d)
+	await _frames(2)
+	assert_false(objective.failed)
+	assert_eq(rules.result, MissionRules.Result.RUNNING)
+
+
+func test_met_stays_met_through_a_save_and_a_load() -> void:
+	for i in 3:
+		_kill(i)
+	await _frames(2)
+	var d := _saved()
+	assert_true(SaveSchema.is_valid(d, SaveGame.VERSION, mission))
+	mission.load_state(d)
+	await _frames(2)
+	assert_true(objective.done)
+	assert_false(objective.failed)

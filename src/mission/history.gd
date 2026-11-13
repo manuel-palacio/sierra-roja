@@ -22,7 +22,7 @@ const NOTES := {
 		"sources": ["https://vscw.ca/en/node/345"],
 	},
 	"ebro": {
-		"before": "The night of 24 to 25 July 1938, with no moon. The Army of the Ebro is about to cross the river in boats. It is said that men went over ahead of them, killed the sentries on the far bank and made lines fast for the boats. Here the two of you are those men.",
+		"before": "The night of 24 to 25 July 1938, with no moon. The Republican army is about to cross the river in boats. It is said that men went over ahead of them, killed the sentries on the far bank and made lines fast for the boats. Here the two of you are those men.",
 		"after": "The first wave crossed that night in ninety boats, ten men to a boat. The battle that followed was the longest and largest of the war, and ended on 16 November.",
 		"sources": ["https://en.wikipedia.org/wiki/Battle_of_the_Ebro"],
 	},
@@ -34,7 +34,7 @@ const NOTES := {
 	},
 	"krasny_bor": {
 		"before": "The night of 9 February 1943, south of Leningrad. The División Azul holds the line at Krasny Bor, and the Soviet 55th Army is about to attack it. This raid on its guns is invented.",
-		"after": "At a quarter to seven on 10 February the Soviet guns opened on the Spanish lines. By the 15th the División Azul reported 3,645 killed or wounded and 300 missing or prisoner, some three quarters of the men it had in the battle. By the 13th the 55th Army had lost almost a third of its strength, and it was held inside the ring round Leningrad. For the two of you it was six years since the Guadarrama.",
+		"after": "At a quarter to seven on 10 February the Soviet guns opened on the Spanish lines. By the 15th the División Azul reported 3,645 killed or wounded and 300 missing or prisoner, 70 to 75 in every hundred of the men it had in the battle. By the 13th the 55th Army had lost almost a third of its strength, and it was held inside the ring round Leningrad. For the two of you it was nearly six years since the Guadarrama.",
 		"sources": ["https://en.wikipedia.org/wiki/Battle_of_Krasny_Bor"],
 	},
 }

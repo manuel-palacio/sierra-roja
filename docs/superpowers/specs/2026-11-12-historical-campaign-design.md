@@ -79,9 +79,9 @@ What each one adds to play:
 - **Steal.** The item lies on a table inside a building. `F` next to it picks it up; it shows on
   the carrier, and drops where the carrier falls or is told to drop it. A specialist carrying it
   can still crawl and use the knife, but cannot carry a body.
-- **Silence.** The HUD shows a clock counting down to 00:15 and the sentries left. Killing a
-  sentry by any means counts; an alarm anywhere on the map fails the mission at once, because the
-  far bank is then awake. When it is done the boats are seen crossing and the objective line
+- **Silence.** The HUD shows the sentries left and the time until the boats set out. Killing a
+  sentry by any means counts, but a shot fired, or an alarm anywhere on the map, before the last
+  of them is down fails the mission at once, because the far bank is then awake. When it is done the boats are seen crossing and the objective line
   changes to the extraction.
 - **Cut.** Telephone lines run on the existing poles. `F` at a marked pole cuts the line there:
   a few seconds standing still, silent. Three poles in mission 6.

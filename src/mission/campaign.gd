@@ -1,6 +1,6 @@
 class_name Campaign
 extends RefCounted
-## Which missions have been won, and so which are open: the first always, each other once the
+## Which missions have been won, and so which are open: the first always, each other once every
 ## one before it in Missions.LIST is won. In the browser the wins are kept in local storage, so
 ## they outlive the page; elsewhere they last as long as the game runs.
 
@@ -13,7 +13,12 @@ static var _read := false
 static func is_open(index: int) -> bool:
 	if index < 0 or index >= Missions.LIST.size():
 		return false
-	return index == 0 or is_won(Missions.id_at(index - 1))
+	# Every mission before it has to be won: one added to the middle of the list shuts what
+	# comes after it until it is, though wins already made are kept.
+	for earlier in index:
+		if not is_won(Missions.id_at(earlier)):
+			return false
+	return true
 
 
 static func is_won(id: String) -> bool:
