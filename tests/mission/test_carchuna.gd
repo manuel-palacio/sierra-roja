@@ -130,3 +130,9 @@ func test_the_cell_is_shut_until_its_door_is_opened() -> void:
 	await get_tree().process_frame
 	await wait_physics_frames(2)
 	assert_true(_reaches(door.stand_point(), prisoner.global_position))
+
+
+func test_the_sea_is_still_where_it_was() -> void:
+	await _built()
+	var sea := mission.get_node("Scenery/Sea") as Node3D
+	assert_almost_eq(sea.position, Vector3(0, 0.35, 33 + 76), Vector3.ONE * 0.001)

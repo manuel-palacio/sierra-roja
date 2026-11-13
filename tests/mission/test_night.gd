@@ -215,3 +215,27 @@ func test_lighting_twice_is_lighting_once() -> void:
 	main.apply_light()
 	main.apply_light()
 	assert_almost_eq(lamp.light_energy, day_lamp * 3.2, 0.001, "and night works from the scene's lamps, not from dusk's")
+
+
+func test_the_hour_before_dawn_is_night_with_more_to_see_by() -> void:
+	var main := await _game(0)
+	main.mission.night = true
+	main.apply_light()
+	var night_ambient := _env(main).ambient_light_energy
+	var night_sky := _env(main).background_color
+	main.mission.light = &"predawn"
+	main.apply_light()
+	assert_gt(_env(main).ambient_light_energy, night_ambient)
+	assert_gt(_env(main).background_color.get_luminance(), night_sky.get_luminance())
+	assert_lt(_env(main).background_color.get_luminance(), 0.15, "still night")
+	assert_almost_eq(_sun(main).light_energy, 0.5, 0.001, "the moon, as at night")
+
+
+func test_predawn_without_night_is_dawn() -> void:
+	var main := await _game(0)
+	var sun := _sun(main).light_energy
+	var sky := _env(main).background_color
+	main.mission.light = &"predawn"
+	main.apply_light()
+	assert_eq(_sun(main).light_energy, sun)
+	assert_eq(_env(main).background_color, sky)

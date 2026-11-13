@@ -4,6 +4,8 @@ extends Node3D
 
 const NIGHT_MOON := Color(0.60, 0.70, 1.0)
 const NIGHT_SKY := Color(0.02, 0.03, 0.06)
+const PREDAWN_SKY := Color(0.05, 0.07, 0.14)
+const PREDAWN_AMBIENT := 0.8
 ## A lid of cloud: little sun, a lot of flat light from everywhere, faint shadows.
 const OVERCAST := { "sun": Color(0.86, 0.88, 0.92), "sun_energy": 0.55, "fill_energy": 0.45,
 		"ambient": Color(0.72, 0.76, 0.84), "ambient_energy": 0.95, "sky": Color(0.62, 0.65, 0.70),
@@ -165,6 +167,12 @@ func _vignette() -> CanvasLayer:
 func apply_light() -> void:
 	if mission.night:
 		_fall_night()
+		if mission.light == &"predawn":
+			# The hour before dawn: still night, with enough in the sky to see snow by.
+			var world := get_node_or_null("WorldEnvironment") as WorldEnvironment
+			if world != null:
+				world.environment.ambient_light_energy = PREDAWN_AMBIENT
+			_set_sky(PREDAWN_SKY, 0.0)
 	elif mission.light == &"overcast":
 		_daylight(OVERCAST)
 	elif mission.light == &"dusk":

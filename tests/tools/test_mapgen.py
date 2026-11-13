@@ -46,5 +46,30 @@ class Refusals(unittest.TestCase):
         mapgen.mission(OBJECTIVES=[{"kind": "destroy", "hud": "h", "marker": "m", "done": "d"}])
 
 
+class Water(unittest.TestCase):
+    def _z(self, lines):
+        placed = [line for line in lines if line.startswith("transform")][0]
+        return float(placed.rstrip(")").split(", ")[-1])
+
+    def test_water_to_the_north_lies_north(self):
+        m = mapgen.mission(WATER=("north", -30, 0.4))
+        lines = mapgen.water_nodes(m)
+        self.assertIn('[node name="Water" type="MeshInstance3D" parent="Scenery"]', lines)
+        self.assertLess(self._z(lines), -30)
+
+    def test_sea_still_means_water_to_the_south(self):
+        m = mapgen.mission(SEA=(33, 0.35))
+        lines = mapgen.water_nodes(m)
+        self.assertIn('[node name="Sea" type="MeshInstance3D" parent="Scenery"]', lines)
+        self.assertEqual(self._z(lines), 33 + 76)
+
+    def test_no_water_no_nodes(self):
+        self.assertEqual(mapgen.water_nodes(mapgen.mission()), [])
+
+    def test_water_on_a_side_that_is_not_one_is_refused(self):
+        with self.assertRaises(ValueError):
+            mapgen.mission(WATER=("west", 0, 0))
+
+
 if __name__ == "__main__":
     unittest.main()

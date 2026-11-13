@@ -25,7 +25,7 @@ FLAT_COLOURS = {"Wheat": (0.74, 0.62, 0.32)}
 PLAIN_SHAPES = ("barrel", "box", "box-large")
 
 DEFAULTS = dict(SEED=7, NOISE=0.45, NAV_FLOOR=-6, BRIDGE=False, TARGET=(0, 0, 0), TARGET_STACK=[], WALLS=[], BUILDINGS=[],
-                CRATES=[], SCATTERS=[], CLEAR=[], PLACED=[], LAMPS=[], TEXTS={}, POLE_LINES=[], RIVER_COURSE=[], TOWERS=[], CARTS=[], SETTLEMENT=[], NIGHT=False, LAND=None, OBJECTIVES=None, SEASON="summer", LIGHT="dawn", SNOWFALL=False, DRESS="", SEA=None, EXTRACTION_FIRE=True, EXTRACTION_GROUND=None)
+                CRATES=[], SCATTERS=[], CLEAR=[], PLACED=[], LAMPS=[], TEXTS={}, POLE_LINES=[], RIVER_COURSE=[], TOWERS=[], CARTS=[], SETTLEMENT=[], NIGHT=False, LAND=None, OBJECTIVES=None, SEASON="summer", LIGHT="dawn", SNOWFALL=False, DRESS="", SEA=None, WATER=None, CROSSING=None, EXTRACTION_FIRE=True, EXTRACTION_GROUND=None)
 
 
 # What the tables may say where the game knows only certain words: anything else is a slip that
@@ -50,6 +50,11 @@ def mission(**tables):
     for table, known in KNOWN.items():
         if getattr(m, table) not in known:
             raise ValueError("%s is %r; it can be one of %s" % (table, getattr(m, table), sorted(known)))
+    # SEA is the old way of saying water to the south.
+    if m.SEA and not m.WATER:
+        m.WATER = ("south",) + tuple(m.SEA)
+    if m.WATER and m.WATER[0] not in ("north", "south"):
+        raise ValueError("WATER lies to the %r; it can lie north or south" % (m.WATER[0],))
     for objective in m.OBJECTIVES or []:
         kind = objective.get("kind")
         if kind not in OBJECTIVE_FIELDS:
@@ -142,6 +147,15 @@ def objective_nodes(objective, m):
     raise ValueError("unknown objective kind: %s" % objective["kind"])
 
 
+def water_nodes(m):
+    """Still water over everything beyond the edge on one side; the land rises out of it."""
+    if not m.WATER:
+        return []
+    side, edge, level = m.WATER
+    name, z = ("Sea", edge + 76) if side == "south" else ("Water", edge - 76)
+    return [f'[node name="{name}" type="MeshInstance3D" parent="Scenery"]', at(0, level, z), 'mesh = SubResource("Mesh_sea")', ""]
+
+
 def write_scene(m):
     BOUNDS, PLAIN, GUARDS, EXTRACTION = m.BOUNDS, m.PLAIN, m.GUARDS, m.EXTRACTION
     # In a snow mission everything that stands on the land wears snow.
@@ -165,6 +179,8 @@ def write_scene(m):
          '[ext_resource type="Script" path="res://src/terrain/cart.gd" id="13_cart"]',
          '[ext_resource type="Script" path="res://src/terrain/settlement_prop.gd" id="14_settled"]',
          '[ext_resource type="Script" path="res://src/mission/objectives/destroy_objective.gd" id="15_destroy"]']
+    if m.CROSSING:
+        o.append('[ext_resource type="Script" path="res://src/terrain/boat_crossing.gd" id="21_crossing"]')
     if any(objective["kind"] == "steal" for objective in objectives(m)):
         o += ['[ext_resource type="Script" path="res://src/mission/objectives/steal_objective.gd" id="19_steal"]',
               '[ext_resource type="Script" path="res://src/mission/carryable.gd" id="20_item"]']
@@ -347,10 +363,14 @@ def write_scene(m):
     o += ['[node name="Scenery" type="Node3D" parent="."]', ""]
     if m.BRIDGE:
         o += ['[node name="River" type="MeshInstance3D" parent="Scenery"]', at(1, -10.4, 0), 'mesh = SubResource("Mesh_water")', ""]
-    if m.SEA:
-        # Still water over everything south of the shore; the land rises out of it.
-        shore, level = m.SEA
-        o += ['[node name="Sea" type="MeshInstance3D" parent="Scenery"]', at(0, level, shore + 76), 'mesh = SubResource("Mesh_sea")', ""]
+    o += water_nodes(m)
+    if m.CROSSING:
+        # Boats that set out over the water when an objective is met: (start, end) for each.
+        boats = m.CROSSING["boats"]
+        o += ['[node name="Crossing" type="Node3D" parent="Scenery"]', 'script = ExtResource("21_crossing")',
+              f'after = NodePath("Objectives/{m.CROSSING["after"]}")', f'seconds = {float(m.CROSSING["seconds"])}',
+              f"starts = {v2([b[0] for b in boats])}", f"ends = {v2([b[1] for b in boats])}",
+              f"level = {float(m.WATER[2]) if m.WATER else 0.0}", ""]
     for entry in SCATTERS:
         if not entry[1]:
             o += scatter_node("Scenery", entry)
