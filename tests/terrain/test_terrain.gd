@@ -101,3 +101,41 @@ func test_land_fades_out_across_the_skirt() -> void:
 	assert_between(t.edge_fade(33, 0), 0.05, 0.95)
 	assert_eq(t.edge_fade(30 + 10 * Terrain.FADE_SHARE, 0), 1.0, "dark before the land ends")
 	assert_eq(t.edge_fade(-40, -30), 1.0)
+
+
+# --- Seasons ---
+
+func test_summer_is_the_default_and_draws_as_before() -> void:
+	var t := await _terrain()
+	assert_eq(t.season, &"summer")
+	assert_eq(t.material().get_shader_parameter("snow_cover"), 0.0)
+	assert_eq(t.material().get_shader_parameter("mist"), Terrain.MIST)
+
+
+func test_snow_season_covers_the_land() -> void:
+	var t := await _terrain()
+	t.set_season(&"snow")
+	assert_eq(t.season, &"snow")
+	assert_eq(t.material().get_shader_parameter("snow_cover"), 1.0)
+	assert_eq(t.material().get_shader_parameter("mist"), Terrain.SNOW_MIST)
+
+
+func test_an_unknown_season_is_summer() -> void:
+	var t := await _terrain()
+	t.set_season(&"monsoon")
+	assert_eq(t.season, &"summer")
+	assert_eq(t.material().get_shader_parameter("snow_cover"), 0.0)
+
+
+func test_the_season_outlives_a_rebuild() -> void:
+	var t := await _terrain()
+	t.set_season(&"snow")
+	t.build()
+	assert_eq(t.material().get_shader_parameter("snow_cover"), 1.0)
+
+
+func test_snow_changes_nothing_underfoot() -> void:
+	var t := await _terrain(true)
+	var before := t.height_at(1.0, 2.0)
+	t.set_season(&"snow")
+	assert_eq(t.height_at(1.0, 2.0), before)

@@ -26,6 +26,11 @@ uniform vec2 cloud_drift = vec2(1.6, 0.7);
 uniform float ground_tiling = 0.21;
 uniform float rock_tiling = 0.13;
 uniform vec3 ballast_tint : source_color = vec3(0.62, 0.58, 0.54);
+// Winter: 1 lays snow on the grass and the earth, turns the road to slush and the ballast to ice,
+// and caps the rock where it faces up. 0 is the land as it is.
+uniform float snow_cover = 0.0;
+uniform vec3 snow_tint : source_color = vec3(0.90, 0.93, 0.97);
+uniform vec3 ice_tint : source_color = vec3(0.70, 0.80, 0.88);
 // The playable rectangle (x0, z0, x1, z1) and how far beyond it the land takes to vanish.
 uniform vec4 bounds = vec4(-40.0, -30.0, 40.0, 30.0);
 uniform float fade_distance = 30.0;
@@ -64,6 +69,16 @@ void fragment() {
 			+ texture(ballast, uv * 1.6).rgb * ballast_tint * weights.a;
 	float ground = weights.r + weights.g + weights.b + weights.a;
 	flat_colour /= max(ground, 0.001);
+	if (snow_cover > 0.0) {
+		// Lying snow keeps a quarter of the grass's own light and dark, so it is not a flat sheet.
+		float grain = mix(1.0, texture(grass, uv).g * 1.6, 0.25) * mix(0.94, 1.04, smoothstep(0.25, 0.75, broad));
+		vec3 snowy = snow_tint * grain * weights.r
+				+ snow_tint * 0.88 * mix(1.0, texture(earth, uv * 0.9).r * 1.8, 0.2) * weights.g
+				+ mix(texture(road, uv * 1.3).rgb * 0.6, snow_tint, 0.4) * weights.b
+				+ ice_tint * mix(0.92, 1.05, value_noise(world_position.xz * 0.35)) * weights.a;
+		// Held under white, so sunlit snow keeps its grain instead of burning out.
+		flat_colour = mix(flat_colour, snowy / max(ground, 0.001) * 0.86, snow_cover);
+	}
 
 	// Rock is projected from the sides as well as from above, so cliffs are not smeared.
 	vec3 n = normalize(world_normal);
@@ -77,6 +92,8 @@ void fragment() {
 	// cliffs (the railway embankment) stay earth and grass.
 	float steep = smoothstep(0.71, 0.53, n.y);
 	float rock_weight = max(steep, 1.0 - clamp(ground, 0.0, 1.0));
+	// Snow lies on rock where it faces the sky.
+	rock_colour = mix(rock_colour, snow_tint, snow_cover * smoothstep(0.70, 0.82, n.y));
 	vec3 colour = mix(flat_colour, rock_colour * 0.9, rock_weight);
 
 	// Relief: the textures' own normal maps, laid on the ground plane and blended like the colours.
@@ -85,7 +102,8 @@ void fragment() {
 			+ (texture(road_normal, uv * 1.3).xy * 2.0 - 1.0) * (weights.b + weights.a);
 	bump /= max(ground, 0.001);
 	vec2 rock_bump = texture(rock_normal, world_position.xz * rock_tiling).xy * 2.0 - 1.0;
-	bump = mix(bump, rock_bump * 1.4, rock_weight) * relief;
+	// Snow smooths the ground it lies on; ice is smoother still.
+	bump = mix(bump, rock_bump * 1.4, rock_weight) * relief * mix(1.0, 0.45, snow_cover);
 	vec3 bumped = normalize(n + vec3(bump.x, 0.0, -bump.y));
 	NORMAL = normalize((VIEW_MATRIX * vec4(bumped, 0.0)).xyz);
 
@@ -100,6 +118,7 @@ void fragment() {
 	float fade = smoothstep(0.0, fade_distance, length(outside));
 	ALBEDO = colour * (1.0 - fade);
 	EMISSION = mist * fade;
-	ROUGHNESS = 1.0;
-	SPECULAR = 0.0;
+	float ice = snow_cover * weights.a / max(ground, 0.001) * (1.0 - rock_weight);
+	ROUGHNESS = mix(1.0, 0.15, ice);
+	SPECULAR = mix(0.0, 0.5, ice);
 }

@@ -12,6 +12,8 @@ from types import SimpleNamespace
 
 ROOT = Path(__file__).resolve().parent.parent
 GRASS, EARTH, ROAD, BALLAST, ROCK = range(5)
+# What a frozen river is made of in a snow mission: the ballast surface, which winter draws as ice.
+ICE = BALLAST
 MOUND, PATH = 0, 1
 ADD, SET = 0, 1
 NATURE = "res://assets/props/nature/"
@@ -23,7 +25,7 @@ FLAT_COLOURS = {"Wheat": (0.74, 0.62, 0.32)}
 PLAIN_SHAPES = ("barrel", "box", "box-large")
 
 DEFAULTS = dict(SEED=7, NOISE=0.45, NAV_FLOOR=-6, BRIDGE=False, TARGET=(0, 0, 0), TARGET_STACK=[], WALLS=[], BUILDINGS=[],
-                CRATES=[], SCATTERS=[], CLEAR=[], PLACED=[], LAMPS=[], TEXTS={}, POLE_LINES=[], RIVER_COURSE=[], TOWERS=[], CARTS=[], SETTLEMENT=[], NIGHT=False, LAND=None, OBJECTIVES=None, SEA=None, EXTRACTION_FIRE=True, EXTRACTION_GROUND=None)
+                CRATES=[], SCATTERS=[], CLEAR=[], PLACED=[], LAMPS=[], TEXTS={}, POLE_LINES=[], RIVER_COURSE=[], TOWERS=[], CARTS=[], SETTLEMENT=[], NIGHT=False, LAND=None, OBJECTIVES=None, SEASON="summer", SEA=None, EXTRACTION_FIRE=True, EXTRACTION_GROUND=None)
 
 
 def mission(**tables):
@@ -198,6 +200,8 @@ def write_scene(m):
 
     o += [f'[node name="{m.NODE}" type="Node3D"]', 'script = ExtResource("1_mission")',
           "bounds_rect = Rect2(%d, %d, %d, %d)" % BOUNDS]
+    if m.SEASON != "summer":
+        o.append(f'season = &"{m.SEASON}"')
     if m.NIGHT:
         o.append("night = true")
     if "title" in m.TEXTS:

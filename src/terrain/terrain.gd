@@ -25,6 +25,10 @@ const TEXTURES := {
 ## What the land dissolves into past the edge of the map: the morning haze. main.tscn's
 ## background is the same colour.
 const MIST := Color(0.56, 0.60, 0.64)
+## Lying snow, and what snow-covered land dissolves into past the edge of the map.
+const SNOW := Color(0.90, 0.93, 0.97)
+const SNOW_MIST := Color(0.74, 0.78, 0.84)
+const ICE := Color(0.70, 0.80, 0.88)
 ## Grass gives way to dry earth where this noise is high.
 const EARTH_PERIOD := 17.0
 const EARTH_FROM := 0.12
@@ -37,6 +41,9 @@ const SHADE_CELL := 0.5
 
 @export var spec: TerrainSpec
 var field: HeightField
+## &"summer", or &"snow": the same land under snow, its roads slush and its ballast ice. Only how
+## it is drawn; nothing underfoot changes.
+var season := &"summer"
 
 var _material: ShaderMaterial
 var _shade: Image
@@ -68,7 +75,9 @@ func build() -> void:
 	var b := spec.bounds
 	_material.set_shader_parameter("bounds", Vector4(b.position.x, b.position.y, b.end.x, b.end.y))
 	_material.set_shader_parameter("fade_distance", maxf(spec.skirt * FADE_SHARE, 0.001))
-	_material.set_shader_parameter("mist", MIST)
+	_material.set_shader_parameter("snow_tint", SNOW)
+	_material.set_shader_parameter("ice_tint", ICE)
+	set_season(season)
 	bake_shade([])
 	_earth = FastNoiseLite.new()
 	_earth.seed = spec.seed + 1
@@ -209,6 +218,19 @@ func bake_shade(casters: Array) -> void:
 			_shade.set_pixel(px, pz, Color(light, light, light))
 	if _material != null:
 		_material.set_shader_parameter("shade", ImageTexture.create_from_image(_shade))
+
+
+## The material every chunk of the land is drawn with.
+func material() -> ShaderMaterial:
+	return _material
+
+
+## Draws the land for a season. Anything but &"snow" is summer.
+func set_season(value: StringName) -> void:
+	season = &"snow" if value == &"snow" else &"summer"
+	if _material != null:
+		_material.set_shader_parameter("snow_cover", 1.0 if season == &"snow" else 0.0)
+		_material.set_shader_parameter("mist", SNOW_MIST if season == &"snow" else MIST)
 
 
 ## Changes what the land dissolves into past the edge of the map, and how dark cloud shadows are

@@ -43,6 +43,9 @@ const SPAN_DEPTH := 1.5
 	"Lose either one and the mission fails.",
 ])
 
+## How the land and what stands on it are drawn: &"summer" or &"snow". The rules never read it.
+@export var season := &"summer"
+
 ## A night mission: dark, lamp-lit, and with a searchlight sweeping from every watchtower.
 @export var night := false
 
@@ -199,6 +202,8 @@ func build_scenery() -> void:
 	if _scenery_built:
 		return
 	_scenery_built = true
+	if terrain() != null:
+		terrain().set_season(season)
 	var ground := ground_height
 	for node in find_children("*", "StaticBody3D", true, false):
 		if node is StoneWall or node is Building:

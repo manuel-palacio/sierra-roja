@@ -160,3 +160,15 @@ func test_a_box_blocker_leaves_a_hole_in_the_navmesh() -> void:
 	for i in path.size() - 1:
 		length += path[i].distance_to(path[i + 1])
 	assert_gt(length, 12.0)
+
+
+func test_a_mission_hands_its_season_to_its_land() -> void:
+	mission.season = &"snow"
+	await _built()
+	assert_eq(terrain.season, &"snow")
+
+
+func test_a_mission_is_in_summer_unless_it_says_otherwise() -> void:
+	await _built()
+	assert_eq(mission.season, &"summer")
+	assert_eq(terrain.season, &"summer")
