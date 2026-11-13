@@ -94,6 +94,9 @@ the build behind HTTPS.
 
 ## Host it on Fly.io
 
+Every push to `main` on GitHub is tested, built and deployed by `.github/workflows/deploy.yml`; a push
+whose tests fail deploys nothing. It needs the repository secret `FLY_API_TOKEN` (a Fly deploy token for
+the app; the command is at the top of that file). To deploy by hand from your own machine,
 `ops/deploy-fly.sh` builds the game and deploys it as a static site (`Dockerfile`, `ops/nginx.conf`,
 `fly.toml`). It needs the [fly CLI](https://fly.io/docs/flyctl/), logged in, and an app with the name in
 `fly.toml` (`fly apps create <name>` once). The site is public, served over HTTPS, and its one machine
