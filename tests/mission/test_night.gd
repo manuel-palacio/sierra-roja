@@ -139,3 +139,65 @@ func test_the_game_goes_dark_for_a_night_mission_and_not_for_a_day_one() -> void
 	assert_lt(night_sky.get_luminance(), day_sky.get_luminance() * 0.2)
 	assert_gt((night.mission.get_node("Scenery/Lamp1") as OmniLight3D).light_energy, day_lamp * 2.0, "lamps that matter")
 	assert_eq(night.hud.objective_label.text, "Objective: Free the officer")
+
+
+# --- Daylight other than dawn ---
+
+func _sun(main: Node) -> DirectionalLight3D:
+	return main.get_node("Sun") as DirectionalLight3D
+
+
+func _env(main: Node) -> Environment:
+	return (main.get_node("WorldEnvironment") as WorldEnvironment).environment
+
+
+func test_an_overcast_mission_is_dimmer_and_flatter_than_dawn_and_not_dark() -> void:
+	var main := await _game(0)
+	var dawn_sun := _sun(main).light_energy
+	var dawn_ambient := _env(main).ambient_light_energy
+	main.mission.light = &"overcast"
+	main.apply_light()
+	assert_lt(_sun(main).light_energy, dawn_sun)
+	assert_gt(_env(main).ambient_light_energy, dawn_ambient)
+	assert_gt(_env(main).background_color.get_luminance(), 0.5)
+	assert_lt(_sun(main).shadow_opacity, 0.5, "soft, faint shadows")
+
+
+func test_dusk_is_warm_and_low_with_lamps_up() -> void:
+	var main := await _game(0)
+	var day_lamp: float = (main.mission.get_node("Scenery/Lamp1") as OmniLight3D).light_energy
+	main.mission.light = &"dusk"
+	main.apply_light()
+	var colour := _sun(main).light_color
+	assert_gt(colour.r, colour.b + 0.3, "an orange sun")
+	var height := rad_to_deg(asin(clampf(_sun(main).global_basis.z.y, -1.0, 1.0)))
+	assert_between(height, 10.0, 20.0, "low over the horizon, for long shadows")
+	assert_almost_eq((main.mission.get_node("Scenery/Lamp1") as OmniLight3D).light_energy, day_lamp * 2.0, 0.001)
+	assert_between(_env(main).background_color.get_luminance(), 0.15, 0.5)
+
+
+func test_night_wins_over_light() -> void:
+	var main := await _game(0)
+	main.mission.night = true
+	main.mission.light = &"dusk"
+	main.apply_light()
+	assert_almost_eq(_sun(main).light_energy, 0.5, 0.001, "the moon")
+	assert_lt(_env(main).background_color.get_luminance(), 0.1)
+
+
+func test_an_unknown_light_is_dawn() -> void:
+	var main := await _game(0)
+	var sun := _sun(main).light_energy
+	var sky := _env(main).background_color
+	main.mission.light = &"aurora"
+	main.apply_light()
+	assert_eq(_sun(main).light_energy, sun)
+	assert_eq(_env(main).background_color, sky)
+
+
+func test_snow_under_a_dawn_sky_fades_into_snow_mist() -> void:
+	var main := await _game(0)
+	main.mission.season = &"snow"
+	main.mission.terrain().set_season(&"snow")
+	main.apply_light()
+	assert_eq(_env(main).background_color, Terrain.SNOW_MIST)

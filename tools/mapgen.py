@@ -25,7 +25,7 @@ FLAT_COLOURS = {"Wheat": (0.74, 0.62, 0.32)}
 PLAIN_SHAPES = ("barrel", "box", "box-large")
 
 DEFAULTS = dict(SEED=7, NOISE=0.45, NAV_FLOOR=-6, BRIDGE=False, TARGET=(0, 0, 0), TARGET_STACK=[], WALLS=[], BUILDINGS=[],
-                CRATES=[], SCATTERS=[], CLEAR=[], PLACED=[], LAMPS=[], TEXTS={}, POLE_LINES=[], RIVER_COURSE=[], TOWERS=[], CARTS=[], SETTLEMENT=[], NIGHT=False, LAND=None, OBJECTIVES=None, SEASON="summer", SEA=None, EXTRACTION_FIRE=True, EXTRACTION_GROUND=None)
+                CRATES=[], SCATTERS=[], CLEAR=[], PLACED=[], LAMPS=[], TEXTS={}, POLE_LINES=[], RIVER_COURSE=[], TOWERS=[], CARTS=[], SETTLEMENT=[], NIGHT=False, LAND=None, OBJECTIVES=None, SEASON="summer", LIGHT="dawn", SNOWFALL=False, SEA=None, EXTRACTION_FIRE=True, EXTRACTION_GROUND=None)
 
 
 def mission(**tables):
@@ -204,6 +204,10 @@ def write_scene(m):
           "bounds_rect = Rect2(%d, %d, %d, %d)" % BOUNDS]
     if m.SEASON != "summer":
         o.append(f'season = &"{m.SEASON}"')
+    if m.LIGHT != "dawn":
+        o.append(f'light = &"{m.LIGHT}"')
+    if m.SNOWFALL:
+        o.append("snowfall = true")
     if m.NIGHT:
         o.append("night = true")
     if "title" in m.TEXTS:

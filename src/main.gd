@@ -4,6 +4,16 @@ extends Node3D
 
 const NIGHT_MOON := Color(0.60, 0.70, 1.0)
 const NIGHT_SKY := Color(0.02, 0.03, 0.06)
+## A lid of cloud: little sun, a lot of flat light from everywhere, faint shadows.
+const OVERCAST := { "sun": Color(0.86, 0.88, 0.92), "sun_energy": 0.55, "fill_energy": 0.45,
+		"ambient": Color(0.72, 0.76, 0.84), "ambient_energy": 0.95, "sky": Color(0.62, 0.65, 0.70),
+		"saturation": 0.85, "shadow": 0.35 }
+## The last of the sun: low and orange, the shadows long and the rest going blue.
+const DUSK := { "sun": Color(1.0, 0.62, 0.38), "sun_energy": 0.7, "fill_energy": 0.2,
+		"ambient": Color(0.46, 0.44, 0.62), "ambient_energy": 0.7, "sky": Color(0.38, 0.33, 0.42),
+		"saturation": 0.9, "shadow": 1.0 }
+## How high the dusk sun stands, in degrees.
+const DUSK_SUN_HEIGHT := 14.0
 
 ## Starts the game again; with another mission chosen in Missions, on that one. Tests replace it.
 var reload_action := func() -> void: get_tree().reload_current_scene()
@@ -18,6 +28,8 @@ var charge_display: ChargeDisplay
 var hud: Hud
 ## The opening screen while it is up, else null.
 var briefing: Briefing
+## Tests set this before the game starts, to have snow fall on a mission that has none.
+var force_snowfall := false
 
 
 func _ready() -> void:
@@ -27,8 +39,7 @@ func _ready() -> void:
 		add_child(ScreenProbe.new())
 	mission = load(Missions.path()).instantiate()
 	add_child(mission)
-	if mission.night:
-		_fall_night()
+	apply_light()
 	camera = IsoCamera.new()
 	camera.bounds = mission.bounds_rect
 	camera.size = IsoCamera.ZOOM_START
@@ -82,6 +93,10 @@ func _ready() -> void:
 	add_child(ShotDisplay.new())
 	charge_display = ChargeDisplay.new()
 	add_child(charge_display)
+	if mission.snowfall or force_snowfall:
+		var snow := Snowfall.new()
+		add_child(snow)
+		snow.follow(camera)
 	SaveGame.message.connect(hud.show_message)
 	SaveGame.restart_offered.connect(hud.offer_restart)
 	if Briefing.wanted():
@@ -141,6 +156,62 @@ func _vignette() -> CanvasLayer:
 	rect.material = material
 	layer.add_child(rect)
 	return layer
+
+
+## Lights the scene for the mission: night if it is one, else its daylight. The scene as it
+## stands is dawn, and an unknown light leaves it so.
+func apply_light() -> void:
+	if mission.night:
+		_fall_night()
+	elif mission.light == &"overcast":
+		_daylight(OVERCAST)
+	elif mission.light == &"dusk":
+		_daylight(DUSK)
+		var sun := get_node_or_null("Sun") as DirectionalLight3D
+		if sun != null:
+			# Keeps its bearing; only comes down towards the horizon.
+			sun.rotation.x = -deg_to_rad(DUSK_SUN_HEIGHT)
+		for node in mission.find_children("Lamp*", "OmniLight3D", true, false):
+			var lamp := node as OmniLight3D
+			lamp.light_energy *= 2.0
+			lamp.omni_range = 12.0
+	elif mission.season == &"snow":
+		_set_sky(Terrain.SNOW_MIST, 0.24)
+
+
+## One of the daylight presets above.
+func _daylight(look: Dictionary) -> void:
+	var sun := get_node_or_null("Sun") as DirectionalLight3D
+	if sun != null:
+		sun.light_color = look["sun"]
+		sun.light_energy = look["sun_energy"]
+		sun.shadow_opacity = look["shadow"]
+	var fill := get_node_or_null("Fill") as DirectionalLight3D
+	if fill != null:
+		fill.light_energy = look["fill_energy"]
+	var world := get_node_or_null("WorldEnvironment") as WorldEnvironment
+	if world != null:
+		world.environment = world.environment.duplicate()
+		world.environment.ambient_light_color = look["ambient"]
+		world.environment.ambient_light_energy = look["ambient_energy"]
+		world.environment.adjustment_saturation = look["saturation"]
+	# Under snow the far land is paler than the sky's own colour; over it, the sky's.
+	var sky: Color = look["sky"]
+	if mission.season == &"snow":
+		sky = sky.lerp(Terrain.SNOW_MIST, 0.6) if look == OVERCAST else sky
+	# No cloud shadows drift over the land under a lid of cloud, or at dusk.
+	_set_sky(sky, 0.0)
+
+
+## What is seen past the edge of the map, and what the land dissolves into there.
+func _set_sky(colour: Color, cloud_shade: float) -> void:
+	var world := get_node_or_null("WorldEnvironment") as WorldEnvironment
+	if world != null:
+		if world.environment.background_color != colour:
+			world.environment = world.environment.duplicate()
+		world.environment.background_color = colour
+	if mission.terrain() != null:
+		mission.terrain().set_sky(colour, cloud_shade)
 
 
 ## Turns the dawn into a clear night: a low cold moon in place of the sun, little light in the

@@ -46,6 +46,11 @@ const SPAN_DEPTH := 1.5
 ## How the land and what stands on it are drawn: &"summer" or &"snow". The rules never read it.
 @export var season := &"summer"
 
+## The daylight when it is not night: &"dawn" (as the scene is lit), &"overcast" or &"dusk".
+@export var light := &"dawn"
+## Snow is falling. Drawn only.
+@export var snowfall := false
+
 ## A night mission: dark, lamp-lit, and with a searchlight sweeping from every watchtower.
 @export var night := false
 
