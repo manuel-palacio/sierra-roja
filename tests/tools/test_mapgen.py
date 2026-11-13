@@ -63,6 +63,31 @@ class Silence(unittest.TestCase):
         self.assertIn("PostNorth", str(caught.exception))
 
 
+class Cut(unittest.TestCase):
+    LINES = [[(0, 0), (10, 0), (20, 0)]]
+
+    def test_cut_points_go_on_their_poles_and_into_the_objective(self):
+        m = mapgen.mission(POLE_LINES=self.LINES, CUT_POINTS=[(0, 0), (0, 1)],
+                           OBJECTIVES=[{"kind": "cut", "hud": "h", "marker": "m", "done": "d"}])
+        lines = mapgen.objective_nodes(m.OBJECTIVES[0], m)
+        self.assertIn('pole = NodePath("Scenery/Pole1_2")', lines)
+        self.assertIn('points = Array[NodePath]([NodePath("Cut1"), NodePath("Cut2")])', lines)
+
+    def test_a_cut_point_off_the_end_of_a_line_is_refused(self):
+        with self.assertRaises(ValueError):
+            mapgen.mission(POLE_LINES=self.LINES, CUT_POINTS=[(0, 3)],
+                           OBJECTIVES=[{"kind": "cut", "hud": "h", "marker": "m", "done": "d"}])
+
+    def test_the_last_pole_of_a_line_has_no_wire_to_cut(self):
+        with self.assertRaises(ValueError):
+            mapgen.mission(POLE_LINES=self.LINES, CUT_POINTS=[(0, 2), (0, 9)],
+                           OBJECTIVES=[{"kind": "cut", "hud": "h", "marker": "m", "done": "d"}])
+
+    def test_a_cut_objective_with_nothing_to_cut_is_refused(self):
+        with self.assertRaises(ValueError):
+            mapgen.mission(OBJECTIVES=[{"kind": "cut", "hud": "h", "marker": "m", "done": "d"}])
+
+
 class Water(unittest.TestCase):
     def _z(self, lines):
         placed = [line for line in lines if line.startswith("transform")][0]

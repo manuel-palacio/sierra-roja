@@ -1,0 +1,726 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/mission/mission.gd" id="1_mission"]
+[ext_resource type="PackedScene" path="res://scenes/units/guard.tscn" id="2_guard"]
+[ext_resource type="Script" path="res://src/terrain/terrain.gd" id="3_terrain"]
+[ext_resource type="Resource" path="res://resources/missions/krasny_bor_land.tres" id="4_land"]
+[ext_resource type="Script" path="res://src/terrain/stone_wall.gd" id="5_wall"]
+[ext_resource type="Script" path="res://src/terrain/building.gd" id="6_building"]
+[ext_resource type="Script" path="res://src/terrain/prop_scatter.gd" id="7_scatter"]
+[ext_resource type="Script" path="res://src/terrain/sleepers.gd" id="8_sleepers"]
+[ext_resource type="Shader" path="res://assets/shaders/water.gdshader" id="9_water"]
+[ext_resource type="Script" path="res://src/terrain/campfire.gd" id="10_campfire"]
+[ext_resource type="Script" path="res://src/terrain/telegraph_pole.gd" id="11_pole"]
+[ext_resource type="Script" path="res://src/terrain/watchtower.gd" id="12_tower"]
+[ext_resource type="Script" path="res://src/terrain/cart.gd" id="13_cart"]
+[ext_resource type="Script" path="res://src/terrain/settlement_prop.gd" id="14_settled"]
+[ext_resource type="Script" path="res://src/mission/objectives/destroy_objective.gd" id="15_destroy"]
+[ext_resource type="Script" path="res://src/mission/objectives/cut_objective.gd" id="23_cutting"]
+[ext_resource type="Script" path="res://src/mission/cut_point.gd" id="24_cut"]
+[ext_resource type="PackedScene" path="res://assets/props/nature/rock_largeA.glb" id="m_rock_largeA"]
+[ext_resource type="PackedScene" path="res://assets/props/nature/rock_largeB.glb" id="m_rock_largeB"]
+[ext_resource type="PackedScene" path="res://assets/props/nature/rock_largeC.glb" id="m_rock_largeC"]
+[ext_resource type="PackedScene" path="res://assets/props/nature/stump_round.glb" id="m_stump_round"]
+[ext_resource type="PackedScene" path="res://assets/props/nature/log_stack.glb" id="m_log_stack"]
+[ext_resource type="PackedScene" path="res://assets/props/nature/log.glb" id="m_log"]
+[ext_resource type="PackedScene" path="res://assets/props/nature/stump_old.glb" id="m_stump_old"]
+[ext_resource type="Texture2D" path="res://assets/textures/steel.jpg" id="t_steel"]
+[ext_resource type="Texture2D" path="res://assets/textures/planks.jpg" id="t_planks"]
+[ext_resource type="Texture2D" path="res://assets/textures/stone_wall.jpg" id="t_stone_wall"]
+[ext_resource type="Texture2D" path="res://assets/textures/planks_normal.jpg" id="n_planks"]
+[ext_resource type="Texture2D" path="res://assets/textures/stone_wall_normal.jpg" id="n_stone_wall"]
+[ext_resource type="PackedScene" path="res://assets/props/survival/tent.glb" id="m_tent"]
+
+[sub_resource type="NavigationMesh" id="NavMesh_bridge"]
+cell_size = 0.25
+cell_height = 0.25
+agent_height = 1.75
+agent_radius = 0.5
+agent_max_climb = 0.25
+agent_max_slope = 35.0
+detail_sample_distance = 16.0
+detail_sample_max_error = 0.6
+filter_baking_aabb = AABB(-56, -6, -46, 112, 30, 92)
+
+[sub_resource type="StandardMaterial3D" id="m_steel"]
+albedo_color = Color(0.55, 0.57, 0.62, 1)
+albedo_texture = ExtResource("t_steel")
+uv1_triplanar = true
+uv1_world_triplanar = true
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="m_crate"]
+albedo_color = Color(0.95, 0.85, 0.72, 1)
+albedo_texture = ExtResource("t_planks")
+uv1_triplanar = true
+uv1_world_triplanar = true
+uv1_scale = Vector3(0.8, 0.8, 0.8)
+normal_enabled = true
+normal_texture = ExtResource("n_planks")
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="m_stone"]
+albedo_color = Color(0.9, 0.86, 0.8, 1)
+albedo_texture = ExtResource("t_stone_wall")
+uv1_triplanar = true
+uv1_world_triplanar = true
+uv1_scale = Vector3(0.4, 0.4, 0.4)
+normal_enabled = true
+normal_texture = ExtResource("n_stone_wall")
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="m_rail"]
+albedo_color = Color(0.2, 0.2, 0.22, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="m_pad"]
+albedo_color = Color(0.2, 0.7, 0.3, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="m_post"]
+albedo_color = Color(0.12, 0.12, 0.13, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="m_barrier"]
+albedo_color = Color(0.8, 0.2, 0.15, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="m_drum"]
+albedo_color = Color(0.45, 0.55, 0.42, 1)
+albedo_texture = ExtResource("t_steel")
+uv1_triplanar = true
+uv1_world_triplanar = true
+uv1_scale = Vector3(0.9, 0.9, 0.9)
+roughness = 1.0
+
+[sub_resource type="Curve3D" id="Curve_1"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -24, 0.0, 8.5, 0, 0, 0, 0, 0, 0, 14, 0.0, 8.5),
+"tilts": PackedFloat32Array(0, 0)
+}
+point_count = 2
+
+[sub_resource type="Curve3D" id="Curve_2"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -6, 0.0, 17, 0, 0, 0, 0, 0, 0, 8, 0.0, 17),
+"tilts": PackedFloat32Array(0, 0)
+}
+point_count = 2
+
+[sub_resource type="Curve3D" id="Curve_3"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -24, 0.0, -17, 0, 0, 0, 0, 0, 0, -24, 0.0, -11),
+"tilts": PackedFloat32Array(0, 0)
+}
+point_count = 2
+
+[sub_resource type="Curve3D" id="Curve_4"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -20, 0.0, -37, 0, 0, 0, 0, 0, 0, 34, 0.0, -37),
+"tilts": PackedFloat32Array(0, 0)
+}
+point_count = 2
+
+[sub_resource type="Curve3D" id="Curve_5"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 27.0, 0.0, 0.5, 0, 0, 0, 0, 0, 0, 27.0, 0.0, 4.5),
+"tilts": PackedFloat32Array(0, 0)
+}
+point_count = 2
+
+[sub_resource type="Curve3D" id="Curve_6"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 22, 0.0, -8, 0, 0, 0, 0, 0, 0, 33, 0.0, -8),
+"tilts": PackedFloat32Array(0, 0)
+}
+point_count = 2
+
+[sub_resource type="Curve3D" id="Curve_7"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 18.6, 0.0, -1.5, 0, 0, 0, 0, 0, 0, 19.2, 0.0, -1.5),
+"tilts": PackedFloat32Array(0, 0)
+}
+point_count = 2
+
+[sub_resource type="Curve3D" id="Curve_8"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 40, 0.0, -12, 0, 0, 0, 0, 0, 0, 40, 0.0, -6),
+"tilts": PackedFloat32Array(0, 0)
+}
+point_count = 2
+
+[sub_resource type="BoxShape3D" id="Box_prop1"]
+size = Vector3(1.0, 1.4, 1.0)
+
+[sub_resource type="CylinderMesh" id="Mesh_prop1"]
+material = SubResource("m_drum")
+top_radius = 0.5
+bottom_radius = 0.5
+height = 1.4
+radial_segments = 12
+rings = 1
+
+[sub_resource type="BoxShape3D" id="Box_prop2"]
+size = Vector3(1.3, 1.1, 2.1)
+
+[sub_resource type="BoxMesh" id="Mesh_prop2"]
+material = SubResource("m_crate")
+size = Vector3(1.3, 1.1, 2.1)
+
+[sub_resource type="BoxShape3D" id="Box_prop3"]
+size = Vector3(1.1, 1.1, 1.1)
+
+[sub_resource type="BoxMesh" id="Mesh_prop3"]
+material = SubResource("m_crate")
+size = Vector3(1.1, 1.1, 1.1)
+
+[sub_resource type="BoxShape3D" id="Box_prop4"]
+size = Vector3(2.5, 1.9, 2.5)
+
+[sub_resource type="BoxShape3D" id="Box_extraction"]
+size = Vector3(6, 3, 6)
+
+[sub_resource type="ShaderMaterial" id="m_water"]
+shader = ExtResource("9_water")
+
+[sub_resource type="PlaneMesh" id="Mesh_water"]
+material = SubResource("m_water")
+size = Vector2(44, 260)
+
+[sub_resource type="PlaneMesh" id="Mesh_sea"]
+material = SubResource("m_water")
+size = Vector2(400, 160)
+
+[sub_resource type="StandardMaterial3D" id="m_lamp"]
+shading_mode = 0
+albedo_color = Color(1, 0.86, 0.55, 1)
+
+[sub_resource type="SphereMesh" id="Mesh_bulb"]
+material = SubResource("m_lamp")
+radius = 0.16
+height = 0.32
+radial_segments = 8
+rings = 4
+
+[sub_resource type="CylinderMesh" id="Mesh_post"]
+material = SubResource("m_post")
+top_radius = 0.06
+bottom_radius = 0.08
+height = 3.2
+radial_segments = 6
+rings = 1
+
+[node name="KrasnyBor" type="Node3D"]
+script = ExtResource("1_mission")
+bounds_rect = Rect2(-55, -45, 110, 90)
+season = &"snow"
+light = &"predawn"
+snowfall = true
+dress = &"russia"
+night = true
+title = "The guns"
+briefing_lines = PackedStringArray("Cut the telephone line at its three marked poles (F, and stand still for four seconds).", "Blow up the artillery store with the Dynamiter's charge. In any order.", "Then both of you back to the wood. Lose either one and the mission fails.")
+
+[node name="Nav" type="NavigationRegion3D" parent="."]
+navigation_mesh = SubResource("NavMesh_bridge")
+
+[node name="Terrain" type="StaticBody3D" parent="Nav"]
+script = ExtResource("3_terrain")
+spec = ExtResource("4_land")
+
+[node name="TargetStack" type="Node3D" parent="Nav"]
+
+[node name="Stack1" type="CSGBox3D" parent="Nav/TargetStack"]
+use_collision = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 33.2, 1.95, 1.2)
+size = Vector3(1.8, 1.3, 1.3)
+material = SubResource("m_crate")
+
+[node name="Stack2" type="CSGBox3D" parent="Nav/TargetStack"]
+use_collision = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 35.0, 1.9000000000000001, 1.4)
+size = Vector3(1.5, 1.2, 1.5)
+material = SubResource("m_crate")
+
+[node name="Stack3" type="CSGBox3D" parent="Nav/TargetStack"]
+use_collision = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 34.2, 1.8, 2.5)
+size = Vector3(2.0, 1.0, 0.9)
+material = SubResource("m_crate")
+
+[node name="Stack4" type="CSGBox3D" parent="Nav/TargetStack"]
+use_collision = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 34.0, 2.95, 1.3)
+size = Vector3(1.4, 0.9, 1.1)
+material = SubResource("m_crate")
+
+[node name="CrateGuns1" type="CSGBox3D" parent="Nav"]
+use_collision = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15.0, 1.9, 1.0)
+size = Vector3(1.4, 1.6, 1.4)
+material = SubResource("m_crate")
+
+[node name="CrateGuns2" type="CSGBox3D" parent="Nav"]
+use_collision = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.0, 1.9, 0.5)
+size = Vector3(1.4, 1.6, 1.4)
+material = SubResource("m_crate")
+
+[node name="Wall1" type="StaticBody3D" parent="Nav"]
+script = ExtResource("5_wall")
+points = PackedVector2Array(29, -2, 39, -2)
+wall_height = 2.4
+snowy = true
+
+[node name="Wall2" type="StaticBody3D" parent="Nav"]
+script = ExtResource("5_wall")
+points = PackedVector2Array(39, -2, 39, 6)
+wall_height = 2.4
+snowy = true
+
+[node name="Wall3" type="StaticBody3D" parent="Nav"]
+script = ExtResource("5_wall")
+points = PackedVector2Array(39, 6, 29, 6)
+wall_height = 2.4
+snowy = true
+
+[node name="Wall4" type="StaticBody3D" parent="Nav"]
+script = ExtResource("5_wall")
+points = PackedVector2Array(29, 6, 29, 3.8)
+wall_height = 2.4
+snowy = true
+
+[node name="Wall5" type="StaticBody3D" parent="Nav"]
+script = ExtResource("5_wall")
+points = PackedVector2Array(29, 0.8, 29, -2)
+wall_height = 2.4
+snowy = true
+
+[node name="Wall6" type="StaticBody3D" parent="Nav"]
+script = ExtResource("5_wall")
+points = PackedVector2Array(-27, 4.5, -27, 6.6, -21, 6.6, -21, 4.5)
+wall_height = 1.0
+kind = &"sandbags"
+snowy = true
+
+[node name="Wall7" type="StaticBody3D" parent="Nav"]
+script = ExtResource("5_wall")
+points = PackedVector2Array(-9, 4.5, -9, 6.6, -3, 6.6, -3, 4.5)
+wall_height = 1.0
+kind = &"sandbags"
+snowy = true
+
+[node name="Wall8" type="StaticBody3D" parent="Nav"]
+script = ExtResource("5_wall")
+points = PackedVector2Array(9, 4.5, 9, 6.6, 15, 6.6, 15, 4.5)
+wall_height = 1.0
+kind = &"sandbags"
+snowy = true
+
+[node name="DugOut" type="StaticBody3D" parent="Nav"]
+transform = Transform3D(1.00000, 0, -0.00000, 0, 1, 0, 0.00000, 0, 1.00000, -30, 0, -14)
+script = ExtResource("6_building")
+size = Vector3(7, 2.6, 5)
+roof_height = 1.0
+ruin = false
+style = &"log"
+snowy = true
+
+[node name="Bunkhouse" type="StaticBody3D" parent="Nav"]
+transform = Transform3D(1.00000, 0, -0.00000, 0, 1, 0, 0.00000, 0, 1.00000, 27, 0, -14)
+script = ExtResource("6_building")
+size = Vector3(9, 2.8, 5)
+roof_height = 1.3
+ruin = false
+style = &"log"
+snowy = true
+
+[node name="Settled1" type="StaticBody3D" parent="Nav"]
+script = ExtResource("14_settled")
+transform = Transform3D(-1.0000, 0, -0.0016, 0, 1, 0, 0.0016, 0, -1.0000, -24.0, 0, 3.0)
+kind = &"gun"
+snowy = true
+
+[node name="Settled2" type="StaticBody3D" parent="Nav"]
+script = ExtResource("14_settled")
+transform = Transform3D(-1.0000, 0, -0.0016, 0, 1, 0, 0.0016, 0, -1.0000, -6.0, 0, 3.0)
+kind = &"gun"
+snowy = true
+
+[node name="Settled3" type="StaticBody3D" parent="Nav"]
+script = ExtResource("14_settled")
+transform = Transform3D(-1.0000, 0, -0.0016, 0, 1, 0, 0.0016, 0, -1.0000, 12.0, 0, 3.0)
+kind = &"gun"
+snowy = true
+
+[node name="Settled4" type="StaticBody3D" parent="Nav"]
+script = ExtResource("14_settled")
+transform = Transform3D(0.0008, 0, -1.0000, 0, 1, 0, 1.0000, 0, 0.0008, 4.0, 0, -14.0)
+kind = &"truck"
+snowy = true
+
+[node name="Settled5" type="StaticBody3D" parent="Nav"]
+script = ExtResource("14_settled")
+transform = Transform3D(0.9553, 0, -0.2955, 0, 1, 0, 0.2955, 0, 0.9553, 22.0, 0, -17.0)
+kind = &"field_kitchen"
+snowy = true
+
+[node name="Watchtower1" type="StaticBody3D" parent="Nav"]
+script = ExtResource("12_tower")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.0, 0, -3.0)
+aim_deg = 100.0
+arc_deg = 45.0
+reach = 15.0
+snowy = true
+
+[node name="Cart1" type="StaticBody3D" parent="Nav"]
+script = ExtResource("13_cart")
+transform = Transform3D(0.6967, 0, -0.7174, 0, 1, 0, 0.7174, 0, 0.6967, -12.0, 0, -6.0)
+snowy = true
+
+[node name="WoodBirches" type="Node3D" parent="Nav"]
+script = ExtResource("7_scatter")
+tree_kind = &"birch"
+area = PackedVector2Array(-54, 24, 54, 24, 54, 44, -54, 44)
+count = 40
+seed = 91
+min_spacing = 4.0
+max_slope_deg = 30.0
+scale_range = Vector2(0.85, 1.25)
+keep_clear = 3.0
+clear_points = PackedVector2Array(-44, 38, -42, 40, -40, 20, -40, 0, -40, -20, -40, -26.5, -17.4, -25.2, 6.6, -25.2, 30.6, -25.2, -10, -26.5, 18, -26.5, -30, -26.5, 36, -26.5, 42, -26.5, 50, -26.5, 50, -12, 50, 2, 46, 2, 40.6, 2, 47, 13, 45, 26, 44, 35, -20, 38, 10, 39)
+blocker_size = Vector3(0.4, 3.0, 0.4)
+snowy = true
+
+[node name="WoodPines" type="Node3D" parent="Nav"]
+script = ExtResource("7_scatter")
+tree_kind = &"snow_pine"
+area = PackedVector2Array(-54, 24, 54, 24, 54, 44, -54, 44)
+count = 12
+seed = 92
+min_spacing = 7.0
+max_slope_deg = 30.0
+scale_range = Vector2(0.85, 1.2)
+keep_clear = 3.0
+clear_points = PackedVector2Array(-44, 38, -42, 40, -40, 20, -40, 0, -40, -20, -40, -26.5, -17.4, -25.2, 6.6, -25.2, 30.6, -25.2, -10, -26.5, 18, -26.5, -30, -26.5, 36, -26.5, 42, -26.5, 50, -26.5, 50, -12, 50, 2, 46, 2, 40.6, 2, 47, 13, 45, 26, 44, 35, -20, 38, 10, 39)
+blocker_size = Vector3(0.5, 3.0, 0.5)
+snowy = true
+
+[node name="BehindBirches" type="Node3D" parent="Nav"]
+script = ExtResource("7_scatter")
+tree_kind = &"birch"
+area = PackedVector2Array(-54, -44, 54, -44, 54, -41, -54, -41)
+count = 14
+seed = 93
+min_spacing = 7.0
+max_slope_deg = 30.0
+scale_range = Vector2(0.85, 1.2)
+keep_clear = 3.5
+clear_points = PackedVector2Array(-44, 38, -42, 40, -40, 20, -40, 0, -40, -20, -40, -26.5, -17.4, -25.2, 6.6, -25.2, 30.6, -25.2, -10, -26.5, 18, -26.5, -30, -26.5, 36, -26.5, 42, -26.5, 50, -26.5, 50, -12, 50, 2, 46, 2, 40.6, 2, 47, 13, 45, 26, 44, 35, -20, 38, 10, 39)
+blocker_size = Vector3(0.4, 3.0, 0.4)
+snowy = true
+
+[node name="Rocks" type="Node3D" parent="Nav"]
+script = ExtResource("7_scatter")
+models = Array[PackedScene]([ExtResource("m_rock_largeA"), ExtResource("m_rock_largeB"), ExtResource("m_rock_largeC")])
+area = PackedVector2Array(-54, 24, 54, 24, 54, 44, -54, 44)
+count = 8
+seed = 94
+min_spacing = 9.0
+max_slope_deg = 28.0
+scale_range = Vector2(2.0, 2.6)
+keep_clear = 3.5
+clear_points = PackedVector2Array(-44, 38, -42, 40, -40, 20, -40, 0, -40, -20, -40, -26.5, -17.4, -25.2, 6.6, -25.2, 30.6, -25.2, -10, -26.5, 18, -26.5, -30, -26.5, 36, -26.5, 42, -26.5, 50, -26.5, 50, -12, 50, 2, 46, 2, 40.6, 2, 47, 13, 45, 26, 44, 35, -20, 38, 10, 39)
+blocker_size = Vector3(1.8, 0.9, 1.8)
+snowy = true
+
+[node name="PropBlocker1" type="StaticBody3D" parent="Nav"]
+transform = Transform3D(1.0000, 0, -0.0000, 0, 1, 0, 0.0000, 0, 1.0000, -27.5, 2.2, -9.5)
+
+[node name="Shape" type="CollisionShape3D" parent="Nav/PropBlocker1"]
+shape = SubResource("Box_prop1")
+
+[node name="PropBlocker2" type="StaticBody3D" parent="Nav"]
+transform = Transform3D(0.9211, 0, -0.3894, 0, 1, 0, 0.3894, 0, 0.9211, 20.5, 2.05, -11.0)
+
+[node name="Shape" type="CollisionShape3D" parent="Nav/PropBlocker2"]
+shape = SubResource("Box_prop2")
+
+[node name="PropBlocker3" type="StaticBody3D" parent="Nav"]
+transform = Transform3D(0.9801, 0, -0.1987, 0, 1, 0, 0.1987, 0, 0.9801, 31.0, 2.05, 4.6)
+
+[node name="Shape" type="CollisionShape3D" parent="Nav/PropBlocker3"]
+shape = SubResource("Box_prop3")
+
+[node name="PropBlocker4" type="StaticBody3D" parent="Nav"]
+transform = Transform3D(-0.5885, 0, -0.8085, 0, 1, 0, 0.8085, 0, -0.5885, 48.0, 2.45, 38.0)
+
+[node name="Shape" type="CollisionShape3D" parent="Nav/PropBlocker4"]
+shape = SubResource("Box_prop4")
+
+[node name="Scenery" type="Node3D" parent="."]
+
+[node name="Bushes" type="Node3D" parent="Scenery"]
+script = ExtResource("7_scatter")
+tree_kind = &"bare_bush"
+area = PackedVector2Array(-54, -44, 54, -44, 54, 44, -54, 44)
+count = 110
+seed = 95
+min_spacing = 2.4
+max_slope_deg = 34.0
+scale_range = Vector2(0.7, 1.4)
+keep_clear = 1.5
+clear_points = PackedVector2Array(-44, 38, -42, 40, -40, 20, -40, 0, -40, -20, -40, -26.5, -17.4, -25.2, 6.6, -25.2, 30.6, -25.2, -10, -26.5, 18, -26.5, -30, -26.5, 36, -26.5, 42, -26.5, 50, -26.5, 50, -12, 50, 2, 46, 2, 40.6, 2, 47, 13, 45, 26, 44, 35, -20, 38, 10, 39)
+snowy = true
+
+[node name="Deadwood" type="Node3D" parent="Scenery"]
+script = ExtResource("7_scatter")
+models = Array[PackedScene]([ExtResource("m_stump_round"), ExtResource("m_log_stack"), ExtResource("m_log"), ExtResource("m_stump_old")])
+area = PackedVector2Array(-54, 24, 54, 24, 54, 44, -54, 44)
+count = 40
+seed = 96
+min_spacing = 3.5
+max_slope_deg = 30.0
+scale_range = Vector2(2.6, 3.4)
+keep_clear = 2.0
+clear_points = PackedVector2Array(-44, 38, -42, 40, -40, 20, -40, 0, -40, -20, -40, -26.5, -17.4, -25.2, 6.6, -25.2, 30.6, -25.2, -10, -26.5, 18, -26.5, -30, -26.5, 36, -26.5, 42, -26.5, 50, -26.5, 50, -12, 50, 2, 46, 2, 40.6, 2, 47, 13, 45, 26, 44, 35, -20, 38, 10, 39)
+snowy = true
+
+[node name="Prop1" type="MeshInstance3D" parent="Scenery"]
+transform = Transform3D(1.0000, 0, -0.0000, 0, 1, 0, 0.0000, 0, 1.0000, -27.5, 2.1, -9.5)
+mesh = SubResource("Mesh_prop1")
+
+[node name="Prop2" type="MeshInstance3D" parent="Scenery"]
+transform = Transform3D(0.9211, 0, -0.3894, 0, 1, 0, 0.3894, 0, 0.9211, 20.5, 1.9499999999999997, -11.0)
+mesh = SubResource("Mesh_prop2")
+
+[node name="Prop3" type="MeshInstance3D" parent="Scenery"]
+transform = Transform3D(0.9801, 0, -0.1987, 0, 1, 0, 0.1987, 0, 0.9801, 31.0, 1.9499999999999997, 4.6)
+mesh = SubResource("Mesh_prop3")
+
+[node name="Prop4" parent="Scenery" instance=ExtResource("m_tent")]
+transform = Transform3D(-2.9425, 0, -4.0425, 0, 5.0, 0, 4.0425, 0, -2.9425, 48.0, 1.5, 38.0)
+
+[node name="Lamp1" type="OmniLight3D" parent="Scenery"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -26.0, 4.7, -10.0)
+light_color = Color(1, 0.72, 0.38, 1)
+light_energy = 1.1
+omni_range = 10.0
+omni_attenuation = 1.3
+
+[node name="Bulb" type="MeshInstance3D" parent="Scenery/Lamp1"]
+mesh = SubResource("Mesh_bulb")
+
+[node name="Post" type="MeshInstance3D" parent="Scenery/Lamp1"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.6, 0)
+mesh = SubResource("Mesh_post")
+
+[node name="Lamp2" type="OmniLight3D" parent="Scenery"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.6, 4.7, 2.4)
+light_color = Color(1, 0.72, 0.38, 1)
+light_energy = 1.1
+omni_range = 10.0
+omni_attenuation = 1.3
+
+[node name="Bulb" type="MeshInstance3D" parent="Scenery/Lamp2"]
+mesh = SubResource("Mesh_bulb")
+
+[node name="Post" type="MeshInstance3D" parent="Scenery/Lamp2"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.6, 0)
+mesh = SubResource("Mesh_post")
+
+[node name="Lamp3" type="OmniLight3D" parent="Scenery"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.0, 4.7, -0.5)
+light_color = Color(1, 0.72, 0.38, 1)
+light_energy = 1.1
+omni_range = 10.0
+omni_attenuation = 1.3
+
+[node name="Bulb" type="MeshInstance3D" parent="Scenery/Lamp3"]
+mesh = SubResource("Mesh_bulb")
+
+[node name="Post" type="MeshInstance3D" parent="Scenery/Lamp3"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.6, 0)
+mesh = SubResource("Mesh_post")
+
+[node name="Lamp4" type="OmniLight3D" parent="Scenery"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24.0, 4.7, -10.0)
+light_color = Color(1, 0.72, 0.38, 1)
+light_energy = 1.1
+omni_range = 10.0
+omni_attenuation = 1.3
+
+[node name="Bulb" type="MeshInstance3D" parent="Scenery/Lamp4"]
+mesh = SubResource("Mesh_bulb")
+
+[node name="Post" type="MeshInstance3D" parent="Scenery/Lamp4"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.6, 0)
+mesh = SubResource("Mesh_post")
+
+[node name="Pole1_1" type="Node3D" parent="Scenery"]
+script = ExtResource("11_pole")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 0, -22.5)
+wire_to = Vector2(-18, -24)
+
+[node name="Pole1_2" type="Node3D" parent="Scenery"]
+script = ExtResource("11_pole")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 0, -24)
+wire_to = Vector2(-6, -24)
+
+[node name="Pole1_3" type="Node3D" parent="Scenery"]
+script = ExtResource("11_pole")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, -24)
+wire_to = Vector2(6, -24)
+
+[node name="Pole1_4" type="Node3D" parent="Scenery"]
+script = ExtResource("11_pole")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, -24)
+wire_to = Vector2(18, -24)
+
+[node name="Pole1_5" type="Node3D" parent="Scenery"]
+script = ExtResource("11_pole")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 0, -24)
+wire_to = Vector2(30, -24)
+
+[node name="Pole1_6" type="Node3D" parent="Scenery"]
+script = ExtResource("11_pole")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 0, -24)
+wire_to = Vector2(42, -24)
+
+[node name="Pole1_7" type="Node3D" parent="Scenery"]
+script = ExtResource("11_pole")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 42, 0, -24)
+wire_to = Vector2(54, -24.5)
+
+[node name="Pole1_8" type="Node3D" parent="Scenery"]
+script = ExtResource("11_pole")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 54, 0, -24.5)
+
+[node name="SpecialistSpawns" type="Node3D" parent="."]
+
+[node name="Specialist1" type="Marker3D" parent="SpecialistSpawns"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -44, 0, 38)
+
+[node name="Specialist2" type="Marker3D" parent="SpecialistSpawns"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -42, 0, 40)
+
+[node name="GuardSpawns" type="Node3D" parent="."]
+
+[node name="Guard1" type="Marker3D" parent="GuardSpawns"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24, 0, 8.5)
+
+[node name="Guard2" type="Marker3D" parent="GuardSpawns"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, 17)
+
+[node name="Guard3" type="Marker3D" parent="GuardSpawns"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24, 0, -17)
+
+[node name="Guard4" type="Marker3D" parent="GuardSpawns"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 0, -37)
+
+[node name="Guard5" type="Marker3D" parent="GuardSpawns"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.0, 0, 0.5)
+
+[node name="Guard6" type="Marker3D" parent="GuardSpawns"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22, 0, -8)
+
+[node name="Guard7" type="Marker3D" parent="GuardSpawns"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.6, 0, -1.5)
+
+[node name="Guard8" type="Marker3D" parent="GuardSpawns"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 0, -12)
+
+[node name="Routes" type="Node3D" parent="."]
+
+[node name="Route1" type="Path3D" parent="Routes"]
+curve = SubResource("Curve_1")
+editor_description = "GunLine"
+
+[node name="Route2" type="Path3D" parent="Routes"]
+curve = SubResource("Curve_2")
+editor_description = "Picket"
+
+[node name="Route3" type="Path3D" parent="Routes"]
+curve = SubResource("Curve_3")
+editor_description = "DugOut"
+
+[node name="Route4" type="Path3D" parent="Routes"]
+curve = SubResource("Curve_4")
+editor_description = "Road"
+
+[node name="Route5" type="Path3D" parent="Routes"]
+curve = SubResource("Curve_5")
+editor_description = "StoreGate"
+
+[node name="Route6" type="Path3D" parent="Routes"]
+curve = SubResource("Curve_6")
+editor_description = "Yard"
+
+[node name="Route7" type="Path3D" parent="Routes"]
+curve = SubResource("Curve_7")
+editor_description = "Tower"
+
+[node name="Route8" type="Path3D" parent="Routes"]
+curve = SubResource("Curve_8")
+editor_description = "Bunkhouse"
+
+[node name="Extraction" type="Area3D" parent="."]
+collision_layer = 0
+collision_mask = 2
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 44, 3.0, 35)
+
+[node name="Shape" type="CollisionShape3D" parent="Extraction"]
+shape = SubResource("Box_extraction")
+
+[node name="BridgeTarget" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 34, 1.5, 4.0)
+
+[node name="Guards" type="Node3D" parent="."]
+
+[node name="Objectives" type="Node" parent="."]
+
+[node name="Cut1" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 0, -24)
+script = ExtResource("24_cut")
+pole = NodePath("Scenery/Pole1_2")
+
+[node name="Cut2" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, -24)
+script = ExtResource("24_cut")
+pole = NodePath("Scenery/Pole1_4")
+
+[node name="Cut3" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 0, -24)
+script = ExtResource("24_cut")
+pole = NodePath("Scenery/Pole1_6")
+
+[node name="Cut" type="Node" parent="Objectives"]
+script = ExtResource("23_cutting")
+hud_text = "Cut the telephone lines"
+marker_name = "Line"
+done_text = "The lines are cut"
+points = Array[NodePath]([NodePath("Cut1"), NodePath("Cut2"), NodePath("Cut3")])
+
+[node name="Destroy" type="Node" parent="Objectives"]
+script = ExtResource("15_destroy")
+hud_text = "Destroy the artillery store"
+marker_name = "Store"
+done_text = "Store destroyed"
+target = NodePath("BridgeTarget")
+
+[node name="Guard1" parent="Guards" instance=ExtResource("2_guard")]
+
+[node name="Guard2" parent="Guards" instance=ExtResource("2_guard")]
+
+[node name="Guard3" parent="Guards" instance=ExtResource("2_guard")]
+
+[node name="Guard4" parent="Guards" instance=ExtResource("2_guard")]
+
+[node name="Guard5" parent="Guards" instance=ExtResource("2_guard")]
+
+[node name="Guard6" parent="Guards" instance=ExtResource("2_guard")]
+
+[node name="Guard7" parent="Guards" instance=ExtResource("2_guard")]
+
+[node name="Guard8" parent="Guards" instance=ExtResource("2_guard")]

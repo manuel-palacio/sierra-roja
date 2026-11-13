@@ -32,6 +32,11 @@ const NOTES := {
 		"sources": ["https://en.wikipedia.org/wiki/Blue_Division",
 				"https://www.ninosderusia.org/wp-content/uploads/2026/02/Relacion-Espanoles-Caidos-en-Ejercito-Sovietico-PFM.pdf"],
 	},
+	"krasny_bor": {
+		"before": "The night of 9 February 1943, south of Leningrad. The División Azul holds the line at Krasny Bor, and the Soviet 55th Army is about to attack it. This raid on its guns is invented.",
+		"after": "At a quarter to seven on 10 February the Soviet guns opened on the Spanish lines. By the 15th the División Azul reported 3,645 killed or wounded and 300 missing or prisoner, some three quarters of the men it had in the battle. By the 13th the 55th Army had lost almost a third of its strength, and it was held inside the ring round Leningrad. For the two of you it was six years since the Guadarrama.",
+		"sources": ["https://en.wikipedia.org/wiki/Battle_of_Krasny_Bor"],
+	},
 }
 
 

@@ -58,3 +58,17 @@ func test_the_ebro_note_says_it_is_said() -> void:
 	assert_string_contains(History.before("ebro"), "24 to 25 July 1938")
 	assert_string_contains(History.after("ebro"), "16 November")
 	assert_gt(History.sources("ebro").size(), 0)
+
+
+func test_krasny_bor_ends_on_what_it_cost() -> void:
+	assert_string_contains(History.before("krasny_bor"), "invented")
+	assert_string_contains(History.after("krasny_bor"), "3,645")
+	assert_string_contains(History.after("krasny_bor"), "a third")
+	assert_gt(History.sources("krasny_bor").size(), 0)
+
+
+func test_every_mission_now_has_its_history() -> void:
+	for entry: Dictionary in Missions.LIST:
+		assert_ne(History.before(entry["id"]), "", entry["id"])
+		assert_ne(History.after(entry["id"]), "", entry["id"])
+		assert_ne(entry["place"], "", entry["id"])

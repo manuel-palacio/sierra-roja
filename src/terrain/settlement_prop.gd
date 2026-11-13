@@ -13,6 +13,7 @@ const KINDS := {
 	&"washing_line": Vector3.ZERO,
 	&"launch": Vector3(2.0, 1.0, 6.4),
 	&"field_kitchen": Vector3(1.5, 1.5, 2.6),
+	&"gun": Vector3(1.9, 1.5, 3.8),
 }
 const CANVAS := Color(0.44, 0.47, 0.34)
 const PAINT := Color(0.30, 0.36, 0.28)
@@ -56,6 +57,8 @@ func stand(ground: Callable) -> void:
 			_launch()
 		&"field_kitchen":
 			_field_kitchen()
+		&"gun":
+			_gun()
 
 
 func _truck() -> void:
@@ -125,6 +128,28 @@ func _haystack() -> void:
 	cap.rings = 1
 	cap.material = _flat(HAY.darkened(0.12))
 	_mesh(cap, Vector3(0, 1.8, 0))
+
+
+## A field gun: a barrel over a shield, between two wheels, on a trail that runs back to the ground.
+func _gun() -> void:
+	var grey := _flat(Color(0.26, 0.30, 0.31))
+	_box(Vector3(0.22, 0.22, 2.6), Vector3(0, 1.15, 1.2), grey)
+	_box(Vector3(1.7, 1.0, 0.08), Vector3(0, 1.0, 0.35), grey)
+	_box(Vector3(0.5, 0.4, 0.9), Vector3(0, 0.95, -0.2), _flat(Color(0.20, 0.23, 0.24)))
+	var trail := _box(Vector3(0.24, 0.18, 2.4), Vector3.ZERO, grey)
+	trail.transform = Transform3D(Basis(Vector3.RIGHT, 0.32), Vector3(0, 0.5, -1.35))
+	for x in [-0.86, 0.86]:
+		var wheel := CylinderMesh.new()
+		wheel.top_radius = 0.62
+		wheel.bottom_radius = 0.62
+		wheel.height = 0.12
+		wheel.radial_segments = 14
+		wheel.rings = 1
+		wheel.material = Surfaces.material(&"planks", Color(0.36, 0.34, 0.30))
+		var instance := MeshInstance3D.new()
+		instance.mesh = wheel
+		instance.transform = Transform3D(Basis(Vector3.FORWARD, PI / 2.0), Vector3(x, 0.62, 0.1))
+		add_child(instance)
 
 
 ## An army field kitchen: a boiler on two wheels with its chimney, and the shaft it is drawn by.

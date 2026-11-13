@@ -23,8 +23,9 @@ func _game() -> Node:
 
 
 func test_the_list_names_missions_that_exist() -> void:
-	assert_eq(Missions.LIST.size(), 5)
-	assert_eq(Missions.LIST.map(func(e: Dictionary) -> String: return e["id"]), ["guadarrama", "teruel", "carchuna", "ebro", "volkhov"],
+	assert_eq(Missions.LIST.size(), 6)
+	assert_eq(Missions.LIST.map(func(e: Dictionary) -> String: return e["id"]),
+			["guadarrama", "teruel", "carchuna", "ebro", "volkhov", "krasny_bor"],
 			"in the order of their dates")
 	var ids := {}
 	for entry: Dictionary in Missions.LIST:

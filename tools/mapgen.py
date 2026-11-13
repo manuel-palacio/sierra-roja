@@ -25,7 +25,7 @@ FLAT_COLOURS = {"Wheat": (0.74, 0.62, 0.32)}
 PLAIN_SHAPES = ("barrel", "box", "box-large")
 
 DEFAULTS = dict(SEED=7, NOISE=0.45, NAV_FLOOR=-6, BRIDGE=False, TARGET=(0, 0, 0), TARGET_STACK=[], WALLS=[], BUILDINGS=[],
-                CRATES=[], SCATTERS=[], CLEAR=[], PLACED=[], LAMPS=[], TEXTS={}, POLE_LINES=[], RIVER_COURSE=[], TOWERS=[], CARTS=[], SETTLEMENT=[], NIGHT=False, LAND=None, OBJECTIVES=None, SEASON="summer", LIGHT="dawn", SNOWFALL=False, DRESS="", SEA=None, WATER=None, CROSSING=None, EXTRACTION_FIRE=True, EXTRACTION_GROUND=None)
+                CRATES=[], SCATTERS=[], CLEAR=[], PLACED=[], LAMPS=[], TEXTS={}, POLE_LINES=[], RIVER_COURSE=[], TOWERS=[], CARTS=[], SETTLEMENT=[], NIGHT=False, LAND=None, OBJECTIVES=None, SEASON="summer", LIGHT="dawn", SNOWFALL=False, DRESS="", SEA=None, WATER=None, CROSSING=None, CUT_POINTS=[], EXTRACTION_FIRE=True, EXTRACTION_GROUND=None)
 
 
 # What the tables may say where the game knows only certain words: anything else is a slip that
@@ -41,6 +41,7 @@ OBJECTIVE_FIELDS = {
     "rescue": ("building", "prisoner", "ground", "hud", "escort", "marker"),
     "steal": ("item", "ground", "label", "hud", "carry", "marker", "prompt", "done"),
     "silence": ("sentries", "seconds", "hud", "marker", "done"),
+    "cut": ("hud", "marker", "done"),
 }
 
 
@@ -63,6 +64,13 @@ def mission(**tables):
         missing = [field for field in OBJECTIVE_FIELDS[kind] if field not in objective]
         if missing:
             raise ValueError("a %s objective needs %s" % (kind, ", ".join(missing)))
+        if kind == "cut":
+            if not m.CUT_POINTS:
+                raise ValueError("a cut objective needs CUT_POINTS")
+            for line, pole in m.CUT_POINTS:
+                # The wires come down between a pole and the next, so the last has none to cut.
+                if line >= len(m.POLE_LINES) or pole >= len(m.POLE_LINES[line]) - 1:
+                    raise ValueError("there is no line to cut at pole %d of line %d" % (pole, line))
         if kind == "silence":
             names = [name for name, _ in getattr(m, "GUARDS", [])]
             for sentry in objective["sentries"]:
@@ -150,6 +158,17 @@ def objective_nodes(objective, m):
             '[node name="Steal" type="Node" parent="Objectives"]', 'script = ExtResource("19_steal")',
             f'hud_text = "{objective["hud"]}"', f'marker_name = "{objective["marker"]}"', f'done_text = "{objective["done"]}"',
             f'carry_text = "{objective["carry"]}"', 'item = NodePath("Item")', ""]
+    if objective["kind"] == "cut":
+        # A cut point stands at its pole; the pole's wires on to the next come down when it is cut.
+        lines, paths = [], []
+        for i, (line, pole) in enumerate(m.CUT_POINTS):
+            x, z = m.POLE_LINES[line][pole]
+            lines += [f'[node name="Cut{i + 1}" type="Node3D" parent="."]', at(x, 0, z), 'script = ExtResource("24_cut")',
+                      f'pole = NodePath("Scenery/Pole{line + 1}_{pole + 1}")', ""]
+            paths.append(f'NodePath("Cut{i + 1}")')
+        return lines + ['[node name="Cut" type="Node" parent="Objectives"]', 'script = ExtResource("23_cutting")',
+                        f'hud_text = "{objective["hud"]}"', f'marker_name = "{objective["marker"]}"',
+                        f'done_text = "{objective["done"]}"', "points = Array[NodePath]([" + ", ".join(paths) + "])", ""]
     if objective["kind"] == "silence":
         # Sentries are named as the GUARDS table names them; in the scene a guard is Guard<n>.
         names = [name for name, _ in m.GUARDS]
@@ -195,6 +214,9 @@ def write_scene(m):
          '[ext_resource type="Script" path="res://src/mission/objectives/destroy_objective.gd" id="15_destroy"]']
     if m.CROSSING:
         o.append('[ext_resource type="Script" path="res://src/terrain/boat_crossing.gd" id="21_crossing"]')
+    if any(objective["kind"] == "cut" for objective in objectives(m)):
+        o += ['[ext_resource type="Script" path="res://src/mission/objectives/cut_objective.gd" id="23_cutting"]',
+              '[ext_resource type="Script" path="res://src/mission/cut_point.gd" id="24_cut"]']
     if any(objective["kind"] == "silence" for objective in objectives(m)):
         o.append('[ext_resource type="Script" path="res://src/mission/objectives/silence_objective.gd" id="22_silence"]')
     if any(objective["kind"] == "steal" for objective in objectives(m)):
