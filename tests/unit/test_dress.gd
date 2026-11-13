@@ -74,4 +74,5 @@ func test_the_blue_division_guard_wears_field_grey_not_khaki() -> void:
 	var dome: Dictionary = SoldierGear.KITS[&"guard_blue"][0]
 	assert_eq(dome["bone"], "DEF-head")
 	var c: Color = dome["color"]
-	assert_almost_eq(c.r, c.b, 0.08, "a grey, between green and blue")
+	assert_gte(c.b, c.r, "on the cool side: khaki has more red than blue")
+	assert_lt(c.b - c.r, 0.15, "and a grey, not a blue")
