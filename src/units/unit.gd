@@ -104,6 +104,11 @@ func take_damage(amount: int) -> void:
 		died.emit(self)
 
 
+## On its way somewhere, as against standing or lying where it is.
+func is_moving() -> bool:
+	return _moving
+
+
 func is_running() -> bool:
 	return _running
 

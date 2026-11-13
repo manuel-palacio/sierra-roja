@@ -13,12 +13,15 @@ const WIRE_COLOR := Color(0.08, 0.08, 0.09)
 
 static var _wire: StandardMaterial3D
 
+var _wires: Array[MeshInstance3D] = []
+
 
 ## ground.call(x, z) gives the ground height. Mission calls this once its land exists.
 func settle(ground: Callable) -> void:
 	for child in get_children():
 		remove_child(child)
 		child.free()
+	_wires.clear()
 	global_position.y = ground.call(global_position.x, global_position.z)
 	var post := CylinderMesh.new()
 	post.top_radius = 0.09
@@ -54,6 +57,7 @@ func settle(ground: Callable) -> void:
 		instance.mesh = wire
 		instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		add_child(instance)
+		_wires.append(instance)
 		# Turned in the pole's own space, which may itself be turned.
 		instance.transform = Transform3D(Basis.looking_at(global_basis.inverse() * (to - from), Vector3.UP),
 				global_basis.inverse() * ((from + to) / 2.0))
@@ -72,3 +76,20 @@ static func _wire_material() -> StandardMaterial3D:
 		_wire.albedo_color = WIRE_COLOR
 		_wire.roughness = 0.6
 	return _wire
+
+
+## The wires from this pole on to the next.
+func wires() -> Array[MeshInstance3D]:
+	return _wires
+
+
+## The line is cut here: the wires on to the next pole are gone.
+func drop_wire() -> void:
+	for wire in _wires:
+		wire.visible = false
+
+
+## And up again, for a load from before it was cut.
+func raise_wire() -> void:
+	for wire in _wires:
+		wire.visible = true
