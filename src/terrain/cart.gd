@@ -9,6 +9,10 @@ const TIMBER := Color(0.78, 0.66, 0.52)
 
 
 ## ground.call(x, z) gives the ground height. Mission calls this before the navmesh bake.
+## Winter: snow lying in its bed. A look only.
+@export var snowy := false
+
+
 func stand(ground: Callable) -> void:
 	collision_layer = Unit.LAYER_WORLD
 	collision_mask = 0
@@ -24,6 +28,8 @@ func stand(ground: Callable) -> void:
 	add_child(collision)
 	var wood := Surfaces.material(&"planks", TIMBER)
 	_box(Vector3(BED.x, 0.1, BED.z), Vector3(0, WHEEL + 0.1, 0), wood)
+	if snowy:
+		_box(Vector3(BED.x - 0.1, 0.12, BED.z - 0.1), Vector3(0, WHEEL + 0.21, 0), Surfaces.snow())
 	for x in [-BED.x / 2.0, BED.x / 2.0]:
 		_box(Vector3(0.08, BED.y, BED.z), Vector3(x, WHEEL + 0.1 + BED.y / 2.0, 0), wood)
 	_box(Vector3(BED.x, BED.y, 0.08), Vector3(0, WHEEL + 0.1 + BED.y / 2.0, -BED.z / 2.0), wood)

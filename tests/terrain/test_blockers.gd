@@ -354,3 +354,57 @@ func test_settlement_props_stand_on_the_ground_and_the_solid_ones_block() -> voi
 	var spec := _unit("res://scenes/units/specialist.tscn", truck.global_position + Vector3(-3, 0, 0)) as Specialist
 	await wait_physics_frames(2)
 	assert_eq(_sees(guard, spec), Vision.Zone.NONE, "a truck hides someone standing behind it")
+
+
+# --- Winter: looks only ---
+
+func _shapes(body: Node) -> Array:
+	var out := []
+	for node in body.find_children("*", "CollisionShape3D", true, false):
+		var c := node as CollisionShape3D
+		out.append([(c.shape as BoxShape3D).size if c.shape is BoxShape3D else Vector3.ZERO, c.transform.origin.snappedf(0.001)])
+	return out
+
+
+func _two_houses(change: Callable) -> Array:
+	var houses := []
+	for i in 2:
+		var house := Building.new()
+		house.size = Vector3(5, 3, 4)
+		region.add_child(house)
+		house.position = Vector3(-8 + i * 16, 0, 0)
+		houses.append(house)
+	change.call(houses[1])
+	await _built()
+	return houses
+
+
+func test_a_log_house_blocks_like_a_plaster_one() -> void:
+	var houses := await _two_houses(func(h: Building) -> void: h.style = &"log")
+	assert_eq(_shapes(houses[1]), _shapes(houses[0]))
+	assert_gt(_off_navmesh(8, 0), 2.0, "nobody walks through it")
+	assert_almost_eq(_off_navmesh(8 + 2.9, 0), _off_navmesh(-8 + 2.9, 0), 0.05, "cut from the navmesh alike")
+
+
+func test_a_snowy_building_blocks_like_a_plain_one() -> void:
+	var houses := await _two_houses(func(h: Building) -> void: h.snowy = true)
+	assert_eq(_shapes(houses[1]), _shapes(houses[0]))
+	var roof := houses[1].get_node("Roof") as MeshInstance3D
+	var plain := houses[0].get_node("Roof") as MeshInstance3D
+	assert_gt((roof.mesh.surface_get_material(0) as StandardMaterial3D).albedo_color.get_luminance(),
+			(plain.mesh.surface_get_material(0) as StandardMaterial3D).albedo_color.get_luminance(), "snow on the roof")
+
+
+func test_a_snowy_wall_blocks_like_a_plain_one() -> void:
+	var walls := []
+	for i in 2:
+		var wall := StoneWall.new()
+		wall.points = PackedVector2Array([Vector2(-6, -8 + i * 4), Vector2(6, -8 + i * 4)])
+		region.add_child(wall)
+		walls.append(wall)
+	walls[1].snowy = true
+	await _built()
+	assert_eq(walls[1].find_children("*", "CollisionShape3D", true, false).size(),
+			walls[0].find_children("*", "CollisionShape3D", true, false).size())
+	assert_gt(walls[1].find_children("*", "MeshInstance3D", true, false).size(),
+			walls[0].find_children("*", "MeshInstance3D", true, false).size(), "a cap of snow along the top")

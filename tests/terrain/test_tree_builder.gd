@@ -43,3 +43,34 @@ func test_variants_differ() -> void:
 	var a := TreeBuilder.variants(&"oak")[0].get_aabb()
 	var b := TreeBuilder.variants(&"oak")[1].get_aabb()
 	assert_ne(a, b)
+
+
+# --- Winter ---
+
+func test_winter_kinds_build_three_variants_each() -> void:
+	for kind in [&"snow_pine", &"birch", &"bare_bush"]:
+		var meshes := TreeBuilder.variants(kind)
+		assert_eq(meshes.size(), 3, String(kind))
+		for mesh in meshes:
+			assert_gt(mesh.get_surface_count(), 0, String(kind))
+			assert_gt(mesh.get_aabb().size.y, 0.5, String(kind))
+
+
+func test_a_birch_has_no_leaf_surface() -> void:
+	var birch := TreeBuilder.variants(&"birch")[0]
+	for i in birch.get_surface_count():
+		var material := birch.surface_get_material(i) as StandardMaterial3D
+		assert_ne(material.transparency, BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR, "no leaf sprites on a bare tree")
+	assert_eq(birch.get_surface_count(), 2, "a white trunk and its bare branches")
+	assert_gt((birch.surface_get_material(0) as StandardMaterial3D).albedo_color.get_luminance(), 0.7, "the trunk is white")
+
+
+func test_a_snow_pine_is_a_pine_gone_pale() -> void:
+	var pine := TreeBuilder.variants(&"pine")[0]
+	var snowy := TreeBuilder.variants(&"snow_pine")[0]
+	assert_eq(snowy.get_surface_count(), pine.get_surface_count())
+	assert_true(pine.surface_get_material(2) is StandardMaterial3D)
+	var crown := snowy.surface_get_material(2) as ShaderMaterial
+	assert_not_null(crown, "its boughs are drawn with snow lying on them")
+	assert_gt(float(crown.get_shader_parameter("snow")), 0.5)
+	assert_almost_eq(snowy.get_aabb().size.y, pine.get_aabb().size.y, 2.0, "the same tree underneath")

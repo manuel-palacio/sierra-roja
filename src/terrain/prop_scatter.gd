@@ -58,6 +58,10 @@ const TEXTURED := {
 ## With any opacity: every surface of every copy is this one flat colour, whatever the model's
 ## own materials are (a field of wheat).
 @export var flat_colour := Color(0, 0, 0, 0)
+## Winter: stones, stumps and logs go pale under snow. A look only; nothing is placed differently.
+@export var snowy := false
+## How far a snowy copy's colours go towards the colour of snow.
+const SNOW_SHARE := 0.6
 ## Non-zero: every copy blocks with a box this size, standing on the ground.
 @export var blocker_size := Vector3.ZERO
 
@@ -213,7 +217,7 @@ func _add_multimeshes(model: int) -> void:
 			if walker == scene:
 				break
 			walker = walker.get_parent()
-		_add_multimesh(_in_one_colour(source.mesh) if flat_colour.a > 0.0 else in_palette(source.mesh), inner, places)
+		_add_multimesh(_in_one_colour(source.mesh) if flat_colour.a > 0.0 else in_palette(source.mesh, snowy), inner, places)
 	scene.free()
 
 
@@ -235,27 +239,36 @@ func _add_multimesh(mesh: Mesh, inner: Transform3D, places: Array[Transform3D]) 
 
 
 ## The mesh with each palette material swapped for its recoloured twin.
-static func in_palette(mesh: Mesh) -> Mesh:
+static func in_palette(mesh: Mesh, under_snow := false) -> Mesh:
 	var copy: Mesh = null
 	for i in mesh.get_surface_count():
 		var material := mesh.surface_get_material(i) as BaseMaterial3D
 		if material == null or not PALETTE.has(material.resource_name):
 			continue
-		if not _recoloured.has(material.resource_name):
+		var key := [material.resource_name, under_snow]
+		if not _recoloured.has(key):
 			var twin: BaseMaterial3D
 			if TEXTURED.has(material.resource_name):
 				var texture: Array = TEXTURED[material.resource_name]
 				twin = Surfaces.material(texture[0], texture[1])
+				if under_snow:
+					# Over a texture a tint can only darken, so the snowy twin wears the colour flat.
+					twin = twin.duplicate() as BaseMaterial3D
+					twin.albedo_texture = null
+					twin.normal_enabled = false
+					twin.albedo_color = (PALETTE[material.resource_name] as Color).lerp(Terrain.SNOW, SNOW_SHARE)
 			else:
 				twin = material.duplicate() as BaseMaterial3D
 				twin.albedo_color = PALETTE[material.resource_name]
+				if under_snow:
+					twin.albedo_color = twin.albedo_color.lerp(Terrain.SNOW, SNOW_SHARE)
 				twin.roughness = 1.0
 				twin.metallic = 0.0
 				twin.metallic_specular = 0.1
-			_recoloured[material.resource_name] = twin
+			_recoloured[key] = twin
 		if copy == null:
 			copy = mesh.duplicate()
-		copy.surface_set_material(i, _recoloured[material.resource_name])
+		copy.surface_set_material(i, _recoloured[key])
 	return copy if copy != null else mesh
 
 

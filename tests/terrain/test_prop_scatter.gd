@@ -184,3 +184,29 @@ func test_a_scatter_of_generated_trees_needs_no_models() -> void:
 	assert_eq(total, s.transforms().size(), "one tree per place")
 	assert_gt(meshes.size(), 1, "more than one variant in use")
 	assert_eq(s.find_children("*", "CollisionShape3D", true, false).size(), total, "each with its trunk to walk round")
+
+
+# --- Winter ---
+
+func test_snowy_scatter_places_exactly_what_a_plain_one_does() -> void:
+	var plain := _scatter(true, 9)
+	var snowy := _scatter(true, 9)
+	snowy.snowy = true
+	await _built()
+	assert_gt(plain.transforms().size(), 0)
+	assert_eq(snowy.transforms(), plain.transforms())
+
+
+func test_snowy_rocks_are_paler() -> void:
+	var plain := _scatter(false, 9)
+	var snowy := _scatter(false, 9)
+	snowy.snowy = true
+	await _built()
+	var material := func(s: PropScatter) -> BaseMaterial3D:
+		var holder := s.find_children("*", "MultiMeshInstance3D", true, false)[0] as MultiMeshInstance3D
+		return holder.multimesh.mesh.surface_get_material(0) as BaseMaterial3D
+	var rock: BaseMaterial3D = material.call(plain)
+	var frosted: BaseMaterial3D = material.call(snowy)
+	assert_not_null(rock.albedo_texture, "a plain rock wears the rock texture, which is dark")
+	assert_null(frosted.albedo_texture, "a snowy one wears its colour flat")
+	assert_gt(frosted.albedo_color.get_luminance(), 0.7, "and that colour is most of the way to snow")

@@ -108,6 +108,8 @@ def objective_nodes(objective, m):
 
 def write_scene(m):
     BOUNDS, PLAIN, GUARDS, EXTRACTION = m.BOUNDS, m.PLAIN, m.GUARDS, m.EXTRACTION
+    # In a snow mission everything that stands on the land wears snow.
+    snowy = ["snowy = true"] if m.SEASON == "snow" else []
     WALLS, BUILDINGS, CRATES, SCATTERS, CLEAR = m.WALLS, m.BUILDINGS, m.CRATES, m.SCATTERS, m.CLEAR
     PLACED, LAMPS, SPECIALIST_SPAWNS = m.PLACED, m.LAMPS, m.SPECIALIST_SPAWNS
     bx, bz, bw, bd = BOUNDS
@@ -235,12 +237,13 @@ def write_scene(m):
             o.append(f"wall_height = {height}")
         if kind:
             o.append(f'kind = &"{kind}"')
-        o.append("")
+        o += snowy + [""]
     for building in BUILDINGS:
-        # name, x, z, turn, size, roof height, ruin, then optionally: enterable, storeys.
+        # name, x, z, turn, size, roof height, ruin, then optionally: enterable, storeys, style.
         name, x, z, rot, size, roof, ruin = building[:7]
         enterable = building[7] if len(building) > 7 else False
         storeys = building[8] if len(building) > 8 else 1
+        style = building[9] if len(building) > 9 else None
         c, s = math.cos(rot), math.sin(rot)
         o += [f'[node name="{name}" type="StaticBody3D" parent="Nav"]',
               f"transform = Transform3D({c:.5f}, 0, {-s:.5f}, 0, 1, 0, {s:.5f}, 0, {c:.5f}, {x}, 0, {z})",
@@ -250,22 +253,24 @@ def write_scene(m):
             o.append("enterable = true")
         if storeys > 1:
             o.append(f"storeys = {storeys}")
-        o.append("")
+        if style:
+            o.append(f'style = &"{style}"')
+        o += snowy + [""]
     # Trucks, wells, haystacks and washing lines: kind, x, z, turn in radians.
     for i, (kind, x, z, turn) in enumerate(m.SETTLEMENT):
         c, sn = math.cos(turn), math.sin(turn)
         o += [f'[node name="Settled{i + 1}" type="StaticBody3D" parent="Nav"]', 'script = ExtResource("14_settled")',
-              f"transform = Transform3D({c:.4f}, 0, {-sn:.4f}, 0, 1, 0, {sn:.4f}, 0, {c:.4f}, {x}, 0, {z})", f'kind = &"{kind}"', ""]
+              f"transform = Transform3D({c:.4f}, 0, {-sn:.4f}, 0, 1, 0, {sn:.4f}, 0, {c:.4f}, {x}, 0, {z})", f'kind = &"{kind}"'] + snowy + [""]
 
     # Watchtowers (x, z) and carts (x, z, turn in radians): solid, set on the ground by the mission.
     # A tower: x, z, then its searchlight's aim in degrees (0 east, 90 south), swing and reach.
     for i, (x, z, aim, arc, reach) in enumerate(m.TOWERS):
         o += [f'[node name="Watchtower{i + 1}" type="StaticBody3D" parent="Nav"]', 'script = ExtResource("12_tower")', at(x, 0, z),
-              f"aim_deg = {float(aim)}", f"arc_deg = {float(arc)}", f"reach = {float(reach)}", ""]
+              f"aim_deg = {float(aim)}", f"arc_deg = {float(arc)}", f"reach = {float(reach)}"] + snowy + [""]
     for i, (x, z, turn) in enumerate(m.CARTS):
         c, sn = math.cos(turn), math.sin(turn)
         o += [f'[node name="Cart{i + 1}" type="StaticBody3D" parent="Nav"]', 'script = ExtResource("13_cart")',
-              f"transform = Transform3D({c:.4f}, 0, {-sn:.4f}, 0, 1, 0, {sn:.4f}, 0, {c:.4f}, {x}, 0, {z})", ""]
+              f"transform = Transform3D({c:.4f}, 0, {-sn:.4f}, 0, 1, 0, {sn:.4f}, 0, {c:.4f}, {x}, 0, {z})"] + snowy + [""]
 
     def scatter_node(parent, entry):
         name, _, models, area, count, seed, spacing, scale, clear, blocker, slope = entry
@@ -280,7 +285,7 @@ def write_scene(m):
             lines.append("blocker_size = Vector3(%s, %s, %s)" % blocker)
         if name in FLAT_COLOURS:
             lines.append("flat_colour = Color(%s, %s, %s, 1)" % FLAT_COLOURS[name])
-        return lines + [""]
+        return lines + snowy + [""]
 
     for entry in SCATTERS:
         if entry[1]:

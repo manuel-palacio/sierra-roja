@@ -18,6 +18,10 @@ const PAINT := Color(0.30, 0.36, 0.28)
 const HAY := Color(0.78, 0.66, 0.32)
 
 @export var kind := &"well"
+## Winter: snow on top of it. A look only.
+@export var snowy := false
+## The kinds with a flat enough top for snow to lie on as a slab.
+const SNOW_TOPPED := [&"truck", &"well", &"launch"]
 
 
 ## ground.call(x, z) gives the ground height. Mission calls this before the navmesh bake.
@@ -36,6 +40,8 @@ func stand(ground: Callable) -> void:
 		collision.shape = shape
 		collision.position = Vector3(0, solid.y / 2.0 - 0.2, 0)
 		add_child(collision)
+	if snowy and solid != Vector3.ZERO and kind in SNOW_TOPPED:
+		_box(Vector3(solid.x * 0.92, 0.08, solid.z * 0.92), Vector3(0, solid.y - 0.14, 0), Surfaces.snow())
 	match kind:
 		&"truck":
 			_truck()

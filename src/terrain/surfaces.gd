@@ -28,6 +28,18 @@ const TILING := { &"stone": 0.45, &"plaster": 0.3, &"roof": 0.55, &"planks": 0.7
 static var _made: Dictionary = {}
 
 
+## Lying snow, for the tops of things in winter. One instance.
+static func snow() -> StandardMaterial3D:
+	var key := [&"snow"]
+	if not _made.has(key):
+		var m := StandardMaterial3D.new()
+		m.albedo_color = Terrain.SNOW * 0.9
+		m.roughness = 1.0
+		m.metallic_specular = 0.1
+		_made[key] = m
+	return _made[key]
+
+
 ## The material for a surface kind, tinted. One instance per kind and tint.
 static func material(kind: StringName, tint := Color.WHITE) -> StandardMaterial3D:
 	var key := [kind, tint]

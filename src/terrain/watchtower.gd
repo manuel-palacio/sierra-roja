@@ -16,6 +16,8 @@ const LAMP_HEIGHT := 5.3
 @export var aim_deg := 0.0
 @export var arc_deg := 50.0
 @export var reach := 14.0
+## Winter: snow on its roof. A look only.
+@export var snowy := false
 
 ## The searchlight, once one has been lit.
 var searchlight: Searchlight
@@ -51,8 +53,9 @@ func stand(ground: Callable) -> void:
 	for face in 4:
 		var rail := _piece(Vector3(FOOT + 0.5, 0.10, 0.08), Vector3.ZERO, wood)
 		rail.transform = Transform3D(Basis(Vector3.UP, face * PI / 2.0), Basis(Vector3.UP, face * PI / 2.0) * Vector3(0, FLOOR + 1.0, h + 0.2))
-	_piece(Vector3(FOOT + 1.0, 0.14, FOOT + 1.0), Vector3(0, TOP - 0.4, 0), Surfaces.material(&"roof", Color(0.9, 0.78, 0.7)))
-	_piece(Vector3(FOOT * 0.5, 0.3, FOOT * 0.5), Vector3(0, TOP - 0.15, 0), Surfaces.material(&"roof", Color(0.9, 0.78, 0.7)))
+	var roofing: Material = Surfaces.snow() if snowy else Surfaces.material(&"roof", Color(0.9, 0.78, 0.7))
+	_piece(Vector3(FOOT + 1.0, 0.14, FOOT + 1.0), Vector3(0, TOP - 0.4, 0), roofing)
+	_piece(Vector3(FOOT * 0.5, 0.3, FOOT * 0.5), Vector3(0, TOP - 0.15, 0), roofing)
 	# The ladder up the south side.
 	for x in [-0.28, 0.28]:
 		_piece(Vector3(0.07, FLOOR + 0.4, 0.07), Vector3(x, FLOOR / 2.0, h + 0.36), wood)

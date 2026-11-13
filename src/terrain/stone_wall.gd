@@ -19,6 +19,8 @@ const SINK := 0.4
 @export var thickness := 0.6
 ## &"stone" for dry stone, &"sandbags" for a sandbagged position.
 @export var kind := &"stone"
+## Winter: a cap of snow along the top. A look only.
+@export var snowy := false
 
 ## ground.call(x, z) gives the ground height. Mission calls this before the navmesh bake.
 func build(ground: Callable) -> void:
@@ -59,6 +61,18 @@ func _add_block(a: Vector2, c: Vector2, ground: Callable, rng: RandomNumberGener
 	instance.mesh = mesh
 	instance.transform = at
 	add_child(instance)
+	if snowy:
+		var cap := BoxMesh.new()
+		cap.size = Vector3(size.x, 0.07, thickness * 1.05)
+		cap.material = _snow()
+		var lying := MeshInstance3D.new()
+		lying.mesh = cap
+		lying.transform = at.translated_local(Vector3(0, size.y / 2.0 + 0.03, 0))
+		add_child(lying)
+
+
+static func _snow() -> StandardMaterial3D:
+	return Surfaces.snow()
 
 
 static func _stone() -> StandardMaterial3D:

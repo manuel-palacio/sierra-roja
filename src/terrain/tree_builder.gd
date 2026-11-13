@@ -7,6 +7,7 @@ extends RefCounted
 ## shared; PropScatter draws them as MultiMeshes.
 
 const VARIANTS := 3
+const SNOW_LEAF := preload("res://assets/shaders/snow_leaf.gdshader")
 const LEAVES := {
 	&"broad": preload("res://assets/textures/leaves_broad.png"),
 	&"pine": preload("res://assets/textures/leaves_pine.png"),
@@ -18,6 +19,11 @@ const KINDS := {
 	&"olive": { "leaf": &"broad", "height": 4.2, "trunk": 0.24, "crown": 2.0, "crown_from": 1.5, "tint": Color(0.56, 0.62, 0.52) },
 	&"sapling": { "leaf": &"broad", "height": 2.6, "trunk": 0.08, "crown": 0.9, "crown_from": 1.1, "tint": Color(0.62, 0.70, 0.46) },
 	&"bush": { "leaf": &"broad", "height": 1.0, "trunk": 0.0, "crown": 0.85, "crown_from": 0.1, "tint": Color(0.56, 0.63, 0.42) },
+	# Winter. A pine under snow; and trees with no leaves, which are a trunk and bare branches:
+	# "bark" is the trunk's flat colour, "tint" the branches'.
+	&"snow_pine": { "leaf": &"pine", "height": 8.5, "trunk": 0.20, "crown": 2.3, "crown_from": 1.9, "tint": Color(0.52, 0.64, 0.52), "snow": 0.75 },
+	&"birch": { "leaf": &"none", "height": 7.0, "trunk": 0.14, "crown": 1.9, "crown_from": 2.6, "tint": Color(0.24, 0.20, 0.18), "bark": Color(0.90, 0.90, 0.87) },
+	&"bare_bush": { "leaf": &"none", "height": 1.0, "trunk": 0.0, "crown": 0.8, "crown_from": 0.0, "tint": Color(0.30, 0.24, 0.19) },
 }
 
 static var _made: Dictionary = {}
@@ -46,6 +52,8 @@ static func _build(kind: StringName, variant: int) -> ArrayMesh:
 	var crown: float = shape["crown"] * rng.randf_range(0.9, 1.1)
 	var from: float = shape["crown_from"]
 	var mesh := ArrayMesh.new()
+	if shape["leaf"] == &"none":
+		return _build_bare(shape, rng, height, crown)
 	if float(shape["trunk"]) > 0.0:
 		var trunk := SurfaceTool.new()
 		trunk.begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -64,8 +72,67 @@ static func _build(kind: StringName, variant: int) -> ArrayMesh:
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, core.commit_to_arrays())
 	mesh.surface_set_material(mesh.get_surface_count() - 1, _core_material(shape["tint"]))
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, leaves.commit_to_arrays())
-	mesh.surface_set_material(mesh.get_surface_count() - 1, _leaf_material(shape["leaf"], shape["tint"]))
+	mesh.surface_set_material(mesh.get_surface_count() - 1, _snow_leaf_material(shape["leaf"], shape["tint"], shape["snow"])
+			if shape.has("snow") else _leaf_material(shape["leaf"], shape["tint"]))
 	return mesh
+
+
+## A tree with no leaves: a trunk in a flat colour, if it has one, and bare branches going up and
+## out from it (from the ground, for a bush).
+static func _build_bare(shape: Dictionary, rng: RandomNumberGenerator, height: float, crown: float) -> ArrayMesh:
+	var mesh := ArrayMesh.new()
+	var from: float = shape["crown_from"]
+	if float(shape["trunk"]) > 0.0:
+		var trunk := SurfaceTool.new()
+		trunk.begin(Mesh.PRIMITIVE_TRIANGLES)
+		_trunk(trunk, float(shape["trunk"]), height)
+		trunk.generate_normals()
+		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, trunk.commit_to_arrays())
+		mesh.surface_set_material(0, _flat_material(shape["bark"]))
+	var twigs := SurfaceTool.new()
+	twigs.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var count := 9 if float(shape["trunk"]) > 0.0 else 7
+	for i in count:
+		var a := TAU * (i + rng.randf_range(-0.3, 0.3)) / count
+		var out := Vector3(cos(a), 0, sin(a))
+		var start := Vector3(0, lerpf(from, height * 0.9, float(i) / count), 0)
+		var reach := crown * rng.randf_range(0.6, 1.0) * (1.0 - 0.5 * float(i) / count)
+		var end := start + out * reach + Vector3.UP * reach * rng.randf_range(0.7, 1.2)
+		_stick(twigs, start, end, maxf(float(shape["trunk"]) * 0.32, 0.025))
+		# A fork half way along.
+		var side := out.rotated(Vector3.UP, rng.randf_range(0.6, 1.1) * (1.0 if i % 2 == 0 else -1.0))
+		_stick(twigs, start.lerp(end, 0.5), start.lerp(end, 0.5) + side * reach * 0.5 + Vector3.UP * reach * 0.45, 0.02)
+	twigs.generate_normals()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, twigs.commit_to_arrays())
+	mesh.surface_set_material(mesh.get_surface_count() - 1, _flat_material(shape["tint"]))
+	return mesh
+
+
+## A thin four-sided stick from one point to another, tapering.
+static func _stick(st: SurfaceTool, from: Vector3, to: Vector3, radius: float) -> void:
+	var along := (to - from).normalized()
+	var u := along.cross(Vector3.UP if absf(along.y) < 0.95 else Vector3.RIGHT).normalized()
+	var v := along.cross(u)
+	for i in 4:
+		var a0: Vector3 = [u, v, -u, -v][i]
+		var a1: Vector3 = [u, v, -u, -v][(i + 1) % 4]
+		var b0 := from + a0 * radius
+		var b1 := from + a1 * radius
+		var t0 := to + a0 * radius * 0.4
+		var t1 := to + a1 * radius * 0.4
+		for p in [b0, t1, b1, b0, t0, t1]:
+			st.add_vertex(p)
+
+
+static func _flat_material(colour: Color) -> StandardMaterial3D:
+	var key := [&"flat", colour]
+	if not _foliage.has(key):
+		var m := StandardMaterial3D.new()
+		m.albedo_color = colour
+		m.roughness = 1.0
+		m.cull_mode = BaseMaterial3D.CULL_DISABLED
+		_foliage[key] = m
+	return _foliage[key]
 
 
 ## A tapered eight-sided post from the ground up.
@@ -177,6 +244,20 @@ static func _leaf_material(leaf: StringName, tint: Color) -> StandardMaterial3D:
 		m.cull_mode = BaseMaterial3D.CULL_DISABLED
 		m.roughness = 1.0
 		m.metallic_specular = 0.05
+		_foliage[key] = m
+	return _foliage[key]
+
+
+## The same sprites with snow lying on them.
+static func _snow_leaf_material(leaf: StringName, tint: Color, snow: float) -> ShaderMaterial:
+	var key := [leaf, tint, snow]
+	if not _foliage.has(key):
+		var m := ShaderMaterial.new()
+		m.shader = SNOW_LEAF
+		m.set_shader_parameter("leaf", LEAVES[leaf])
+		m.set_shader_parameter("tint", tint)
+		m.set_shader_parameter("snow_tint", Terrain.SNOW)
+		m.set_shader_parameter("snow", snow)
 		_foliage[key] = m
 	return _foliage[key]
 

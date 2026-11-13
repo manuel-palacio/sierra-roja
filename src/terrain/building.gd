@@ -13,6 +13,8 @@ const GLASS_COLOR := Color(0.10, 0.12, 0.16)
 const SMOKE_COLOR := Color(0.75, 0.75, 0.78, 0.35)
 const SHUTTER_COLOR := Color(0.36, 0.46, 0.34)
 const RIDGE_COLOR := Color(0.78, 0.62, 0.55)
+const LOG_COLOR := Color(0.50, 0.40, 0.30)
+const LOG_ROOF_COLOR := Color(0.55, 0.50, 0.46)
 const WALL_THICKNESS := 0.45
 const DOOR_WIDTH := 2.6
 const EAVES := 0.35
@@ -37,6 +39,11 @@ const SIDES: Array[Vector3] = [Vector3.BACK, Vector3.RIGHT, Vector3.FORWARD, Vec
 @export var enterable := false
 ## Two floors' worth of wall, with a second row of windows. The upper floor is not gone up to.
 @export var storeys := 1
+## What it is built of: &"plaster" (whitewash under tiles) or &"log" (a Russian log house: dark
+## timber walls, no shutters). A look only.
+@export var style := &"plaster"
+## Winter: snow on the roof. A look only.
+@export var snowy := false
 
 ## The roof and whatever else is taken off the picture while a specialist is inside.
 var _lid: Array[Node3D] = []
@@ -66,7 +73,7 @@ func build(ground: Callable) -> void:
 		_build_hollow()
 	else:
 		_add_box(Vector3(0, (size.y - SINK) / 2.0, 0), Vector3(size.x, size.y + SINK, size.z),
-				Surfaces.material(&"plaster", WALL_COLOR))
+				_wall_material())
 	if roof_height > 0.0:
 		var roof := _roof()
 		add_child(roof)
@@ -159,7 +166,7 @@ func _build_hollow() -> void:
 	var hx := size.x / 2.0
 	var hz := size.z / 2.0
 	var t := WALL_THICKNESS
-	var plaster := Surfaces.material(&"plaster", WALL_COLOR)
+	var plaster := _wall_material()
 	var door := (size.x - ENTRANCE_WIDTH) / 2.0
 	for wall in [
 		[Vector3(0, 0, -hz + t / 2.0), Vector3(size.x, 0, t)],
@@ -290,6 +297,23 @@ func _build_ruin() -> void:
 
 ## What makes it a house and not a box: a door and a window in the south wall (+z), a window in
 ## each end, a stone footing, and a chimney with a thread of smoke. All display only.
+func _wall_material() -> StandardMaterial3D:
+	if style == &"log":
+		return Surfaces.material(&"planks", LOG_COLOR)
+	return Surfaces.material(&"plaster", WALL_COLOR)
+
+
+func _roof_material() -> StandardMaterial3D:
+	# Tiles are orange through any tint, so snow on a roof is its own material.
+	if snowy:
+		return Surfaces.snow()
+	return Surfaces.material(&"roof", LOG_ROOF_COLOR if style == &"log" else ROOF_COLOR)
+
+
+func _ridge_material() -> StandardMaterial3D:
+	return Surfaces.snow() if snowy else Surfaces.material(&"roof", RIDGE_COLOR)
+
+
 func _add_details() -> void:
 	var hx := size.x / 2.0
 	var hz := size.z / 2.0
@@ -316,7 +340,7 @@ func _add_details() -> void:
 		# A shutter folded back on either side of it.
 		var along := Vector3(1, 0, 0) if pane.x > 0.1 else Vector3(0, 0, 1)
 		var leaf := Vector3(0.36, 0.86, 0.05) if pane.x > 0.1 else Vector3(0.05, 0.86, 0.36)
-		for side in [-1.0, 1.0]:
+		for side in ([-1.0, 1.0] if style != &"log" else []):
 			_add_trim(at + along * side * 0.6, leaf, Surfaces.material(&"planks", SHUTTER_COLOR))
 		# A sill under it.
 		var ledge := Vector3(pane.x + 0.2 if pane.x > 0.1 else 0.16, 0.08, pane.z + 0.2 if pane.z > 0.1 else 0.16)
@@ -327,11 +351,11 @@ func _add_details() -> void:
 		return
 	# A row of capping tiles along the ridge, and a lean-to against the north wall with a wood pile.
 	_lid.append(_trim(Vector3(0, size.y + roof_height + 0.03, 0), Vector3(size.x + EAVES * 2.0 + 0.1, 0.12, 0.26),
-			Surfaces.material(&"roof", RIDGE_COLOR)))
+			_ridge_material()))
 	var lean := Vector3(size.x * 0.5, size.y * 0.62, 1.5)
 	_add_trim(Vector3(-size.x * 0.2, lean.y / 2.0, -hz - lean.z / 2.0), lean, Surfaces.material(&"planks", DOOR_COLOR))
 	_add_trim(Vector3(-size.x * 0.2, lean.y + 0.08, -hz - lean.z / 2.0 - 0.1), Vector3(lean.x + 0.3, 0.12, lean.z + 0.4),
-			Surfaces.material(&"roof", ROOF_COLOR))
+			_roof_material())
 	for i in 3:
 		_add_trim(Vector3(size.x * 0.28, 0.14 + i * 0.26, -hz - 0.45), Vector3(1.5 - i * 0.3, 0.26, 0.7),
 				Surfaces.material(&"bark", Color(0.9, 0.82, 0.72)))
@@ -434,7 +458,7 @@ func _roof() -> MeshInstance3D:
 			st.add_vertex(v)
 	st.generate_normals()
 	var mesh := st.commit()
-	var material := Surfaces.material(&"roof", ROOF_COLOR).duplicate() as StandardMaterial3D
+	var material := _roof_material().duplicate() as StandardMaterial3D
 	material.cull_mode = BaseMaterial3D.CULL_DISABLED
 	mesh.surface_set_material(0, material)
 	var instance := MeshInstance3D.new()
