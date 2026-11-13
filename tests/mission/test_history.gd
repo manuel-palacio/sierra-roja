@@ -51,3 +51,10 @@ func test_the_volkhov_is_dated_no_closer_than_its_source() -> void:
 	assert_false(History.before("volkhov").contains("1941"), "the source gives no 1941 date for the Volkhov")
 	assert_string_contains(History.before("volkhov"), "1942")
 	assert_eq(Missions.LIST[Missions.index_of("volkhov")]["date"], "Early 1942")
+
+
+func test_the_ebro_note_says_it_is_said() -> void:
+	assert_string_contains(History.before("ebro"), "It is said")
+	assert_string_contains(History.before("ebro"), "24 to 25 July 1938")
+	assert_string_contains(History.after("ebro"), "16 November")
+	assert_gt(History.sources("ebro").size(), 0)

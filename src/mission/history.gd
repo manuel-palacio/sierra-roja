@@ -21,6 +21,11 @@ const NOTES := {
 		"after": "The raiders took the fort and led the prisoners towards the Republican lines in two columns, with an artillery barrage to cover them. Twenty-five chose to stay behind.",
 		"sources": ["https://vscw.ca/en/node/345"],
 	},
+	"ebro": {
+		"before": "The night of 24 to 25 July 1938, with no moon. The Army of the Ebro is about to cross the river in boats. It is said that men went over ahead of them, killed the sentries on the far bank and made lines fast for the boats. Here the two of you are those men.",
+		"after": "The first wave crossed that night in ninety boats, ten men to a boat. The battle that followed was the longest and largest of the war, and ended on 16 November.",
+		"sources": ["https://en.wikipedia.org/wiki/Battle_of_the_Ebro"],
+	},
 	"volkhov": {
 		"before": "Early 1942. The División Azul, Spanish volunteers serving in the German army as its 250th Infantry Division, is on the Volkhov front, the first it was sent to. Spanish Republicans in exile in the Soviet Union served in Soviet guerrilla units in this war, and some died fighting near Leningrad. This raid is invented: the two of you in Soviet service now, and Spaniards on the other side of the snow.",
 		"after": "The División Azul stayed on the Volkhov until August 1942, when it was moved north to the siege lines round Leningrad.",

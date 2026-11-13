@@ -54,3 +54,12 @@ func test_a_win_stored_under_the_old_id_counts() -> void:
 	assert_true(Campaign.is_open(2))
 	# And it is kept under the name the mission has now.
 	assert_string_contains(Campaign.stored_text(), "teruel")
+
+
+func test_a_mission_added_in_the_middle_shuts_what_came_after_it_but_keeps_the_wins() -> void:
+	Campaign.load_from("[\"guadarrama\", \"teruel\", \"carchuna\", \"volkhov\"]")
+	assert_true(Campaign.is_won("volkhov"), "the win is kept")
+	assert_true(Campaign.is_open(Missions.index_of("ebro")))
+	assert_false(Campaign.is_open(Missions.index_of("volkhov")), "but the Ebro comes first now")
+	Campaign.mark_won("ebro")
+	assert_true(Campaign.is_open(Missions.index_of("volkhov")))

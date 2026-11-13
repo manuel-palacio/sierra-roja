@@ -40,6 +40,7 @@ OBJECTIVE_FIELDS = {
     "destroy": ("hud", "marker", "done"),
     "rescue": ("building", "prisoner", "ground", "hud", "escort", "marker"),
     "steal": ("item", "ground", "label", "hud", "carry", "marker", "prompt", "done"),
+    "silence": ("sentries", "seconds", "hud", "marker", "done"),
 }
 
 
@@ -62,6 +63,11 @@ def mission(**tables):
         missing = [field for field in OBJECTIVE_FIELDS[kind] if field not in objective]
         if missing:
             raise ValueError("a %s objective needs %s" % (kind, ", ".join(missing)))
+        if kind == "silence":
+            names = [name for name, _ in getattr(m, "GUARDS", [])]
+            for sentry in objective["sentries"]:
+                if sentry not in names:
+                    raise ValueError("the sentry %r is not one of the GUARDS" % sentry)
     return m
 
 
@@ -144,6 +150,14 @@ def objective_nodes(objective, m):
             '[node name="Steal" type="Node" parent="Objectives"]', 'script = ExtResource("19_steal")',
             f'hud_text = "{objective["hud"]}"', f'marker_name = "{objective["marker"]}"', f'done_text = "{objective["done"]}"',
             f'carry_text = "{objective["carry"]}"', 'item = NodePath("Item")', ""]
+    if objective["kind"] == "silence":
+        # Sentries are named as the GUARDS table names them; in the scene a guard is Guard<n>.
+        names = [name for name, _ in m.GUARDS]
+        nodes = ", ".join('"Guard%d"' % (names.index(sentry) + 1) for sentry in objective["sentries"])
+        return ['[node name="Silence" type="Node" parent="Objectives"]', 'script = ExtResource("22_silence")',
+                f'hud_text = "{objective["hud"]}"', f'marker_name = "{objective["marker"]}"',
+                f'done_text = "{objective["done"]}"', f"sentries = PackedStringArray({nodes})",
+                f'seconds = {float(objective["seconds"])}', ""]
     raise ValueError("unknown objective kind: %s" % objective["kind"])
 
 
@@ -181,6 +195,8 @@ def write_scene(m):
          '[ext_resource type="Script" path="res://src/mission/objectives/destroy_objective.gd" id="15_destroy"]']
     if m.CROSSING:
         o.append('[ext_resource type="Script" path="res://src/terrain/boat_crossing.gd" id="21_crossing"]')
+    if any(objective["kind"] == "silence" for objective in objectives(m)):
+        o.append('[ext_resource type="Script" path="res://src/mission/objectives/silence_objective.gd" id="22_silence"]')
     if any(objective["kind"] == "steal" for objective in objectives(m)):
         o += ['[ext_resource type="Script" path="res://src/mission/objectives/steal_objective.gd" id="19_steal"]',
               '[ext_resource type="Script" path="res://src/mission/carryable.gd" id="20_item"]']

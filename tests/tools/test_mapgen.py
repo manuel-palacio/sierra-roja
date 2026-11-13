@@ -46,6 +46,23 @@ class Refusals(unittest.TestCase):
         mapgen.mission(OBJECTIVES=[{"kind": "destroy", "hud": "h", "marker": "m", "done": "d"}])
 
 
+class Silence(unittest.TestCase):
+    GUARDS = [("PostWest", [(0, 0), (1, 0)]), ("Corporal", [(5, 5), (9, 5)]), ("PostEast", [(20, 0), (21, 0)])]
+
+    def test_sentries_are_written_by_their_guard_nodes(self):
+        m = mapgen.mission(GUARDS=self.GUARDS, OBJECTIVES=[
+            {"kind": "silence", "sentries": ["PostWest", "PostEast"], "seconds": 300, "hud": "h", "marker": "m", "done": "d"}])
+        lines = mapgen.objective_nodes(m.OBJECTIVES[0], m)
+        self.assertIn('sentries = PackedStringArray("Guard1", "Guard3")', lines)
+        self.assertIn("seconds = 300.0", lines)
+
+    def test_a_sentry_who_is_no_guard_is_refused(self):
+        with self.assertRaises(ValueError) as caught:
+            mapgen.mission(GUARDS=self.GUARDS, OBJECTIVES=[
+                {"kind": "silence", "sentries": ["PostNorth"], "seconds": 300, "hud": "h", "marker": "m", "done": "d"}])
+        self.assertIn("PostNorth", str(caught.exception))
+
+
 class Water(unittest.TestCase):
     def _z(self, lines):
         placed = [line for line in lines if line.startswith("transform")][0]

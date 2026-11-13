@@ -1,0 +1,75 @@
+[gd_resource type="Resource" script_class="TerrainSpec" format=3]
+
+[ext_resource type="Script" path="res://src/terrain/terrain_spec.gd" id="1_spec"]
+[ext_resource type="Script" path="res://src/terrain/terrain_feature.gd" id="2_feature"]
+
+[sub_resource type="Resource" id="f0"]
+script = ExtResource("2_feature")
+kind = 0
+mode = 0
+points = PackedVector2Array(-36, 34)
+width = 7.0
+falloff = 14.0
+height = 4.0
+surface = -1
+
+[sub_resource type="Resource" id="f1"]
+script = ExtResource("2_feature")
+kind = 0
+mode = 0
+points = PackedVector2Array(38, 30)
+width = 6.0
+falloff = 13.0
+height = 3.5
+surface = -1
+
+[sub_resource type="Resource" id="f2"]
+script = ExtResource("2_feature")
+kind = 0
+mode = 1
+points = PackedVector2Array(2, 14)
+width = 13.0
+falloff = 5.0
+height = 2.0
+surface = 1
+
+[sub_resource type="Resource" id="f3"]
+script = ExtResource("2_feature")
+kind = 1
+mode = 1
+points = PackedVector2Array(-110, -2, -30, -4, 38, -4, 110, -2)
+width = 1.8
+falloff = 2.5
+height = 2.0
+surface = 2
+
+[sub_resource type="Resource" id="f4"]
+script = ExtResource("2_feature")
+kind = 1
+mode = 1
+points = PackedVector2Array(-110, -48, 110, -48)
+width = 11.0
+falloff = 5.0
+height = -3.0
+surface = 4
+
+[sub_resource type="Resource" id="f5"]
+script = ExtResource("2_feature")
+kind = 1
+mode = 1
+points = PackedVector2Array(-110, -27.5, 110, -27.5)
+width = 2.2
+falloff = 3.0
+height = 1.4
+surface = -1
+
+[resource]
+script = ExtResource("1_spec")
+bounds = Rect2(-55, -45, 110, 90)
+skirt = 45.0
+cell = 1.0
+base_height = 2.0
+seed = 25
+noise_amplitude = 0.45
+noise_period = 28.0
+features = Array[ExtResource("2_feature")]([SubResource("f0"), SubResource("f1"), SubResource("f2"), SubResource("f3"), SubResource("f4"), SubResource("f5")])
