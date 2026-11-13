@@ -119,8 +119,10 @@ func open_briefing() -> Briefing:
 	briefing.mission_chosen.connect(go_to_mission)
 	player_input.orders_enabled = false
 	camera.edge_scroll_enabled = false
+	rules.clock_running = false
 	briefing.started.connect(func() -> void:
 		briefing = null
+		rules.clock_running = true
 		camera.edge_scroll_enabled = true
 		# Losing the window's focus pauses the game; Start means start.
 		player_input.set_paused(false)

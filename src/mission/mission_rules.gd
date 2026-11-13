@@ -28,6 +28,8 @@ const OBJECTIVE_FAILED_FALLBACK := "The objective can no longer be met"
 const REACH_TOLERANCE := 3.0
 
 var result := Result.RUNNING
+## False while nothing should be timed (the briefing is up): objectives with a clock obey it.
+var clock_running := true
 
 var _mission: Mission
 var _specialists: Array[Specialist] = []

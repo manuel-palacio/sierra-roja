@@ -221,3 +221,16 @@ func test_it_shows_the_missions_own_title_and_lines() -> void:
 	assert_string_contains(text, "Somewhere else")
 	assert_string_contains(text, "Do the one thing.")
 	assert_false(text.contains("railway bridge"))
+
+
+func test_the_clock_waits_for_the_briefing() -> void:
+	var main: Node = load("res://scenes/main.tscn").instantiate()
+	add_child_autofree(main)
+	while main.hud == null:
+		await get_tree().process_frame
+	main.mission.get_node("Guards").process_mode = Node.PROCESS_MODE_DISABLED
+	assert_true(main.rules.clock_running, "no briefing up: the clock may run")
+	var b: Briefing = main.open_briefing()
+	assert_false(main.rules.clock_running, "nothing is timed while the player reads")
+	b.begin()
+	assert_true(main.rules.clock_running)
