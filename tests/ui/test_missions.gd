@@ -23,7 +23,9 @@ func _game() -> Node:
 
 
 func test_the_list_names_missions_that_exist() -> void:
-	assert_eq(Missions.LIST.size(), 3, "the bridge, the powder store, Carchuna")
+	assert_eq(Missions.LIST.size(), 4)
+	assert_eq(Missions.LIST.map(func(e: Dictionary) -> String: return e["id"]), ["guadarrama", "teruel", "carchuna", "volkhov"],
+			"in the order of their dates")
 	var ids := {}
 	for entry: Dictionary in Missions.LIST:
 		assert_true(ResourceLoader.exists(entry["path"]), entry["path"])

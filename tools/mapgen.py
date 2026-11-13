@@ -103,6 +103,15 @@ def objective_nodes(objective, m):
             '[node name="Rescue" type="Node" parent="Objectives"]', 'script = ExtResource("16_rescue")',
             f'hud_text = "{objective["hud"]}"', f'marker_name = "{objective["marker"]}"',
             f'escort_text = "{objective["escort"]}"', 'prisoner = NodePath("Prisoner")', 'door = NodePath("CellDoor")', ""]
+    if objective["kind"] == "steal":
+        # The thing to take lies at table height where the tables say; reach is measured on the ground.
+        x, z = objective["item"]
+        return [
+            '[node name="Item" type="Node3D" parent="."]', at(x, objective["ground"] + 0.8, z), 'script = ExtResource("20_item")',
+            f'label = "{objective["label"]}"', f'prompt = "{objective["prompt"]}"', "",
+            '[node name="Steal" type="Node" parent="Objectives"]', 'script = ExtResource("19_steal")',
+            f'hud_text = "{objective["hud"]}"', f'marker_name = "{objective["marker"]}"', f'done_text = "{objective["done"]}"',
+            f'carry_text = "{objective["carry"]}"', 'item = NodePath("Item")', ""]
     raise ValueError("unknown objective kind: %s" % objective["kind"])
 
 
@@ -129,6 +138,9 @@ def write_scene(m):
          '[ext_resource type="Script" path="res://src/terrain/cart.gd" id="13_cart"]',
          '[ext_resource type="Script" path="res://src/terrain/settlement_prop.gd" id="14_settled"]',
          '[ext_resource type="Script" path="res://src/mission/objectives/destroy_objective.gd" id="15_destroy"]']
+    if any(objective["kind"] == "steal" for objective in objectives(m)):
+        o += ['[ext_resource type="Script" path="res://src/mission/objectives/steal_objective.gd" id="19_steal"]',
+              '[ext_resource type="Script" path="res://src/mission/carryable.gd" id="20_item"]']
     if any(objective["kind"] == "rescue" for objective in objectives(m)):
         o += ['[ext_resource type="Script" path="res://src/mission/objectives/rescue_objective.gd" id="16_rescue"]',
               '[ext_resource type="Script" path="res://src/terrain/cell_door.gd" id="17_door"]',

@@ -38,3 +38,10 @@ func test_teruel_has_its_notes() -> void:
 	assert_string_contains(History.before("teruel"), "invented")
 	assert_string_contains(History.after("teruel"), "February 1938")
 	assert_gt(History.sources("teruel").size(), 0)
+
+
+func test_the_volkhov_note_owns_up_to_the_raid_being_invented() -> void:
+	assert_string_contains(History.before("volkhov"), "invented")
+	assert_false(History.before("volkhov").contains("fought on the Volkhov"), "no claim that exiles fought there")
+	assert_string_contains(History.after("volkhov"), "August 1942")
+	assert_eq(History.sources("volkhov").size(), 2)

@@ -12,6 +12,7 @@ const KINDS := {
 	&"haystack": Vector3(2.6, 2.2, 2.6),
 	&"washing_line": Vector3.ZERO,
 	&"launch": Vector3(2.0, 1.0, 6.4),
+	&"field_kitchen": Vector3(1.5, 1.5, 2.6),
 }
 const CANVAS := Color(0.44, 0.47, 0.34)
 const PAINT := Color(0.30, 0.36, 0.28)
@@ -21,7 +22,7 @@ const HAY := Color(0.78, 0.66, 0.32)
 ## Winter: snow on top of it. A look only.
 @export var snowy := false
 ## The kinds with a flat enough top for snow to lie on as a slab.
-const SNOW_TOPPED := [&"truck", &"well", &"launch"]
+const SNOW_TOPPED := [&"truck", &"well", &"launch", &"field_kitchen"]
 
 
 ## ground.call(x, z) gives the ground height. Mission calls this before the navmesh bake.
@@ -53,6 +54,8 @@ func stand(ground: Callable) -> void:
 			_washing_line()
 		&"launch":
 			_launch()
+		&"field_kitchen":
+			_field_kitchen()
 
 
 func _truck() -> void:
@@ -122,6 +125,27 @@ func _haystack() -> void:
 	cap.rings = 1
 	cap.material = _flat(HAY.darkened(0.12))
 	_mesh(cap, Vector3(0, 1.8, 0))
+
+
+## An army field kitchen: a boiler on two wheels with its chimney, and the shaft it is drawn by.
+func _field_kitchen() -> void:
+	var iron := _flat(Color(0.20, 0.22, 0.21))
+	_box(Vector3(1.2, 0.85, 1.5), Vector3(0, 0.95, -0.2), iron)
+	_box(Vector3(1.3, 0.08, 1.6), Vector3(0, 1.40, -0.2), _flat(Color(0.26, 0.28, 0.27)))
+	_box(Vector3(0.18, 1.1, 0.18), Vector3(0.35, 1.95, -0.7), iron)
+	_box(Vector3(0.10, 0.10, 1.5), Vector3(0, 0.75, 1.2), Surfaces.material(&"planks", Color(0.5, 0.42, 0.34)))
+	for x in [-0.72, 0.72]:
+		var wheel := CylinderMesh.new()
+		wheel.top_radius = 0.5
+		wheel.bottom_radius = 0.5
+		wheel.height = 0.1
+		wheel.radial_segments = 14
+		wheel.rings = 1
+		wheel.material = Surfaces.material(&"planks", Color(0.4, 0.34, 0.28))
+		var instance := MeshInstance3D.new()
+		instance.mesh = wheel
+		instance.transform = Transform3D(Basis(Vector3.FORWARD, PI / 2.0), Vector3(x, 0.5, -0.2))
+		add_child(instance)
 
 
 ## An open motor launch drawn up on a beach: a long hull narrowing to the bow, thwarts, and the

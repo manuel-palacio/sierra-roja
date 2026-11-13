@@ -28,7 +28,7 @@ const MIST := Color(0.56, 0.60, 0.64)
 ## Lying snow, and what snow-covered land dissolves into past the edge of the map.
 const SNOW := Color(0.90, 0.93, 0.97)
 const SNOW_MIST := Color(0.74, 0.78, 0.84)
-const ICE := Color(0.70, 0.80, 0.88)
+const ICE := Color(0.56, 0.69, 0.82)
 ## Grass gives way to dry earth where this noise is high.
 const EARTH_PERIOD := 17.0
 const EARTH_FROM := 0.12
