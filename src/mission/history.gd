@@ -22,7 +22,7 @@ const NOTES := {
 		"sources": ["https://vscw.ca/en/node/345"],
 	},
 	"volkhov": {
-		"before": "Winter 1941–42. The División Azul, Spanish volunteers serving in the German army as its 250th Infantry Division, holds a stretch of the Volkhov front. Spanish Republicans in exile in the Soviet Union served in Soviet guerrilla units in this war, and some died fighting near Leningrad. This raid is invented: the two of you in Soviet service now, and Spaniards on the other side of the snow.",
+		"before": "Early 1942. The División Azul, Spanish volunteers serving in the German army as its 250th Infantry Division, is on the Volkhov front, the first it was sent to. Spanish Republicans in exile in the Soviet Union served in Soviet guerrilla units in this war, and some died fighting near Leningrad. This raid is invented: the two of you in Soviet service now, and Spaniards on the other side of the snow.",
 		"after": "The División Azul stayed on the Volkhov until August 1942, when it was moved north to the siege lines round Leningrad.",
 		"sources": ["https://en.wikipedia.org/wiki/Blue_Division",
 				"https://www.ninosderusia.org/wp-content/uploads/2026/02/Relacion-Espanoles-Caidos-en-Ejercito-Sovietico-PFM.pdf"],

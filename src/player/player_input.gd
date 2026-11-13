@@ -18,6 +18,10 @@ signal used(text: String)
 ## A move order was given: where on the ground, and whether to run. Display hooks listen.
 signal move_ordered(pos: Vector3, run: bool)
 
+## Specialist -> the thing they have just put down, until they are ordered to move or lift a
+## body: F then lifts a body in reach before it takes that thing up again.
+var _just_put_down: Dictionary = {}
+
 const DOUBLE_CLICK_SEC := 0.3
 const DOUBLE_CLICK_SLOP := 12.0
 const SAVE_REFUSED_TEXT := "Can't save after the mission has ended"
@@ -75,6 +79,7 @@ var _last_click_pos := Vector2.ZERO
 
 func _init() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	move_ordered.connect(func(_pos: Vector3, _run: bool) -> void: _just_put_down.clear())
 
 
 func setup(cam: IsoCamera, specialists: Array[Specialist]) -> void:
@@ -268,6 +273,9 @@ func _use_what_is_near() -> bool:
 	var thing: Interactable = null
 	for unit in selected_units():
 		var near := Interactable.nearest(get_tree(), unit)
+		if near != null and near == _just_put_down.get(unit) and _body_in_reach(unit):
+			# Put down a moment ago to free the hands for the body lying here: the body is next.
+			continue
 		if near != null and (thing == null or near.global_position.distance_to(unit.global_position)
 				< thing.global_position.distance_to(user.global_position)):
 			user = unit
@@ -286,7 +294,19 @@ func _put_down() -> bool:
 		return false
 	for unit in selected_units():
 		if unit.holding != null:
+			_just_put_down[unit] = unit.holding
 			unit.holding.drop()
+			return true
+	return false
+
+
+## Whether this specialist could lift a body from where they stand.
+func _body_in_reach(unit: Specialist) -> bool:
+	if not unit.has_ability("carry"):
+		return false
+	var carry: Ability = unit.abilities["carry"]
+	for node in get_tree().get_nodes_in_group(Body.GROUP):
+		if carry.can_use(unit, node):
 			return true
 	return false
 
@@ -349,6 +369,7 @@ func _press_carry(ability: Ability) -> void:
 			nearest = body
 	if nearest != null and ability.can_use(selected, nearest):
 		ability.use(selected, nearest)
+		_just_put_down.erase(selected)
 	else:
 		_refuse("no body in reach")
 

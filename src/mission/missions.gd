@@ -9,7 +9,7 @@ const LIST: Array[Dictionary] = [
 	{ "id": "guadarrama", "name": "The bridge", "place": "Sierra de Guadarrama", "date": "May 1937", "path": "res://scenes/missions/bridge.tscn" },
 	{ "id": "teruel", "name": "The depot", "place": "Teruel", "date": "December 1937", "path": "res://scenes/missions/powder_store.tscn" },
 	{ "id": "carchuna", "name": "Fort Carchuna", "place": "Fort Carchuna, Granada", "date": "23 May 1938", "path": "res://scenes/missions/carchuna.tscn" },
-	{ "id": "volkhov", "name": "The orders", "place": "Volkhov front", "date": "Winter 1941–42", "path": "res://scenes/missions/volkhov.tscn" },
+	{ "id": "volkhov", "name": "The orders", "place": "Volkhov front", "date": "Early 1942", "path": "res://scenes/missions/volkhov.tscn" },
 ]
 ## Ids a mission used to go by, so that old addresses still open it.
 const ALIASES := { "bridge": "guadarrama", "bridge_night": "guadarrama", "powder_store": "teruel",

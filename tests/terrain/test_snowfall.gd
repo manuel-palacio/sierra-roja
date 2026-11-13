@@ -60,3 +60,21 @@ func test_a_mission_with_snowfall_has_one_following_the_camera() -> void:
 	var main := await _game(true)
 	var found := main.find_children("*", "Snowfall", true, false)
 	assert_eq(found.size(), 1)
+
+
+func test_it_covers_the_view_however_far_the_camera_is_out() -> void:
+	var snow := _snow()
+	var camera := IsoCamera.new()
+	add_child_autofree(camera)
+	snow.follow(camera)
+	for zoom in [IsoCamera.ZOOM_START, IsoCamera.ZOOM_MAX]:
+		camera.size = zoom
+		await wait_process_frames(2)
+		# The view is `size` metres high and wider than that; turned any way, it fits in the box.
+		assert_gte(snow.emission_box_extents.x, zoom * 1.1, "at zoom %s" % zoom)
+		assert_gte(snow.emission_box_extents.z, zoom * 1.1, "at zoom %s" % zoom)
+	assert_lte(snow.amount, Snowfall.MAX_FLAKES, "and still no more flakes than the cap")
+
+
+func test_it_goes_on_falling_while_the_game_is_paused() -> void:
+	assert_eq(_snow().process_mode, Node.PROCESS_MODE_ALWAYS)

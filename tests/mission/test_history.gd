@@ -45,3 +45,9 @@ func test_the_volkhov_note_owns_up_to_the_raid_being_invented() -> void:
 	assert_false(History.before("volkhov").contains("fought on the Volkhov"), "no claim that exiles fought there")
 	assert_string_contains(History.after("volkhov"), "August 1942")
 	assert_eq(History.sources("volkhov").size(), 2)
+
+
+func test_the_volkhov_is_dated_no_closer_than_its_source() -> void:
+	assert_false(History.before("volkhov").contains("1941"), "the source gives no 1941 date for the Volkhov")
+	assert_string_contains(History.before("volkhov"), "1942")
+	assert_eq(Missions.LIST[Missions.index_of("volkhov")]["date"], "Early 1942")

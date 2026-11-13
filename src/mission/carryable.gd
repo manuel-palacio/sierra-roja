@@ -9,6 +9,8 @@ signal taken(by: Specialist)
 ## It has just been put down, or dropped, here.
 signal put_down(at: Vector3)
 
+const BACK_BONE := "DEF-spine.003"
+
 ## What the player is told it is.
 @export var label := "Orders"
 
@@ -17,6 +19,8 @@ var carrier: Specialist
 
 var _look: MeshInstance3D
 var _on_back: MeshInstance3D
+## What holds it to the carrier's back.
+var _strap: BoneAttachment3D
 
 
 func _ready() -> void:
@@ -52,8 +56,7 @@ func give_to(user: Specialist) -> void:
 	_on_back = MeshInstance3D.new()
 	_on_back.name = "Held"
 	_on_back.mesh = _bundle()
-	_on_back.position = Vector3(0.0, 1.05, -0.24)
-	user.add_child(_on_back)
+	_hang_on(user)
 
 
 ## Lies down at the carrier's feet and can be taken up again.
@@ -75,15 +78,42 @@ func lie_at(at: Vector3) -> void:
 	visible = true
 
 
+## Hangs the bundle on the carrier's back: on the bone there when they have a skeleton, so it
+## lies down with them when they crawl; else at back height.
+func _hang_on(user: Specialist) -> void:
+	var model := user.get_node_or_null("Model") as Node3D
+	var skeletons: Array[Node] = []
+	if model != null:
+		skeletons = model.find_children("*", "Skeleton3D", true, false)
+	var bone := (skeletons[0] as Skeleton3D).find_bone(BACK_BONE) if not skeletons.is_empty() else -1
+	if bone < 0:
+		_on_back.position = Vector3(0.0, 1.05, -0.24)
+		user.add_child(_on_back)
+		return
+	var skeleton := skeletons[0] as Skeleton3D
+	_strap = BoneAttachment3D.new()
+	_strap.bone_name = BACK_BONE
+	skeleton.add_child(_strap)
+	# Just behind the bone, in the bone's own space at rest: -z is the model's back.
+	var rest := skeleton.get_bone_global_rest(bone)
+	_on_back.transform = rest.affine_inverse() * Transform3D(Basis.IDENTITY, rest.origin + Vector3(0, 0.0, -0.19))
+	_strap.add_child(_on_back)
+
+
 func _leave(user: Specialist) -> void:
 	if is_instance_valid(user):
 		if user.holding == self:
 			user.holding = null
 		if user.died.is_connected(_on_carrier_died):
 			user.died.disconnect(_on_carrier_died)
-	if is_instance_valid(_on_back):
-		_on_back.queue_free()
+	# Off his back at once: a load may hang it on someone else in the same frame.
+	for part: Node in [_on_back, _strap]:
+		if is_instance_valid(part):
+			if part.get_parent() != null:
+				part.get_parent().remove_child(part)
+			part.queue_free()
 	_on_back = null
+	_strap = null
 
 
 func _on_carrier_died(_unit: Unit) -> void:

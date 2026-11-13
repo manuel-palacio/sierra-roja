@@ -4,8 +4,8 @@ A real-time stealth tactics game for the desktop browser, set in the Spanish Civ
 command two fictional Republican guerrillas, the Dynamiter and the Marksman, through missions set at real
 events: blow up a bridge behind the lines as the Segovia offensive opens in May 1937; raid a depot outside
 Teruel in the snow of December 1937; bring a prisoner out of Fort Carchuna on the night of 23 May 1938;
-and, in exile and in Soviet service, steal the División Azul's orders on the Volkhov front in the winter of
-1941–42. Both of them have to get out each time. Low-poly 3D, isometric camera, Godot 4.7 (Compatibility
+and, in exile and in Soviet service, steal the División Azul's orders on the Volkhov front early in
+1942. Both of them have to get out each time. Low-poly 3D, isometric camera, Godot 4.7 (Compatibility
 renderer, single-threaded web export). "Sierra Roja" is a working title.
 
 ## Controls

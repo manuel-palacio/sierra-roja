@@ -7,7 +7,9 @@ extends CPUParticles3D
 const MAX_FLAKES := 260
 ## The box the flakes start in, centred this far above what the camera looks at.
 const HEIGHT := 16.0
-const SPREAD := Vector3(24.0, 1.0, 17.0)
+## The box reaches this many times the camera's view height each way, which covers the view
+## whichever way the camera is turned and however far it is out.
+const REACH := 1.15
 
 var _camera: IsoCamera
 
@@ -18,7 +20,9 @@ func _init() -> void:
 	preprocess = 6.0
 	local_coords = false
 	emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
-	emission_box_extents = SPREAD
+	emission_box_extents = Vector3(IsoCamera.ZOOM_START * REACH, 1.0, IsoCamera.ZOOM_START * REACH)
+	# Looking round while paused, the snow goes on falling over what is looked at.
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	direction = Vector3(0.08, -1.0, 0.04)
 	spread = 6.0
 	gravity = Vector3.ZERO
@@ -50,3 +54,6 @@ func _process(_delta: float) -> void:
 func _ride() -> void:
 	if _camera != null and is_instance_valid(_camera) and is_inside_tree():
 		global_position = _camera.focus + Vector3.UP * HEIGHT
+		var reach := _camera.size * REACH
+		if not is_equal_approx(emission_box_extents.x, reach):
+			emission_box_extents = Vector3(reach, 1.0, reach)

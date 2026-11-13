@@ -3,7 +3,7 @@
 
     python3 tools/make_volkhov_map.py && godot --headless --path . -s tools/map_preview.gd -- /tmp/map.png res://scenes/missions/volkhov.tscn
 
-Winter 1941-42 on the Volkhov front, at dusk, with snow falling. The frozen river runs north to
+Early 1942 on the Volkhov front, at dusk, with snow falling. The frozen river runs north to
 south through the middle. The pair start in the birch wood on the west bank; the División Azul
 holds a hamlet of log houses on the east bank, and its orders lie on the table in the command
 post. Three ways over: straight across the ice in front of the machine-gun post, the causeway at

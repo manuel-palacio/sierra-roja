@@ -152,10 +152,54 @@ func test_with_empty_hands_the_next_f_lifts_the_body() -> void:
 	dyn.global_position = Vector3(-5, 0, 6)
 	var body := _body_at(Vector3(-5, 0, 6.5))
 	_f()
-	# The orders now lie at his feet too, and are nearer than the body: move off them.
-	item.lie_at(Vector3(-20, 0, -20))
+	assert_null(dyn.holding, "precondition: the orders are at his feet, nearer than the body")
+	_f()
+	assert_eq(dyn.carrying, body, "he put them down to have his hands free for this")
+	assert_null(item.carrier)
+
+
+func test_with_no_body_about_the_next_f_takes_the_orders_up_again() -> void:
+	_take()
+	dyn.global_position = Vector3(-5, 0, 6)
+	_f()
+	_f()
+	assert_eq(item.carrier, dyn)
+
+
+func test_after_he_has_moved_f_takes_the_orders_even_beside_a_body() -> void:
+	_take()
+	dyn.global_position = Vector3(-5, 0, 6)
+	var body := _body_at(Vector3(-5, 0, 6.5))
+	_f()
+	input.move_ordered.emit(Vector3(-5, 0, 6.2), false)  # any order to move: he has moved on
+	_f()
+	assert_eq(item.carrier, dyn, "the thing in reach comes first again")
+	assert_null(body.carried_by)
+
+
+func test_the_body_put_down_again_the_orders_can_be_taken() -> void:
+	_take()
+	dyn.global_position = Vector3(-5, 0, 6)
+	var body := _body_at(Vector3(-5, 0, 6.5))
+	_f()
 	_f()
 	assert_eq(dyn.carrying, body)
+	_f()
+	assert_null(dyn.carrying, "the body goes down")
+	_f()
+	assert_eq(item.carrier, dyn)
+
+
+func test_the_orders_ride_on_the_carriers_back_and_go_down_with_him() -> void:
+	_take()
+	var held := dyn.find_children("Held", "MeshInstance3D", true, false)
+	assert_eq(held.size(), 1)
+	var attachment := held[0].get_parent() as BoneAttachment3D
+	assert_not_null(attachment, "on a bone of his back, so they lie down when he does")
+	assert_true(dyn.get_node("Model").is_ancestor_of(attachment))
+	_f()
+	await get_tree().process_frame
+	assert_eq(dyn.find_children("Held", "MeshInstance3D", true, false).size(), 0, "gone from his back when put down")
 
 
 func test_the_huds_carry_button_does_not_lift_a_body_either() -> void:
