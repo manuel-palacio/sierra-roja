@@ -10,7 +10,7 @@ func _init(t: AbilityTuning = null) -> void:
 
 
 func can_use(user: Specialist, target: Variant) -> bool:
-	if not _user_ready(user):
+	if not _user_ready(user) or user.holding != null:
 		return false
 	if user.carrying != null:
 		return target == null

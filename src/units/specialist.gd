@@ -9,6 +9,8 @@ const GROUP := "specialists"
 ## Ability id (String) -> Ability.
 var abilities: Dictionary = {}
 var carrying: Body
+## The thing in hand (see Carryable), or null. With it they can crawl and fight but not carry.
+var holding: Carryable
 
 var _can_run_before_carry := true
 

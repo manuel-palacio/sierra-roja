@@ -198,7 +198,7 @@ func _on_key(event: InputEventKey) -> void:
 					else Unit.Stance.STANDING
 			for unit in selected_units():
 				unit.set_stance(stance)
-	elif key == KEY_F and _use_what_is_near():
+	elif key == KEY_F and (_use_what_is_near() or _put_down()):
 		pass
 	elif ABILITY_KEYS.has(key):
 		_press_ability(ABILITY_KEYS[key])
@@ -259,7 +259,6 @@ func _can_stand_near(target: Vector3) -> bool:
 	return Vector2(nearest.x - target.x, nearest.z - target.z).length() <= OFF_GROUND_SLACK
 
 
-## What pressing the ability's key does; the HUD's ability buttons call this.
 ## F, first of all, uses a thing in reach of whoever is selected: with both, the nearer of them.
 ## True when something was used, and the key has then done its work.
 func _use_what_is_near() -> bool:
@@ -281,6 +280,18 @@ func _use_what_is_near() -> bool:
 	return true
 
 
+## F, next: a selected specialist with something in hand puts it down. True when one did.
+func _put_down() -> bool:
+	if not _can_order():
+		return false
+	for unit in selected_units():
+		if unit.holding != null:
+			unit.holding.drop()
+			return true
+	return false
+
+
+## What pressing the ability's key does; the HUD's ability buttons call this.
 func arm_ability(id: StringName) -> void:
 	_press_ability([id])
 
@@ -319,7 +330,9 @@ func _press_ability(ids: Array) -> void:
 			else:
 				_set_armed(id)
 		Mode.CARRY:
-			_press_carry(ability)
+			# The HUD's button does all that the F key does.
+			if not (_use_what_is_near() or _put_down()):
+				_press_carry(ability)
 
 
 func _press_carry(ability: Ability) -> void:

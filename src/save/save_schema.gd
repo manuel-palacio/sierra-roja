@@ -19,7 +19,7 @@ static func is_valid(d: Variant, version: int, mission: Mission) -> bool:
 	return _specialists_ok(d["specialists"], mission) and _prisoners_ok(d["prisoners"], mission) \
 			and _guards_ok(d["guards"], mission) \
 			and _bodies_ok(d["bodies"], d["specialists"], d["guards"]) and _charges_ok(d["charges"]) \
-			and _rules_ok(d["rules"], mission)
+			and _rules_ok(d["rules"], mission, d["specialists"])
 
 
 static func _specialists_ok(list: Array, mission: Mission) -> bool:
@@ -128,14 +128,14 @@ static func _charges_ok(list: Array) -> bool:
 	return true
 
 
-static func _rules_ok(r: Dictionary, mission: Mission) -> bool:
+static func _rules_ok(r: Dictionary, mission: Mission, specialists: Array) -> bool:
 	if not _is_enum(r.get("result"), MissionRules.Result.size()):
 		return false
 	var objectives := mission.objectives()
 	if not r.get("objectives") is Array or r["objectives"].size() != objectives.size():
 		return false
 	for i in objectives.size():
-		if not objectives[i].state_ok(r["objectives"][i]):
+		if not objectives[i].state_ok_in(r["objectives"][i], specialists):
 			return false
 	if not r.get("at_extraction") is Array:
 		return false

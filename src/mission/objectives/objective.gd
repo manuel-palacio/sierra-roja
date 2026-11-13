@@ -73,6 +73,11 @@ func load_state(d: Dictionary) -> void:
 	failed = bool(d["failed"])
 
 
+## The same, with the save's specialists to check against, for a state that names one.
+func state_ok_in(d: Variant, _specialists: Array) -> bool:
+	return state_ok(d)
+
+
 ## Whether a saved state is one load_state can take.
 func state_ok(d: Variant) -> bool:
 	return d is Dictionary and d.get("done") is bool and d.get("failed") is bool

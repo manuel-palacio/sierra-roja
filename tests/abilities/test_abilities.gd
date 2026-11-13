@@ -423,3 +423,17 @@ func test_a_guard_firing_announces_its_shot() -> void:
 	if seen.size() > 0:
 		assert_eq(seen[0][0], &"rifle")
 		assert_almost_eq(seen[0][1] as Vector3, user.global_position, Vector3.ONE * 0.01)
+
+
+func test_carry_is_refused_with_something_in_hand() -> void:
+	var body := _body_at(user.global_position + Vector3(0.5, 0, 0))
+	var carry := Carry.new()
+	assert_true(carry.can_use(user, body), "precondition: in reach, hands empty")
+	var orders := Carryable.new()
+	add_child_autofree(orders)
+	orders.global_position = user.global_position
+	orders.interact(user)
+	assert_eq(user.holding, orders)
+	assert_false(carry.can_use(user, body))
+	carry.use(user, body)
+	assert_null(user.carrying)
