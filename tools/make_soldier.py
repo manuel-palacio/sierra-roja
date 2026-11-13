@@ -15,9 +15,7 @@ Helmets, caps, rifles and bags are added in the game (src/units/soldier_gear.gd)
 import sys
 from pathlib import Path
 
-import numpy as np
 from PIL import Image
-from pygltflib import GLTF2, Accessor, BufferView
 
 OUT = Path(__file__).resolve().parent.parent / "assets/characters/soldier"
 SKIN, HAIR, JACKET, TROUSERS, BOOTS, BELT = range(6)
@@ -49,7 +47,6 @@ PALETTES = {
 KEEP = ["Idle", "Walk", "Jog_Fwd", "Sprint", "Death01", "Swim_Fwd", "Crouch_Idle", "Crouch_Fwd", "Pistol_Idle",
         "Pistol_Shoot", "Sword_Attack", "PickUp_Table", "Hit_Chest"]
 
-COMPONENT = {5126: np.float32, 5123: np.uint16, 5121: np.uint8, 5125: np.uint32}
 WIDTH = {"SCALAR": 1, "VEC2": 2, "VEC3": 3, "VEC4": 4, "MAT4": 16}
 
 
@@ -72,6 +69,11 @@ def region_of(bone: str, y: float, z: float) -> int:
 
 
 def main(source: str) -> None:
+    # Only the model needs these; the palettes are written without them.
+    import numpy as np
+    from pygltflib import GLTF2, Accessor, BufferView
+
+    COMPONENT = {5126: np.float32, 5123: np.uint16, 5121: np.uint8, 5125: np.uint32}
     gltf = GLTF2().load(source)
     blob = bytearray(gltf.binary_blob())
 

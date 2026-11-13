@@ -28,9 +28,36 @@ DEFAULTS = dict(SEED=7, NOISE=0.45, NAV_FLOOR=-6, BRIDGE=False, TARGET=(0, 0, 0)
                 CRATES=[], SCATTERS=[], CLEAR=[], PLACED=[], LAMPS=[], TEXTS={}, POLE_LINES=[], RIVER_COURSE=[], TOWERS=[], CARTS=[], SETTLEMENT=[], NIGHT=False, LAND=None, OBJECTIVES=None, SEASON="summer", LIGHT="dawn", SNOWFALL=False, DRESS="", SEA=None, EXTRACTION_FIRE=True, EXTRACTION_GROUND=None)
 
 
+# What the tables may say where the game knows only certain words: anything else is a slip that
+# would otherwise write a scene the game quietly draws or plays as something else.
+KNOWN = {
+    "SEASON": {"summer", "snow"},
+    "LIGHT": {"dawn", "overcast", "dusk", "predawn"},
+    "DRESS": {"", "spain_winter", "russia"},
+}
+# What each kind of objective has to say.
+OBJECTIVE_FIELDS = {
+    "destroy": ("hud", "marker", "done"),
+    "rescue": ("building", "prisoner", "ground", "hud", "escort", "marker"),
+    "steal": ("item", "ground", "label", "hud", "carry", "marker", "prompt", "done"),
+}
+
+
 def mission(**tables):
-    """The tables of one mission, with defaults for what it leaves out."""
-    return SimpleNamespace(**{**DEFAULTS, **tables})
+    """The tables of one mission, with defaults for what it leaves out. Refuses a value it does
+    not know."""
+    m = SimpleNamespace(**{**DEFAULTS, **tables})
+    for table, known in KNOWN.items():
+        if getattr(m, table) not in known:
+            raise ValueError("%s is %r; it can be one of %s" % (table, getattr(m, table), sorted(known)))
+    for objective in m.OBJECTIVES or []:
+        kind = objective.get("kind")
+        if kind not in OBJECTIVE_FIELDS:
+            raise ValueError("unknown objective kind: %r" % kind)
+        missing = [field for field in OBJECTIVE_FIELDS[kind] if field not in objective]
+        if missing:
+            raise ValueError("a %s objective needs %s" % (kind, ", ".join(missing)))
+    return m
 
 
 def write(m):

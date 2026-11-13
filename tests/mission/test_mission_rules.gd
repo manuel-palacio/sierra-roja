@@ -347,3 +347,22 @@ func test_charge_with_no_destroy_objective_reports_nothing() -> void:
 	rules.charge_too_far.connect(func() -> void: missed[0] += 1)
 	_blast(Vector3(-30, 0, 0))
 	assert_eq(missed[0], 0)
+
+
+func test_cut_off_with_the_bridge_down_says_so() -> void:
+	_blow_bridge()
+	await get_tree().process_frame
+	await get_tree().process_frame
+	await _frames(2)
+	assert_eq(rules.result, MissionRules.Result.LOST)
+	assert_eq(rules.loss_reason(), MissionRules.BRIDGE_CUT_OFF_TEXT)
+	assert_string_contains(rules.loss_reason(), "bridge")
+
+
+func test_cut_off_without_a_bridge_does_not_speak_of_one() -> void:
+	rules._cut_off = true
+	(mission.get_node("Nav/BridgeDeck") as Node).name = "SomethingElse"
+	await _frames(2)
+	assert_eq(rules.result, MissionRules.Result.LOST)
+	assert_eq(rules.loss_reason(), MissionRules.CUT_OFF_TEXT)
+	assert_false(rules.loss_reason().contains("bridge"))

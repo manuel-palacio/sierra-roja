@@ -13,6 +13,12 @@ godot --headless --path . -s addons/gut/gut_cmdln.gd "${select[@]}" -gexit 2>&1 
 status=${PIPESTATUS[0]}
 
 fail=0
+if [ $# -eq 0 ]; then
+  # The map generator's own tests.
+  if ! python3 -m unittest discover -s tests/tools 2>&1 | tail -4; then
+    echo "ops/test.sh: the map generator's tests failed" >&2; fail=1
+  fi
+fi
 if [ "$status" -ne 0 ]; then
   echo "ops/test.sh: godot exited $status" >&2; fail=1
 fi

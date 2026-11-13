@@ -171,10 +171,7 @@ func apply_light() -> void:
 		if sun != null:
 			# Keeps its bearing; only comes down towards the horizon.
 			sun.rotation.x = -deg_to_rad(DUSK_SUN_HEIGHT)
-		for node in mission.find_children("Lamp*", "OmniLight3D", true, false):
-			var lamp := node as OmniLight3D
-			lamp.light_energy *= 2.0
-			lamp.omni_range = 12.0
+		_turn_lamps_up(2.0, 12.0)
 	elif mission.season == &"snow":
 		_set_sky(Terrain.SNOW_MIST, 0.24)
 
@@ -233,7 +230,15 @@ func _fall_night() -> void:
 		world.environment.adjustment_saturation = 0.8
 	if mission.terrain() != null:
 		mission.terrain().set_sky(NIGHT_SKY, 0.0)
+	_turn_lamps_up(3.2, 13.0)
+
+
+## Every lamp of the mission at so many times what its scene gives it. Works from the scene's own
+## figure each time, so lighting the mission again does not turn them up again.
+func _turn_lamps_up(times: float, reach: float) -> void:
 	for node in mission.find_children("Lamp*", "OmniLight3D", true, false):
 		var lamp := node as OmniLight3D
-		lamp.light_energy *= 3.2
-		lamp.omni_range = 13.0
+		if not lamp.has_meta(&"scene_energy"):
+			lamp.set_meta(&"scene_energy", lamp.light_energy)
+		lamp.light_energy = float(lamp.get_meta(&"scene_energy")) * times
+		lamp.omni_range = reach

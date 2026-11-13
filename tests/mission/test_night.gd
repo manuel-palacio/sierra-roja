@@ -201,3 +201,17 @@ func test_snow_under_a_dawn_sky_fades_into_snow_mist() -> void:
 	main.mission.terrain().set_season(&"snow")
 	main.apply_light()
 	assert_eq(_env(main).background_color, Terrain.SNOW_MIST)
+
+
+func test_lighting_twice_is_lighting_once() -> void:
+	var main := await _game(0)
+	var lamp := main.mission.get_node("Scenery/Lamp1") as OmniLight3D
+	var day_lamp := lamp.light_energy
+	main.mission.light = &"dusk"
+	main.apply_light()
+	main.apply_light()
+	assert_almost_eq(lamp.light_energy, day_lamp * 2.0, 0.001)
+	main.mission.night = true
+	main.apply_light()
+	main.apply_light()
+	assert_almost_eq(lamp.light_energy, day_lamp * 3.2, 0.001, "and night works from the scene's lamps, not from dusk's")

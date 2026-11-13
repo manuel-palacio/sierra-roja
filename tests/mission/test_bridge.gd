@@ -334,7 +334,7 @@ func test_blowing_the_bridge_with_someone_left_behind_fails_the_mission() -> voi
 	await _blow(Vector3(-4.5, 0, 0))
 	assert_true(rules.objectives_done())
 	assert_eq(rules.result, MissionRules.Result.LOST)
-	assert_eq(rules.loss_reason(), MissionRules.CUT_OFF_TEXT)
+	assert_eq(rules.loss_reason(), MissionRules.BRIDGE_CUT_OFF_TEXT)
 	assert_true(specialists[0].alive and specialists[1].alive, "nobody died; they are just stranded")
 
 

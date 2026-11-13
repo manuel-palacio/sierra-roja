@@ -19,7 +19,9 @@ signal charge_too_far()
 enum Result { RUNNING, WON, LOST }
 
 const DEATH_TEXT := "A specialist was killed"
-const CUT_OFF_TEXT := "The bridge is down and the squad is cut off from the extraction point"
+const CUT_OFF_TEXT := "The squad is cut off from the extraction point"
+## The same, on a mission with a bridge to be cut off by.
+const BRIDGE_CUT_OFF_TEXT := "The bridge is down and the squad is cut off from the extraction point"
 ## Said when an objective fails and has no words of its own for it.
 const OBJECTIVE_FAILED_FALLBACK := "The objective can no longer be met"
 ## A path that ends this close to the extraction (on the ground plane) reaches it.
@@ -128,7 +130,9 @@ func loss_reason() -> String:
 	for o in objectives():
 		if o.failed:
 			return o.fail_reason() if o.fail_reason() != "" else OBJECTIVE_FAILED_FALLBACK
-	return CUT_OFF_TEXT
+	var has_bridge := _mission != null and (_mission.get_node_or_null("Nav/BridgeDeck") != null
+			or _mission.get_node_or_null("Nav/BridgeBroken") != null)
+	return BRIDGE_CUT_OFF_TEXT if has_bridge else CUT_OFF_TEXT
 
 
 func save_state() -> Dictionary:
