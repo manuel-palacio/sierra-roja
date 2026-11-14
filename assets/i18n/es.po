@@ -540,3 +540,18 @@ msgstr "Difícil"
 
 msgid "Guards: %s"
 msgstr "Guardias: %s"
+
+msgid "Calm"
+msgstr "Tranquilo"
+
+msgid "Suspicious"
+msgstr "Receloso"
+
+msgid "Searching"
+msgstr "Buscando"
+
+msgid "Alarmed"
+msgstr "En alarma"
+
+msgid "Patrol"
+msgstr "Patrulla"

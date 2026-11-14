@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Makes the HUD's pictures: the two portraits and the ability icons.
+"""Makes the HUD's pictures: the portraits and the ability icons.
 
     uv run --with pillow --with resvg-py python3 tools/make_ui_art.py
 
@@ -88,7 +88,7 @@ def carry(d, s):
 
 
 if __name__ == "__main__":
-    for who in ("dynamiter", "marksman"):
-        portrait(who)
+    for source in sorted(PORTRAITS.glob("*.svg")):
+        portrait(source.stem)
     for name, draw_it in (("knife", knife), ("charge", charge), ("pistol", pistol), ("rifle", rifle), ("carry", carry), ("stone", stone)):
         icon(name, draw_it)

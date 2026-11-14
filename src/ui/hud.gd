@@ -24,6 +24,12 @@ const TOUCH_BUTTONS: Array[Array] = [
 const TOUCH_BUTTON_SIZE := Vector2(70, 46)
 const RESUME_TEXT := "Space to resume"
 const RESUME_TOUCH_TEXT := "Tap Pause to resume"
+## What a guard is about, by the state of its brain.
+const GUARD_STATES := {
+	GuardBrain.State.PATROL: "Calm", GuardBrain.State.SUSPICIOUS: "Suspicious",
+	GuardBrain.State.INVESTIGATE: "Searching", GuardBrain.State.ALARM: "Alarmed",
+}
+const GUARD_PORTRAIT_SIZE := Vector2(60, 60)
 const KEYS := { &"knife": "Q", &"pistol": "R", &"rifle": "E", &"charge": "E", &"carry": "F", &"stone": "T" }
 
 ## Called by Restart. The default reloads the scene; tests replace it.
@@ -44,6 +50,11 @@ var fuse_label: Label
 ## Shown when the game is played with fingers (see Touch): word -> Button.
 var touch_bar: HBoxContainer
 var touch_buttons: Dictionary = {}
+## The guard whose cones are shown: his portrait, what he is (sentry or patrol) and his state.
+var guard_panel: PanelContainer
+var guard_kind_label: Label
+var guard_state_label: Label
+var _guard_picture: TextureRect
 var pause_box: Control
 var restart_button: Button
 ## Shown with a question in the message line after a bad save; answered with its two buttons.
@@ -78,6 +89,7 @@ func _init() -> void:
 	_build_top()
 	_build_bottom()
 	_build_center()
+	_build_guard_panel()
 	end_screen = EndScreen.new()
 	end_screen.restart_pressed.connect(_restart)
 	root.add_child(end_screen)
@@ -153,6 +165,7 @@ func refresh() -> void:
 	objective_label.visible = _rules.result == MissionRules.Result.RUNNING
 	pause_box.visible = _input.is_paused()
 	touch_bar.visible = Touch.active()
+	_refresh_guard()
 	_resume_label.text = RESUME_TOUCH_TEXT if Touch.active() else RESUME_TEXT
 
 
@@ -192,6 +205,18 @@ func _refresh_abilities() -> void:
 		button.add_theme_stylebox_override("normal", UiStyle.box(UiStyle.PANEL_DEEP if armed else UiStyle.PANEL,
 				UiStyle.BRASS_BRIGHT if armed else UiStyle.BRASS, 3 if armed else 2, 6))
 		button.modulate = Color(1, 0.95, 0.75) if armed else Color.WHITE
+
+
+func _refresh_guard() -> void:
+	var guard: Guard = _overlay.guard if _overlay != null else null
+	guard_panel.visible = guard != null and is_instance_valid(guard) and guard.alive
+	if not guard_panel.visible:
+		return
+	_guard_picture.texture = UiStyle.PORTRAITS[Dress.kit(Dress.of(guard), &"guard")]
+	guard_kind_label.text = "Patrol" if guard.route_size() > 1 else "Sentry"
+	guard_state_label.text = GUARD_STATES[guard.brain.state]
+	guard_state_label.modulate = Color(1, 0.4, 0.3) if guard.brain.state == GuardBrain.State.ALARM \
+			else (Color(1, 0.85, 0.4) if guard.brain.state != GuardBrain.State.PATROL else Color.WHITE)
 
 
 func _refresh_fuse() -> void:
@@ -301,6 +326,32 @@ func _press_key(code: Key) -> void:
 	event.keycode = code
 	event.pressed = true
 	_input.handle_event(event)
+
+
+func _build_guard_panel() -> void:
+	guard_panel = _control(PanelContainer.new()) as PanelContainer
+	guard_panel.add_theme_stylebox_override("panel", UiStyle.box(UiStyle.PANEL, UiStyle.BRASS, 2, 6))
+	guard_panel.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	guard_panel.position = Vector2(12, 64)
+	guard_panel.visible = false
+	root.add_child(guard_panel)
+	var across := _control(HBoxContainer.new())
+	across.add_theme_constant_override("separation", 10)
+	guard_panel.add_child(across)
+	_guard_picture = TextureRect.new()
+	_guard_picture.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_guard_picture.custom_minimum_size = GUARD_PORTRAIT_SIZE
+	_guard_picture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_guard_picture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	across.add_child(_guard_picture)
+	var box := _control(VBoxContainer.new())
+	box.alignment = BoxContainer.ALIGNMENT_CENTER
+	across.add_child(box)
+	guard_kind_label = _label("Sentry")
+	box.add_child(guard_kind_label)
+	guard_state_label = _label("Calm")
+	UiStyle.label(guard_state_label, 15)
+	box.add_child(guard_state_label)
 
 
 func _build_bottom() -> void:

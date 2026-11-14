@@ -13,6 +13,9 @@ const DIM := Color(0.62, 0.60, 0.52)
 const PORTRAITS := {
 	&"dynamiter": preload("res://assets/ui/portrait-dynamiter.png"),
 	&"marksman": preload("res://assets/ui/portrait-marksman.png"),
+	&"guard": preload("res://assets/ui/portrait-guard.png"),
+	&"guard_winter": preload("res://assets/ui/portrait-guard_winter.png"),
+	&"guard_blue": preload("res://assets/ui/portrait-guard_blue.png"),
 }
 const ICONS := {
 	&"knife": preload("res://assets/ui/icon-knife.png"),

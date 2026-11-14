@@ -22,7 +22,7 @@ renderer, single-threaded web export). "Sierra Roja" is a working title.
 |---|---|
 | Left click on ground | Move the selected specialist (double-click to run) |
 | Left click on a specialist | Select them (or press `1` / `2`; press the same key again to bring the camera to them) |
-| Left click on a guard | Show that guard's vision cones (red: seen even crawling; yellow: seen standing) |
+| Left click on a guard | Show that guard's vision cones (red: seen even crawling; yellow: seen standing), and a panel with his portrait, whether he is a sentry or a patrol, and his state |
 | `3` | Select both: move and stance orders go to both |
 | `Q` Knife, `R` Pistol, `E` Rifle (Marksman) | Arm the ability, then click a guard; `Esc` or right click disarms |
 | `E` Charge (Dynamiter) | Plants a charge at your feet on the key press (10 s fuse) |

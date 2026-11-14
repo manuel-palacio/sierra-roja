@@ -54,6 +54,8 @@ func test_the_controls_and_the_ability_names_have_spanish() -> void:
 		_assert_spanish(row[1], "controls")
 	for entry in Hud.TOUCH_BUTTONS:
 		_assert_spanish(entry[0], "touch button")
+	for text in Hud.GUARD_STATES.values() + ["Patrol", "Sentry"]:
+		_assert_spanish(text, "guard panel")
 	for id in Hud.LABELS:
 		_assert_spanish(Hud.LABELS[id], "ability")
 

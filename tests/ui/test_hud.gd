@@ -414,3 +414,20 @@ func test_ability_buttons_name_no_keys_for_fingers() -> void:
 	Touch.set_active(false)
 	hud.refresh()
 	assert_eq((hud.ability_buttons["knife"] as Button).text, "Q")
+
+
+func test_a_clicked_guard_gets_a_panel_with_what_he_is_and_his_state() -> void:
+	hud.refresh()
+	assert_false(hud.guard_panel.visible, "nobody clicked yet")
+	var guard := mission.guards()[0]
+	overlay.show_for(guard)
+	hud.refresh()
+	assert_true(hud.guard_panel.visible)
+	assert_eq(hud.guard_kind_label.text, "Patrol" if guard.route_size() > 1 else "Sentry")
+	assert_eq(hud.guard_state_label.text, "Calm")
+	guard.brain.on_alarm(Vector3.ZERO)
+	hud.refresh()
+	assert_eq(hud.guard_state_label.text, "Alarmed")
+	overlay.hide_overlay()
+	hud.refresh()
+	assert_false(hud.guard_panel.visible)
