@@ -13,6 +13,8 @@ var reason_label: Label
 var restart_button: Button
 ## What really happened, under a win, when history has something to say of the mission.
 var note_label: Label
+## After a win: how it went, and the name that earns.
+var score_label: Label
 ## The mission this is the end of, for its note.
 var mission_id := ""
 ## Shown after a win: on to the next mission, or back to the list after the last.
@@ -45,6 +47,11 @@ func _init() -> void:
 	reason_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	reason_label.visible = false
 	box.add_child(reason_label)
+	score_label = Label.new()
+	UiStyle.label(score_label, 19, UiStyle.BRASS_BRIGHT)
+	score_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	score_label.visible = false
+	box.add_child(score_label)
 	note_label = Label.new()
 	UiStyle.label(note_label, 17, Color(0.9, 0.88, 0.78))
 	note_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -65,7 +72,24 @@ func _init() -> void:
 	box.add_child(next_button)
 
 
-func show_result(result: MissionRules.Result, reason := "") -> void:
+## "Unseen  ·  Time 4:07  ·  Guards killed 2  ·  Alarms 0  ·  Loads 1", with "Best yet" when it is.
+static func score_text(score: MissionScore, best_yet: bool, words: Object) -> String:
+	var parts := PackedStringArray([
+		words.tr(MissionScore.RATING_NAMES[score.rating()]),
+		words.tr("Time %s") % MissionScore.clock(score.seconds),
+		words.tr("Guards killed %d") % score.kills,
+		words.tr("Alarms %d") % score.alarms,
+		words.tr("Loads %d") % score.loads,
+	])
+	if best_yet:
+		parts.append(words.tr("Best yet"))
+	return "  ·  ".join(parts)
+
+
+func show_result(result: MissionRules.Result, reason := "", score: MissionScore = null, best_yet := false) -> void:
+	score_label.visible = result == MissionRules.Result.WON and score != null
+	if score_label.visible:
+		score_label.text = score_text(score, best_yet, self)
 	reason_label.text = reason
 	reason_label.visible = reason != ""
 	next_button.visible = offer_next and result == MissionRules.Result.WON

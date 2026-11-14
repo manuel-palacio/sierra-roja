@@ -29,6 +29,9 @@ const KEYS := { &"knife": "Q", &"pistol": "R", &"rifle": "E", &"charge": "E", &"
 ## Called by Restart. The default reloads the scene; tests replace it.
 var restart_action := func() -> void: get_tree().reload_current_scene()
 
+## Whether the win being shown beat the best kept for the mission. The game sets it.
+var is_best_yet := func() -> bool: return false
+
 var root: Control
 var top_bar: Control
 var bottom_bar: Control
@@ -94,12 +97,12 @@ func setup(input: PlayerInput, rules: MissionRules, specialists: Array[Specialis
 	input.order_refused.connect(show_message)
 	input.used.connect(show_message)
 	input.guard_clicked.connect(func(g: Guard) -> void: overlay.show_for(g))
-	rules.result_changed.connect(func(r: MissionRules.Result) -> void: end_screen.show_result(r, rules.loss_reason()))
+	rules.result_changed.connect(func(r: MissionRules.Result) -> void: end_screen.show_result(r, rules.loss_reason(), rules.score, is_best_yet.call()))
 	rules.objective_done.connect(func(o: Objective) -> void:
 		if o.done_text != "":
 			show_message(o.done_text))
 	rules.charge_too_far.connect(func() -> void: show_message("The charge was too far from the target"))
-	end_screen.show_result(rules.result, rules.loss_reason())
+	end_screen.show_result(rules.result, rules.loss_reason(), rules.score, is_best_yet.call())
 	refresh()
 
 

@@ -21,6 +21,8 @@ const DUSK_SUN_HEIGHT := 14.0
 ## The room the briefing and the HUD need, in their own pixels.
 const SMALL_SCREEN := Vector2(1180, 600)
 
+## Set as a win is recorded: it beat the best kept for this mission.
+var best_yet := false
 var reload_action := func() -> void: get_tree().reload_current_scene()
 
 var mission: Mission
@@ -70,7 +72,8 @@ func _ready() -> void:
 	# A win is remembered before anything is shown of it: it opens the next mission.
 	rules.result_changed.connect(func(r: MissionRules.Result) -> void:
 		if r == MissionRules.Result.WON:
-			Campaign.mark_won(Missions.id_at(Missions.current)))
+			Campaign.mark_won(Missions.id_at(Missions.current))
+			best_yet = Campaign.record(Missions.id_at(Missions.current), rules.score))
 	player_input = PlayerInput.new()
 	add_child(player_input)
 	player_input.setup(camera, specialists)  # selects the Dynamiter
@@ -87,6 +90,7 @@ func _ready() -> void:
 	add_child(overlay)
 	hud = (load("res://scenes/ui/hud.tscn") as PackedScene).instantiate() as Hud
 	add_child(hud)
+	hud.is_best_yet = func() -> bool: return best_yet
 	hud.setup(player_input, rules, specialists, overlay)
 	hud.end_screen.mission_id = Missions.id_at(Missions.current)
 	hud.end_screen.offer_next = true

@@ -62,6 +62,10 @@ what history says of each, and opens the next one when the one before is won (wi
 browser). A win shows what really happened. `?mission=<id>` (`guadarrama`, `teruel`, `carchuna`, `ebro`, `volkhov`, `krasny_bor`) in the
 address starts on that mission whether it is open or not.
 
+A win shows its score: the time, the guards killed, the alarms raised and the quick loads used, and the
+name it earns (Ghost: no alarm and nobody killed; Unseen: no alarm; Done). The best win of each mission
+is kept in the browser and shown on its briefing.
+
 What a mission asks for is a list of objectives in its scene:
 
 - **Destroy** something with the Dynamiter's charge.

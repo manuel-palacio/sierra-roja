@@ -501,3 +501,30 @@ msgstr "Toca Pausa para seguir"
 
 msgid "Credits and licences: /credits.txt"
 msgstr "Créditos y licencias: /credits.txt"
+
+msgid "Done"
+msgstr "Cumplida"
+
+msgid "Unseen"
+msgstr "Sin ser visto"
+
+msgid "Ghost"
+msgstr "Fantasma"
+
+msgid "Time %s"
+msgstr "Tiempo %s"
+
+msgid "Guards killed %d"
+msgstr "Guardias muertos %d"
+
+msgid "Alarms %d"
+msgstr "Alarmas %d"
+
+msgid "Loads %d"
+msgstr "Cargas %d"
+
+msgid "Best yet"
+msgstr "Tu mejor marca"
+
+msgid "Best: %s, %s"
+msgstr "Mejor: %s, %s"

@@ -139,6 +139,8 @@ static func _rules_ok(r: Dictionary, mission: Mission, specialists: Array) -> bo
 			return false
 	if not r.get("at_extraction") is Array:
 		return false
+	if r.has("score") and MissionScore.from_dict(r["score"]) == null:
+		return false
 	var ids := mission.specialists().map(func(s: Specialist) -> String: return String(s.name))
 	ids.append_array(mission.prisoners().map(func(p: Prisoner) -> String: return String(p.name)))
 	for id in r["at_extraction"]:

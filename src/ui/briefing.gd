@@ -58,6 +58,9 @@ var note_label: Label
 ## Switches to the other language, and is named for it in that language.
 var language_button: Button
 
+## The best win of the mission shown; hidden until there is one.
+var best_label: Label
+
 var _mission: Mission
 var _index := -1
 var _subtitle: Label
@@ -104,6 +107,10 @@ func _init() -> void:
 	_subtitle = _text("", 19, Color(0.8, 0.82, 0.9))
 	_subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	column.add_child(_subtitle)
+	best_label = _text("", 14, UiStyle.BRASS_BRIGHT)
+	best_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	best_label.visible = false
+	column.add_child(best_label)
 	var missions := GridContainer.new()
 	missions.columns = 3
 	missions.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
@@ -172,6 +179,7 @@ func set_mission(mission: Mission, index: int) -> void:
 	note_label.text = History.before(Missions.id_at(index))
 	note_label.visible = note_label.text != ""
 	_show_objectives(mission.briefing_lines)
+	_word_missions()
 	for i in mission_buttons.size():
 		mission_buttons[i].disabled = i == index or not Campaign.is_open(i)
 		# Neither can be pressed, but the one being played should not look shut.
@@ -186,6 +194,10 @@ func _word_missions() -> void:
 		mission_buttons[i].text = "%d  %s" % [i + 1, "%s, %s" % [tr(entry["place"]), tr(entry["date"])]
 				if entry["place"] != "" else tr(entry["name"])]
 	language_button.text = Language.NAMES[Language.other()]
+	var best := Campaign.best(Missions.id_at(_index))
+	best_label.visible = best != null
+	if best != null:
+		best_label.text = tr("Best: %s, %s") % [tr(MissionScore.RATING_NAMES[best.rating()]), MissionScore.clock(best.seconds)]
 
 
 func _notification(what: int) -> void:

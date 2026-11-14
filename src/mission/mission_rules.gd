@@ -31,6 +31,10 @@ var result := Result.RUNNING
 ## False while nothing should be timed (the briefing is up): objectives with a clock obey it.
 var clock_running := true
 
+## How it is going: time, kills, alarms and quick loads (see MissionScore).
+var score := MissionScore.new()
+
+var _alarm_on := false
 var _mission: Mission
 var _specialists: Array[Specialist] = []
 var _in_extraction: Dictionary = {}  # Unit -> true
@@ -57,6 +61,8 @@ func setup(mission: Mission, specialists: Array[Specialist]) -> void:
 		s.died.connect(_on_specialist_died)
 	for o in mission.objectives():
 		_adopt(o)
+	for g in mission.guards():
+		g.died.connect(_on_guard_died)
 	var area := mission.extraction()
 	if area:
 		area.body_entered.connect(_on_body_entered)
@@ -94,8 +100,20 @@ func is_at_extraction(unit: Unit) -> bool:
 	return unit.alive and _in_extraction.has(unit)
 
 
-func _physics_process(_delta: float) -> void:
+func _physics_process(delta: float) -> void:
+	keep_score(delta)
 	evaluate()
+
+
+## One step of the score: the clock, and an alarm counted once from its start to its end.
+func keep_score(delta: float) -> void:
+	if result != Result.RUNNING or not clock_running:
+		return
+	score.seconds += delta
+	var alarm := alarm_level > 0
+	if alarm and not _alarm_on:
+		score.alarms += 1
+	_alarm_on = alarm
 
 
 ## Runs one evaluation. Tests may call it directly.
@@ -144,7 +162,7 @@ func save_state() -> Dictionary:
 	var states: Array[Dictionary] = []
 	for o in objectives():
 		states.append(o.save_state())
-	return { "result": int(result), "objectives": states, "at_extraction": inside }
+	return { "result": int(result), "objectives": states, "at_extraction": inside, "score": score.to_dict() }
 
 
 ## Puts every objective in its saved condition, and what it changed on the map with it: a bridge
@@ -160,6 +178,12 @@ func load_state(d: Dictionary) -> void:
 	for unit in _tracked():
 		if d["at_extraction"].has(String(unit.name)):
 			_in_extraction[unit] = true
+	# The score goes back to what it was at the save, but for the loads: each is one more.
+	var loads := score.loads + 1
+	var saved := MissionScore.from_dict(d.get("score"))
+	score = saved if saved != null else MissionScore.new()
+	score.loads = loads
+	_alarm_on = alarm_level > 0
 	var loaded := int(d["result"]) as Result
 	if loaded != result:
 		result = loaded
@@ -205,6 +229,11 @@ func _on_completed(o: Objective) -> void:
 func _set_result(r: Result) -> void:
 	result = r
 	result_changed.emit(r)
+
+
+func _on_guard_died(_unit: Unit) -> void:
+	if result == Result.RUNNING:
+		score.kills += 1
 
 
 func _on_specialist_died(_unit: Unit) -> void:
