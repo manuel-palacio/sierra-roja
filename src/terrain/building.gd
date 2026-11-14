@@ -1,7 +1,9 @@
 class_name Building
 extends StaticBody3D
-## A small rural building made of plain shapes: whitewashed walls under a tiled pitched roof, or,
-## as a ruin, broken walls with a doorway and no roof, which can be walked into. Goes under Nav/
+## A small rural building: whitewashed walls under a tiled pitched roof, or, as a ruin, broken
+## walls with a doorway and no roof, which can be walked into. A whole plaster building that is not
+## gone into is drawn from a model made in Blender, where there is one for its size (see
+## model_path and tools/make_buildings.py); every other is made here of plain shapes. Goes under Nav/
 ## so the navmesh bake cuts it out. Place it by x, z and rotation; build() sets it on the ground.
 
 ## Tints over the plaster, roof-tile and stone textures.
@@ -27,6 +29,11 @@ const LOOK_INTERVAL := 0.1
 const WALL_CUT := 1.2
 ## How far outside a wall something built against it, a lean-to, can stand.
 const LEAN_TO_REACH := 1.8
+const MODELS := "res://assets/buildings/"
+## Where the model's chimney stands, as fractions of the footprint, and how far its top is above
+## the ridge: the smoke rises from there (see tools/blender/farmhouse.py).
+const MODEL_CHIMNEY := Vector2(0.3, -0.16)
+const MODEL_CHIMNEY_TOP := 1.2
 const SIDES: Array[Vector3] = [Vector3.BACK, Vector3.RIGHT, Vector3.FORWARD, Vector3.LEFT]
 
 ## Footprint along x, wall height, footprint along z.
@@ -69,6 +76,8 @@ func build(ground: Callable) -> void:
 	if ruin:
 		_build_ruin()
 		return
+	if _build_from_model():
+		return
 	if enterable:
 		_build_hollow()
 	else:
@@ -81,6 +90,41 @@ func build(ground: Callable) -> void:
 	_add_details()
 	if enterable and not ruin:
 		_sort_upper_parts()
+
+
+## The model file for a plaster building of these measures, whether or not there is one:
+## "plaster-<length>x<height>x<depth>-r<roof>-s<storeys>[-snow].glb", in decimetres.
+static func model_path(of_size: Vector3, of_roof: float, of_storeys: int, with_snow: bool) -> String:
+	return "%splaster-%dx%dx%d-r%d-s%d%s.glb" % [MODELS, roundi(of_size.x * 10.0), roundi(of_size.y * 10.0),
+			roundi(of_size.z * 10.0), roundi(of_roof * 10.0), maxi(of_storeys, 1), "-snow" if with_snow else ""]
+
+
+## Draws the building from its model, with the same solid box as the one made of plain shapes.
+## False when it is not the kind that has models, or there is none for its size.
+func _build_from_model() -> bool:
+	if enterable or ruin or style != &"plaster" or roof_height <= 0.0:
+		return false
+	var path := model_path(size, roof_height, storeys, snowy)
+	if not ResourceLoader.exists(path):
+		return false
+	var shape := BoxShape3D.new()
+	shape.size = Vector3(size.x, size.y + SINK, size.z)
+	var collision := CollisionShape3D.new()
+	collision.shape = shape
+	collision.position = Vector3(0, (size.y - SINK) / 2.0, 0)
+	add_child(collision)
+	var model := (load(path) as PackedScene).instantiate() as Node3D
+	model.name = "Model"
+	add_child(model)
+	# Its colours are painted on its vertices, and its shade is its texture: the two multiply.
+	for node in model.find_children("*", "MeshInstance3D", true, false):
+		var instance := node as MeshInstance3D
+		for i in instance.mesh.get_surface_count():
+			var material := instance.mesh.surface_get_material(i).duplicate() as StandardMaterial3D
+			material.vertex_color_use_as_albedo = true
+			instance.set_surface_override_material(i, material)
+	_add_smoke(Vector3(size.x * MODEL_CHIMNEY.x, size.y + roof_height + MODEL_CHIMNEY_TOP, size.z * MODEL_CHIMNEY.y))
+	return true
 
 
 ## Whether a point of the ground plane is inside the walls.
@@ -361,9 +405,14 @@ func _add_details() -> void:
 				Surfaces.material(&"bark", Color(0.9, 0.82, 0.72)))
 	var chimney := Vector3(hx * 0.5, size.y + roof_height * 0.75, -hz * 0.3)
 	_lid.append(_trim(chimney, Vector3(0.5, roof_height * 1.1, 0.5), Surfaces.material(&"stone", RUIN_COLOR)))
+	_lid.append(_add_smoke(chimney + Vector3(0, roof_height * 0.6, 0)))
+
+
+## Smoke rising from a chimney top.
+func _add_smoke(at: Vector3) -> CPUParticles3D:
 	var smoke := CPUParticles3D.new()
 	smoke.name = "Smoke"
-	smoke.position = chimney + Vector3(0, roof_height * 0.6, 0)
+	smoke.position = at
 	smoke.amount = 14
 	smoke.lifetime = 5.0
 	smoke.preprocess = 5.0
@@ -387,7 +436,7 @@ func _add_details() -> void:
 	smoke.mesh = puff
 	smoke.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(smoke)
-	_lid.append(smoke)
+	return smoke
 
 
 ## A piece that is only looked at: no collision.

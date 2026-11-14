@@ -14,4 +14,5 @@
 - isaiah658 "Ambient Bird Sounds" (`assets/audio/birds.ogg`), CC0 1.0: https://opengameart.org/content/ambient-bird-sounds
 - Kenney "RPG Audio" (`assets/audio/knife.ogg`, from `knifeSlice.ogg`) and "Impact Sounds" (`assets/audio/body_fall.ogg`, from `impactPunch_heavy_001.ogg`), CC0 1.0: https://kenney.nl/assets/rpg-audio, https://kenney.nl/assets/impact-sounds
 - "Special Elite" typeface by Astigmatic (`assets/ui/SpecialElite-Regular.ttf`), Apache License 2.0: https://fonts.google.com/specimen/Special+Elite. Licence text kept in `assets/ui/LICENSE-special-elite.txt`.
+- The house models in `assets/buildings/` are made for this game by `tools/blender/farmhouse.py`, in Blender.
 - The portraits and ability icons in `assets/ui/` are made for this game: the portraits, the pair's and the guards', are drawn as vectors in `tools/portraits/`, the title poster in `tools/title/` is made of them, and `tools/make_ui_art.py` renders them and draws the icons.
