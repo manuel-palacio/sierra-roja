@@ -20,6 +20,16 @@ func use(_user: Specialist, _target: Variant) -> void:
 	pass
 
 
+## False while the ability cannot be used at all for now, whatever the target.
+func ready_to_use() -> bool:
+	return ammo != 0
+
+
+## Time passing for the one who has it (see Specialist).
+func tick(_delta: float) -> void:
+	pass
+
+
 ## JSON-safe snapshot. The ability set itself is rebuilt from ids by AbilityKit.
 func save_state() -> Dictionary:
 	return { "id": String(id), "ammo": ammo }

@@ -12,6 +12,8 @@ enum State { PATROL, SUSPICIOUS, INVESTIGATE, ALARM }
 
 ## Timers add up many 0.1 s steps; this keeps float error from costing a step.
 const EPSILON := 0.00001
+## "Long ago", and still a number JSON can hold.
+const NEVER := 1.0e9
 
 var state := State.PATROL
 ## Set for good by the first stand-down; lengthens the guard's far range.
@@ -24,6 +26,10 @@ var _far_total := 0.0
 var _no_sight := 0.0
 var _wait := 0.0
 var _arrived := false
+## Seconds since he last gave up looking and went back to his beat.
+var _since_gave_up := NEVER
+## Brought out again too soon after that: he waits longer this time.
+var _wary := false
 
 
 func _init(t: GuardTuning = null) -> void:
@@ -32,6 +38,7 @@ func _init(t: GuardTuning = null) -> void:
 
 ## One vision check. target_pos is only read when something is seen.
 func tick(delta: float, sight: Vision.Zone, target_pos: Vector3, body_seen: bool) -> void:
+	_since_gave_up = minf(NEVER, _since_gave_up + delta)
 	if sight == Vision.Zone.NEAR or body_seen:
 		var was_in_alarm := state == State.ALARM
 		_alarm(target_pos, true)
@@ -63,8 +70,10 @@ func tick(delta: float, sight: Vision.Zone, target_pos: Vector3, body_seen: bool
 				_add_far_time(delta, target_pos)
 			elif _arrived:
 				_wait += delta
-				if _reached(_wait, tuning.investigate_wait):
+				var limit := tuning.investigate_wait * (tuning.repeat_noise_wait_factor if _wary else 1.0)
+				if _reached(_wait, limit):
 					_enter(State.PATROL)
+					_since_gave_up = 0.0
 		State.ALARM:
 			if far:
 				goal_pos = target_pos
@@ -86,6 +95,7 @@ func hear(pos: Vector3) -> void:
 			goal_pos = pos
 			_enter(State.INVESTIGATE)
 			_far_total = carried
+			_wary = _since_gave_up < tuning.repeat_noise_window
 		State.INVESTIGATE:
 			goal_pos = pos
 			_wait = 0.0
@@ -117,6 +127,8 @@ func save_state() -> Dictionary:
 		"no_sight": _no_sight,
 		"wait": _wait,
 		"arrived": _arrived,
+		"since_gave_up": _since_gave_up,
+		"wary": _wary,
 	}
 
 
@@ -130,6 +142,8 @@ func load_state(d: Dictionary) -> void:
 	_no_sight = float(d["no_sight"])
 	_wait = float(d["wait"])
 	_arrived = bool(d["arrived"])
+	_since_gave_up = float(d.get("since_gave_up", NEVER))
+	_wary = bool(d.get("wary", false))
 
 
 func _add_far_time(delta: float, target_pos: Vector3) -> void:
@@ -154,6 +168,7 @@ func _enter(next: State) -> void:
 	_no_sight = 0.0
 	_wait = 0.0
 	_arrived = false
+	_wary = false
 	state_changed.emit(next)
 
 

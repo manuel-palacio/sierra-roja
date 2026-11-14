@@ -4,7 +4,7 @@ extends Node
 ## and the pause. Rules live in Unit and Ability; this only decides which order a click or key is.
 ##
 ## Hotkeys: 1/2 select (again: centre the camera on them), 3 select both, C stance, Q knife, E main ability (charge, else rifle), R pistol,
-## F pick up / drop, Space pause, Escape or right click disarm, O quick save, L quick load,
+## F pick up / drop, T stone, Space pause, Escape or right click disarm, O quick save, L quick load,
 ## Z / X turn the camera a quarter turn.
 
 signal selection_changed(s: Specialist)
@@ -43,6 +43,7 @@ const MODES := {
 	&"rifle": Mode.GUARD,
 	&"charge": Mode.SPOT,
 	&"carry": Mode.CARRY,
+	&"stone": Mode.SPOT,
 }
 ## Key -> ability ids, first one the selected specialist has wins.
 const ABILITY_KEYS := {
@@ -50,6 +51,7 @@ const ABILITY_KEYS := {
 	KEY_E: [&"charge", &"rifle"],
 	KEY_R: [&"pistol"],
 	KEY_F: [&"carry"],
+	KEY_T: [&"stone"],
 }
 const SELECT_KEYS := { KEY_1: 0, KEY_2: 1 }
 const SELECT_BOTH_KEY := KEY_3
@@ -339,6 +341,9 @@ func _press_ability(ids: Array) -> void:
 	var ability: Ability = selected.abilities[String(id)]
 	if ability.ammo == 0:
 		_refuse("out of ammo")
+		return
+	if not ability.ready_to_use():
+		_refuse("not ready yet")
 		return
 	match MODES[id]:
 		Mode.GUARD:

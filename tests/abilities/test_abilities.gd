@@ -356,12 +356,13 @@ func test_weapons_refuse_a_specialist_target() -> void:
 	assert_eq(noises.size(), 0)
 
 
-func test_marksman_scene_has_exactly_rifle_and_pistol() -> void:
+func test_marksman_scene_has_exactly_rifle_pistol_and_stone() -> void:
 	var s := load("res://scenes/units/marksman.tscn").instantiate() as Specialist
 	add_child_autofree(s)
-	assert_eq(s.abilities.keys().size(), 2)
+	assert_eq(s.abilities.keys().size(), 3)
 	assert_true(s.has_ability("rifle"))
 	assert_true(s.has_ability("pistol"))
+	assert_true(s.has_ability("stone"))
 	assert_eq(s.stats.resource_path, "res://resources/marksman.tres")
 
 
@@ -437,3 +438,58 @@ func test_carry_is_refused_with_something_in_hand() -> void:
 	assert_false(carry.can_use(user, body))
 	carry.use(user, body)
 	assert_null(user.carrying)
+
+
+# --- Stone ---
+
+func _stone_thrower() -> Specialist:
+	return _spawn_specialist(PackedStringArray(["stone"]), Vector3.ZERO)
+
+
+func test_stone_lands_with_a_small_noise_where_it_was_thrown() -> void:
+	var thrower := _stone_thrower()
+	var stone: Ability = thrower.abilities["stone"]
+	var spot := Vector3(0, 0, -10)
+	assert_eq(stone.ammo, -1, "stones never run out")
+	assert_true(stone.can_use(thrower, spot))
+	stone.use(thrower, spot)
+	assert_eq(noises, [[spot, stone.tuning.stone_noise_radius]])
+
+
+func test_stone_needs_a_spot_in_range_with_a_clear_line() -> void:
+	var thrower := _stone_thrower()
+	var stone: Ability = thrower.abilities["stone"]
+	assert_false(stone.can_use(thrower, null), "not at his own feet")
+	assert_false(stone.can_use(thrower, _guard(Vector3(0, 0, -5))), "at a spot, not at a guard")
+	assert_false(stone.can_use(thrower, Vector3(0, 0, -(stone.tuning.stone_range + 0.5))))
+	_wall(Vector3(0, 2, -5), Vector3(6, 4, 0.5))
+	await wait_physics_frames(2)
+	assert_false(stone.can_use(thrower, Vector3(0, 0, -10)), "a full wall stops it")
+	assert_true(stone.can_use(thrower, Vector3(0, 0, -4)), "this side of the wall is fine")
+
+
+func test_stone_brings_a_guard_in_earshot_and_no_alarm() -> void:
+	var thrower := _stone_thrower()
+	var stone: Ability = thrower.abilities["stone"]
+	var spot := Vector3(0, 0, -10)
+	var near := _guard(spot + Vector3(stone.tuning.stone_noise_radius - 1.0, 0, 0))
+	var far := _guard(spot + Vector3(0, 0, -(stone.tuning.stone_noise_radius + 1.0)))
+	stone.use(thrower, spot)
+	assert_eq(near.brain.state, GuardBrain.State.INVESTIGATE)
+	assert_eq(near.brain.goal_pos, spot)
+	assert_eq(far.brain.state, GuardBrain.State.PATROL)
+
+
+func test_stone_waits_between_throws_and_the_wait_is_saved() -> void:
+	var thrower := _stone_thrower()
+	var stone: Ability = thrower.abilities["stone"]
+	var spot := Vector3(0, 0, -6)
+	stone.use(thrower, spot)
+	assert_false(stone.can_use(thrower, spot), "another is not in hand yet")
+	stone.tick(stone.tuning.stone_cooldown - 1.0)
+	assert_false(stone.can_use(thrower, spot))
+	var saved := stone.save_state()
+	stone.tick(1.0)
+	assert_true(stone.can_use(thrower, spot))
+	stone.load_state(saved)
+	assert_false(stone.can_use(thrower, spot))

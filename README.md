@@ -26,6 +26,7 @@ renderer, single-threaded web export). "Sierra Roja" is a working title.
 | `3` | Select both: move and stance orders go to both |
 | `Q` Knife, `R` Pistol, `E` Rifle (Marksman) | Arm the ability, then click a guard; `Esc` or right click disarms |
 | `E` Charge (Dynamiter) | Plants a charge at your feet on the key press (10 s fuse) |
+| `T` Stone | Arm it, then click a spot within 12 m in clear view: the stone lands there and the guards in earshot (9 m) walk over to look, wait, and go back. No alarm comes of it. A few seconds pass before the next; a guard brought out twice in a short while waits longer the second time |
 | `F` Use / Carry | Uses or takes what is next to you (a cell door, the orders, a telephone pole to cut), or puts down what you hold; otherwise the Dynamiter lifts the nearest body in reach, or drops the one carried |
 | `C` | Crawl / stand |
 | `Space` | Pause / resume |

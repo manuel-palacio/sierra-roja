@@ -27,6 +27,12 @@ static var _defaults: AbilityTuning
 @export var pistol_damage := 50
 @export var rifle_noise_radius := 35.0
 @export var pistol_noise_radius := 20.0
+## How far a stone can be thrown, how far its landing is heard, and the seconds before the next.
+@export var stone_range := 12.0
+@export var stone_noise_radius := 9.0
+@export var stone_cooldown := 4.0
+## The throw must have a clear line to this height above the spot.
+@export var stone_landing_height := 0.4
 ## Heights of the line-of-sight ray for shots and knife blows: from the shooter's shoulder
 ## to the target's chest, so a 1 m wall does not stop a shot but a full wall does.
 @export var shot_origin_height := 1.5

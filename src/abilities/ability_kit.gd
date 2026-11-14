@@ -3,7 +3,7 @@ extends RefCounted
 ## Builds abilities from ids, so scenes and saves can name them as plain strings. Kept apart
 ## from Ability so the base class does not reference its own subclasses.
 
-const ALL := ["knife", "charge", "pistol", "rifle", "carry"]
+const ALL := ["knife", "charge", "pistol", "rifle", "carry", "stone"]
 
 
 static func create(id: String, tuning: AbilityTuning = null) -> Ability:
@@ -18,5 +18,7 @@ static func create(id: String, tuning: AbilityTuning = null) -> Ability:
 			return Rifle.new(tuning)
 		"carry":
 			return Carry.new(tuning)
+		"stone":
+			return Stone.new(tuning)
 	push_error("AbilityKit: unknown ability '%s'" % id)
 	return null

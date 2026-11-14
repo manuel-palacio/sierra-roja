@@ -5,7 +5,8 @@
 
 The portraits are drawn by hand as vectors in tools/portraits/, flat and hard-shadowed in the
 manner of the war's posters, and only turned into PNGs here. The icons are drawn here as plain
-cream silhouettes: a knife, a bundle of dynamite, a pistol, a rifle, and a man carrying another.
+cream silhouettes: a knife, a bundle of dynamite, a pistol, a rifle, a man carrying another,
+and a stone in flight.
 """
 from pathlib import Path
 
@@ -70,6 +71,14 @@ def rifle(d, s):
     d.line([(0.60 * s, 0.44 * s), (0.94 * s, 0.24 * s)], fill=INK, width=10)
 
 
+def stone(d, s):
+    shape(d, [(0.30, 0.74), (0.24, 0.60), (0.34, 0.48), (0.52, 0.44), (0.66, 0.52), (0.70, 0.66), (0.60, 0.78), (0.42, 0.80)], s)
+    d.line([(0.40 * s, 0.58 * s), (0.50 * s, 0.54 * s)], fill=INK, width=10)
+    for i, (x, y) in enumerate(((0.62, 0.34), (0.74, 0.24), (0.86, 0.18))):  # the way it flies
+        r = (0.035 - i * 0.008) * s
+        d.ellipse((x * s - r, y * s - r, x * s + r, y * s + r), fill=CREAM, outline=INK, width=6)
+
+
 def carry(d, s):
     d.ellipse((0.34 * s, 0.26 * s, 0.50 * s, 0.42 * s), fill=CREAM, outline=INK, width=10)  # the carrier's head
     shape(d, [(0.34, 0.44), (0.52, 0.44), (0.56, 0.68), (0.50, 0.92), (0.40, 0.92), (0.42, 0.70), (0.34, 0.92),
@@ -81,5 +90,5 @@ def carry(d, s):
 if __name__ == "__main__":
     for who in ("dynamiter", "marksman"):
         portrait(who)
-    for name, draw_it in (("knife", knife), ("charge", charge), ("pistol", pistol), ("rifle", rifle), ("carry", carry)):
+    for name, draw_it in (("knife", knife), ("charge", charge), ("pistol", pistol), ("rifle", rifle), ("carry", carry), ("stone", stone)):
         icon(name, draw_it)

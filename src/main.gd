@@ -93,6 +93,7 @@ func _ready() -> void:
 	objective_marker.setup(camera, mission, rules)
 	add_child(SoundEffects.new())
 	add_child(ShotDisplay.new())
+	add_child(StoneDisplay.new())
 	charge_display = ChargeDisplay.new()
 	add_child(charge_display)
 	if mission.snowfall or force_snowfall:

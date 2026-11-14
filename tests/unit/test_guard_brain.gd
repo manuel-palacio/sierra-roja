@@ -680,3 +680,32 @@ func test_a_guard_loaded_while_looking_round_takes_up_its_beat_again() -> void:
 
 func _target(g: Guard) -> Vector3:
 	return (g.get_node("NavigationAgent3D") as NavigationAgent3D).target_position
+
+
+func test_lured_again_soon_after_going_back_waits_longer() -> void:
+	var t := brain.tuning
+	brain.hear(HEARD_AT)
+	brain.notify_arrived()
+	brain.tick(t.investigate_wait, NONE, Vector3.ZERO, false)
+	assert_eq(brain.state, GuardBrain.State.PATROL)
+	brain.tick(t.repeat_noise_window - 1.0, NONE, Vector3.ZERO, false)
+	brain.hear(HEARD_AT)
+	brain.notify_arrived()
+	brain.tick(t.investigate_wait, NONE, Vector3.ZERO, false)
+	assert_eq(brain.state, GuardBrain.State.INVESTIGATE, "he is wary now")
+	var restored := GuardBrain.new()
+	restored.load_state(brain.save_state())
+	restored.tick(t.investigate_wait * (t.repeat_noise_wait_factor - 1.0), NONE, Vector3.ZERO, false)
+	assert_eq(restored.state, GuardBrain.State.PATROL)
+
+
+func test_lured_again_long_after_waits_the_usual_time() -> void:
+	var t := brain.tuning
+	brain.hear(HEARD_AT)
+	brain.notify_arrived()
+	brain.tick(t.investigate_wait, NONE, Vector3.ZERO, false)
+	brain.tick(t.repeat_noise_window + 1.0, NONE, Vector3.ZERO, false)
+	brain.hear(HEARD_AT)
+	brain.notify_arrived()
+	brain.tick(t.investigate_wait, NONE, Vector3.ZERO, false)
+	assert_eq(brain.state, GuardBrain.State.PATROL)

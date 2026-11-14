@@ -571,3 +571,20 @@ func test_a_dead_specialist_uses_nothing() -> void:
 	var lever := _lever(Vector3(1.0, 0, 0))
 	dyn.take_damage(1000)
 	assert_false(lever.can_interact(dyn))
+
+
+func test_t_arms_the_stone_and_a_ground_click_throws_it() -> void:
+	dyn.grant_abilities(PackedStringArray(["stone"]))
+	var heard: Array = []
+	var on_noise := func(pos: Vector3, _radius: float) -> void: heard.append(pos)
+	NoiseBus.noise_emitted.connect(on_noise)
+	input.handle_event(_key(KEY_T))
+	assert_eq(input.armed_ability, &"stone")
+	picked = _ground(Vector3(0, 0, -8))
+	input.handle_event(_click())
+	NoiseBus.noise_emitted.disconnect(on_noise)
+	assert_eq(heard, [Vector3(0, 0, -8)])
+	assert_eq(input.armed_ability, &"")
+	assert_eq(_target(dyn), Vector3.ZERO, "the click threw; it did not send him walking")
+	input.handle_event(_key(KEY_T))
+	assert_eq(refusals, ["not ready yet"])

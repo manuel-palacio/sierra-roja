@@ -24,6 +24,12 @@ func _ready() -> void:
 		grant_abilities(ability_ids)
 
 
+func _physics_process(delta: float) -> void:
+	super(delta)
+	for id in abilities:
+		(abilities[id] as Ability).tick(delta)
+
+
 func grant_abilities(ids: PackedStringArray) -> void:
 	for id in ids:
 		abilities[id] = AbilityKit.create(id)

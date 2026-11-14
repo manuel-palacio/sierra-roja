@@ -20,6 +20,7 @@ const ICONS := {
 	&"pistol": preload("res://assets/ui/icon-pistol.png"),
 	&"rifle": preload("res://assets/ui/icon-rifle.png"),
 	&"carry": preload("res://assets/ui/icon-carry.png"),
+	&"stone": preload("res://assets/ui/icon-stone.png"),
 }
 
 

@@ -15,8 +15,9 @@ const REFRESH_INTERVAL := 0.1
 
 const LABELS := {
 	&"knife": "Knife", &"pistol": "Pistol", &"rifle": "Rifle", &"charge": "Charge", &"carry": "Carry",
+	&"stone": "Stone",
 }
-const KEYS := { &"knife": "Q", &"pistol": "R", &"rifle": "E", &"charge": "E", &"carry": "F" }
+const KEYS := { &"knife": "Q", &"pistol": "R", &"rifle": "E", &"charge": "E", &"carry": "F", &"stone": "T" }
 
 ## Called by Restart. The default reloads the scene; tests replace it.
 var restart_action := func() -> void: get_tree().reload_current_scene()
@@ -168,7 +169,7 @@ func _refresh_abilities() -> void:
 		if ability.ammo >= 0:
 			text += "  x%d" % ability.ammo
 		button.text = text
-		button.disabled = ability.ammo == 0
+		button.disabled = not ability.ready_to_use()
 		var armed := _input.armed_ability == StringName(id)
 		button.add_theme_stylebox_override("normal", UiStyle.box(UiStyle.PANEL_DEEP if armed else UiStyle.PANEL,
 				UiStyle.BRASS_BRIGHT if armed else UiStyle.BRASS, 3 if armed else 2, 6))

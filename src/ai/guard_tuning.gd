@@ -13,6 +13,10 @@ static var _defaults: GuardTuning
 @export var suspicious_no_sight := 3.0
 ## Seconds a guard waits at the investigated spot, with no sight, before going back on patrol.
 @export var investigate_wait := 4.0
+## A guard brought out again by a noise within this many seconds of going back to his beat
+## waits investigate_wait times repeat_noise_wait_factor at the spot.
+@export var repeat_noise_window := 20.0
+@export var repeat_noise_wait_factor := 2.0
 ## Seconds with no sight before an alarm stands down.
 @export var alarm_stand_down := 30.0
 @export var rifle_damage := 34
