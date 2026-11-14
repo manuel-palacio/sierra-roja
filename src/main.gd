@@ -35,6 +35,7 @@ var force_snowfall := false
 
 
 func _ready() -> void:
+	Language.restore()
 	if PerfProbe.enabled():
 		add_child(PerfProbe.new())
 	if ScreenProbe.enabled():

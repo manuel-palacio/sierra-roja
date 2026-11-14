@@ -1,0 +1,437 @@
+# Spanish for Sierra Roja. The msgid is the English text as it stands in the code and the scenes;
+# tests/ui/test_language.gd fails when a text the player reads has no entry here.
+msgid ""
+msgstr ""
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "The end of May 1937. The Republic attacks towards Segovia through the Sierra de Guadarrama, to draw Franco's army away from Bilbao. Hemingway set For Whom the Bell Tolls in this offensive: a dynamiter sent behind the lines to blow a bridge as the attack begins. The bridge here is his, not history's. The Dynamiter and the Marksman are invented too, here and in every mission."
+msgstr "Finales de mayo de 1937. La República ataca hacia Segovia por la Sierra de Guadarrama, para apartar de Bilbao al ejército de Franco. Hemingway situó Por quién doblan las campanas en esta ofensiva: un dinamitero enviado tras las líneas a volar un puente cuando empieza el ataque. El puente de aquí es el suyo, no el de la historia. El Dinamitero y el Tirador también son inventados, aquí y en todas las misiones."
+
+msgid "The attack reached La Granja and was thrown back within a week. It held up the advance on Bilbao by about two weeks."
+msgstr "El ataque llegó a La Granja y fue rechazado en menos de una semana. Retrasó unas dos semanas el avance sobre Bilbao."
+
+msgid "December 1937. The Republic attacks Teruel in falling snow, with no bombardment to announce it. A blizzard follows, and the cold goes to eighteen below. The raid on this depot is invented."
+msgstr "Diciembre de 1937. La República ataca Teruel bajo la nieve, sin bombardeo que lo anuncie. Sigue una ventisca, y el frío baja a dieciocho bajo cero. El golpe contra este depósito es inventado."
+
+msgid "The town fell to the Republic, and was lost again in February 1938."
+msgstr "La ciudad cayó en manos de la República, y se perdió de nuevo en febrero de 1938."
+
+msgid "May 1938. 308 Asturian soldiers, taken prisoner when the north fell, are held in the fort of Carchuna on the Granada coast, close behind the front. On the 16th four officers escaped to the Republican lines and told what they knew. On the 23rd, 35 volunteers, five of them from the International Brigades, cross by launch from Castell de Ferro. Here the two of you go in ahead of them, and one officer stands for the 308."
+msgstr "Mayo de 1938. 308 soldados asturianos, hechos prisioneros al caer el norte, están encerrados en el fuerte de Carchuna, en la costa de Granada, muy cerca del frente. El día 16 cuatro oficiales escaparon a las líneas republicanas y contaron lo que sabían. El 23, 35 voluntarios, cinco de ellos de las Brigadas Internacionales, cruzan en lancha desde Castell de Ferro. Aquí vosotros dos entráis por delante de ellos, y un oficial representa a los 308."
+
+msgid "The raiders took the fort and led the prisoners towards the Republican lines in two columns, with an artillery barrage to cover them. Twenty-five chose to stay behind."
+msgstr "Los asaltantes tomaron el fuerte y llevaron a los prisioneros hacia las líneas republicanas en dos columnas, cubiertos por una barrera de artillería. Veinticinco prefirieron quedarse."
+
+msgid "The night of 24 to 25 July 1938, with no moon. The Republican army is about to cross the river in boats. It is said that men went over ahead of them, killed the sentries on the far bank and made lines fast for the boats. Here the two of you are those men."
+msgstr "La noche del 24 al 25 de julio de 1938, sin luna. El ejército republicano está a punto de cruzar el río en barcas. Se cuenta que unos hombres pasaron antes, mataron a los centinelas de la otra orilla y amarraron cabos para las barcas. Aquí esos hombres sois vosotros dos."
+
+msgid "The first wave crossed that night in ninety boats, ten men to a boat. The battle that followed was the longest and largest of the war, and ended on 16 November."
+msgstr "La primera oleada cruzó aquella noche en noventa barcas, diez hombres por barca. La batalla que siguió fue la más larga y la mayor de la guerra, y terminó el 16 de noviembre."
+
+msgid "Early 1942. The División Azul, Spanish volunteers serving in the German army as its 250th Infantry Division, is on the Volkhov front, the first it was sent to. Spanish Republicans in exile in the Soviet Union served in Soviet guerrilla units in this war, and some died fighting near Leningrad. This raid is invented: the two of you in Soviet service now, and Spaniards on the other side of the snow."
+msgstr "Principios de 1942. La División Azul, voluntarios españoles que sirven en el ejército alemán como su División de Infantería 250, está en el frente del Vóljov, el primero al que la enviaron. Republicanos españoles exiliados en la Unión Soviética sirvieron en unidades guerrilleras soviéticas en esta guerra, y algunos murieron luchando cerca de Leningrado. Este golpe es inventado: vosotros dos, ahora al servicio soviético, y españoles al otro lado de la nieve."
+
+msgid "The División Azul stayed on the Volkhov until August 1942, when it was moved north to the siege lines round Leningrad."
+msgstr "La División Azul siguió en el Vóljov hasta agosto de 1942, cuando la trasladaron al norte, a las líneas del cerco de Leningrado."
+
+msgid "The night of 9 February 1943, south of Leningrad. The División Azul holds the line at Krasny Bor, and the Soviet 55th Army is about to attack it. This raid on its guns is invented."
+msgstr "La noche del 9 de febrero de 1943, al sur de Leningrado. La División Azul guarda la línea en Krasny Bor, y el 55 Ejército soviético está a punto de atacarla. Este golpe contra sus cañones es inventado."
+
+msgid "At a quarter to seven on 10 February the Soviet guns opened on the Spanish lines. By the 15th the División Azul reported 3,645 killed or wounded and 300 missing or prisoner, 70 to 75 in every hundred of the men it had in the battle. By the 13th the 55th Army had lost almost a third of its strength, and it was held inside the ring round Leningrad. For the two of you it was nearly six years since the Guadarrama."
+msgstr "A las siete menos cuarto del 10 de febrero los cañones soviéticos abrieron fuego sobre las líneas españolas. El día 15 la División Azul daba 3.645 muertos o heridos y 300 desaparecidos o prisioneros, de 70 a 75 de cada cien hombres que tenía en la batalla. El día 13 el 55 Ejército había perdido casi un tercio de sus fuerzas, y quedó detenido dentro del cerco de Leningrado. Para vosotros dos habían pasado casi seis años desde el Guadarrama."
+
+msgid "Blow up the stores stacked in the farm's yard with the Dynamiter's charge."
+msgstr "Vuela los pertrechos apilados en el corral de la masía con la carga del Dinamitero."
+
+msgid "Get both of them to the camp fire on the road east."
+msgstr "Lleva a los dos hasta la hoguera del camino del este."
+
+msgid "Lose either one and the mission fails."
+msgstr "Si cae uno de los dos, la misión fracasa."
+
+msgid "Get into the fort and open the cells (F at the door)."
+msgstr "Entra en el fuerte y abre las celdas (F en la puerta)."
+
+msgid "Bring the officer back to the launch on the beach. He follows whoever freed him and does as they do."
+msgstr "Lleva al oficial hasta la lancha de la playa. Sigue a quien lo liberó y hace lo mismo que él."
+
+msgid "Lose him or either of you and the mission fails."
+msgstr "Si cae él o uno de vosotros, la misión fracasa."
+
+msgid "Silence the three sentries on the bank before the boats set out. The clock is at the top of the screen."
+msgstr "Acalla a los tres centinelas de la orilla antes de que salgan las barcas. El reloj está arriba en la pantalla."
+
+msgid "Not a shot, not a shout: a shot fired or an alarm raised before the last of them is down, and the boats come in under fire."
+msgstr "Ni un tiro, ni un grito: un disparo o una alarma antes de que caiga el último, y las barcas llegan bajo el fuego."
+
+msgid "Then both of you to the landing. Lose either one and the mission fails."
+msgstr "Después, los dos al desembarcadero. Si cae uno de los dos, la misión fracasa."
+
+msgid "Cross the frozen river and take the orders from the command post (F at the table)."
+msgstr "Cruza el río helado y coge las órdenes del puesto de mando (F en la mesa)."
+
+msgid "Bring them back across the river to the dug-out. F puts them down; whoever holds them cannot carry a body."
+msgstr "Tráelas de vuelta por el río hasta el refugio. F las deja en el suelo; quien las lleva no puede cargar con un cuerpo."
+
+msgid "Cut the telephone line at its three marked poles (F, and stand still for four seconds)."
+msgstr "Corta la línea telefónica en sus tres postes marcados (F, y quieto cuatro segundos)."
+
+msgid "Blow up the artillery store with the Dynamiter's charge. In any order."
+msgstr "Vuela el polvorín de artillería con la carga del Dinamitero. En cualquier orden."
+
+msgid "Then both of you back to the wood. Lose either one and the mission fails."
+msgstr "Después, los dos de vuelta al bosque. Si cae uno de los dos, la misión fracasa."
+
+msgid "Destroy the railway bridge with the Dynamiter's charge."
+msgstr "Destruye el puente del ferrocarril con la carga del Dinamitero."
+
+msgid "Get both of them to the extraction point on the far bank."
+msgstr "Lleva a los dos al punto de extracción de la otra orilla."
+
+msgid "Left click"
+msgstr "Clic izquierdo"
+
+msgid "Move the selected specialist"
+msgstr "Mueve al especialista seleccionado"
+
+msgid "Double-click"
+msgstr "Doble clic"
+
+msgid "Run (the Dynamiter's boots are heard)"
+msgstr "Corre (las botas del Dinamitero se oyen)"
+
+msgid "1 / 2, or click one"
+msgstr "1 / 2, o clic en uno"
+
+msgid "Select the Dynamiter / the Marksman (again: find them)"
+msgstr "Dinamitero / Tirador (otra vez: lo busca)"
+
+msgid "Select both: they move and crawl together"
+msgstr "Los dos: se mueven y se arrastran juntos"
+
+msgid "Click a guard"
+msgstr "Clic en un guardia"
+
+msgid "Show what it can see: red even crawling, yellow standing"
+msgstr "Lo que ve: rojo, hasta a rastras; amarillo, de pie"
+
+msgid "Crawl / stand"
+msgstr "Cuerpo a tierra / en pie"
+
+msgid "Knife (Dynamiter), then click a guard"
+msgstr "Cuchillo (Dinamitero), luego clic en un guardia"
+
+msgid "Charge at your feet (Dynamiter) / Rifle (Marksman)"
+msgstr "Carga a tus pies (Dinamitero) / Fusil (Tirador)"
+
+msgid "Pistol, then click a guard"
+msgstr "Pistola, luego clic en un guardia"
+
+msgid "Throw a stone: click where; guards in earshot go and look"
+msgstr "Piedra: clic donde caiga; quien la oye va a mirar"
+
+msgid "Use, take, put down or cut. Carry or drop a body (Dynamiter)"
+msgstr "Usa, coge, deja o corta. Carga o suelta un cuerpo"
+
+msgid "Space"
+msgstr "Espacio"
+
+msgid "Pause and look around"
+msgstr "Pausa para mirar alrededor"
+
+msgid "Quick save / quick load"
+msgstr "Guardado rápido / carga rápida"
+
+msgid "Turn the camera"
+msgstr "Gira la cámara"
+
+msgid "Mouse wheel, screen edges"
+msgstr "Rueda, bordes de pantalla"
+
+msgid "Zoom, scroll"
+msgstr "Zoom, desplazamiento"
+
+msgid "The bridge"
+msgstr "El puente"
+
+msgid "The depot"
+msgstr "El depósito"
+
+msgid "Fort Carchuna"
+msgstr "Fuerte de Carchuna"
+
+msgid "The crossing"
+msgstr "El cruce"
+
+msgid "The orders"
+msgstr "Las órdenes"
+
+msgid "The guns"
+msgstr "Los cañones"
+
+msgid "Fort Carchuna, Granada"
+msgstr "Fuerte de Carchuna, Granada"
+
+msgid "The Ebro"
+msgstr "El Ebro"
+
+msgid "Volkhov front"
+msgstr "Frente del Vóljov"
+
+msgid "May 1937"
+msgstr "Mayo de 1937"
+
+msgid "December 1937"
+msgstr "Diciembre de 1937"
+
+msgid "23 May 1938"
+msgstr "23 de mayo de 1938"
+
+msgid "24–25 July 1938"
+msgstr "24–25 de julio de 1938"
+
+msgid "Early 1942"
+msgstr "Principios de 1942"
+
+msgid "9 February 1943"
+msgstr "9 de febrero de 1943"
+
+msgid "The bridge in the Guadarrama"
+msgstr "El puente del Guadarrama"
+
+msgid "The depot outside Teruel"
+msgstr "El depósito a las afueras de Teruel"
+
+msgid "The bridge at dawn"
+msgstr "El puente al amanecer"
+
+msgid "Destroy the bridge"
+msgstr "Destruye el puente"
+
+msgid "Bridge destroyed"
+msgstr "Puente destruido"
+
+msgid "Bridge"
+msgstr "Puente"
+
+msgid "Destroy the depot"
+msgstr "Destruye el depósito"
+
+msgid "Depot destroyed"
+msgstr "Depósito destruido"
+
+msgid "Depot"
+msgstr "Depósito"
+
+msgid "Free the officer"
+msgstr "Libera al oficial"
+
+msgid "Bring the officer to the launch"
+msgstr "Lleva al oficial a la lancha"
+
+msgid "Cells"
+msgstr "Celdas"
+
+msgid "Silence the sentries"
+msgstr "Acalla a los centinelas"
+
+msgid "The bank is quiet: the boats are crossing"
+msgstr "La orilla está en silencio: las barcas cruzan"
+
+msgid "Sentry"
+msgstr "Centinela"
+
+msgid "Take the orders from the command post"
+msgstr "Coge las órdenes del puesto de mando"
+
+msgid "The orders are out"
+msgstr "Las órdenes están fuera"
+
+msgid "Bring the orders back across the river"
+msgstr "Lleva las órdenes al otro lado del río"
+
+msgid "Command post"
+msgstr "Puesto de mando"
+
+msgid "Orders"
+msgstr "Órdenes"
+
+msgid "You have the orders"
+msgstr "Tienes las órdenes"
+
+msgid "Cut the telephone lines"
+msgstr "Corta las líneas telefónicas"
+
+msgid "The lines are cut"
+msgstr "Las líneas están cortadas"
+
+msgid "Line"
+msgstr "Línea"
+
+msgid "Destroy the artillery store"
+msgstr "Destruye el polvorín de artillería"
+
+msgid "Store destroyed"
+msgstr "Polvorín destruido"
+
+msgid "Store"
+msgstr "Polvorín"
+
+msgid "Bring it out"
+msgstr "Sácalo de aquí"
+
+msgid "Bring the prisoner to the extraction point"
+msgstr "Lleva al prisionero al punto de extracción"
+
+msgid "Extraction"
+msgstr "Extracción"
+
+msgid "%s: %d left"
+msgstr "%s: quedan %d"
+
+msgid "%s: %d left. Boats in %d:%02d"
+msgstr "%s: quedan %d. Barcas en %d:%02d"
+
+msgid "Cutting the line: stand still"
+msgstr "Cortando la línea: no te muevas"
+
+msgid "The cell is open"
+msgstr "La celda está abierta"
+
+msgid "A specialist was killed"
+msgstr "Ha caído un especialista"
+
+msgid "The squad is cut off from the extraction point"
+msgstr "El grupo ha quedado aislado del punto de extracción"
+
+msgid "The bridge is down and the squad is cut off from the extraction point"
+msgstr "El puente ha caído y el grupo ha quedado aislado del punto de extracción"
+
+msgid "The objective can no longer be met"
+msgstr "El objetivo ya no se puede cumplir"
+
+msgid "The boats came in under the sentries' guns"
+msgstr "Las barcas llegaron bajo los fusiles de los centinelas"
+
+msgid "The alarm was raised before the boats crossed"
+msgstr "Se dio la alarma antes de que cruzaran las barcas"
+
+msgid "A shot was heard along the bank before the boats crossed"
+msgstr "Se oyó un disparo en la orilla antes de que cruzaran las barcas"
+
+msgid "The prisoner was killed"
+msgstr "Han matado al prisionero"
+
+msgid "Mission complete"
+msgstr "Misión cumplida"
+
+msgid "Mission failed"
+msgstr "Misión fracasada"
+
+msgid "Restart"
+msgstr "Reiniciar"
+
+msgid "Next mission"
+msgstr "Siguiente misión"
+
+msgid "Back to the missions"
+msgstr "Volver a las misiones"
+
+msgid "Objective: "
+msgstr "Objetivo: "
+
+msgid "Objective: Reach the extraction point"
+msgstr "Objetivo: Llega al punto de extracción"
+
+msgid "Alarm: %d"
+msgstr "Alarma: %d"
+
+msgid "Alarm: 0"
+msgstr "Alarma: 0"
+
+msgid "Fuse: "
+msgstr "Mecha: "
+
+msgid "Dynamiter"
+msgstr "Dinamitero"
+
+msgid "Marksman"
+msgstr "Tirador"
+
+msgid "Crawling"
+msgstr "A rastras"
+
+msgid "Paused"
+msgstr "En pausa"
+
+msgid "Space to resume"
+msgstr "Espacio para seguir"
+
+msgid "Keep playing"
+msgstr "Seguir jugando"
+
+msgid "The charge was too far from the target"
+msgstr "La carga estaba demasiado lejos del objetivo"
+
+msgid "Knife"
+msgstr "Cuchillo"
+
+msgid "Pistol"
+msgstr "Pistola"
+
+msgid "Rifle"
+msgstr "Fusil"
+
+msgid "Charge"
+msgstr "Carga"
+
+msgid "Carry"
+msgstr "Cargar"
+
+msgid "Stone"
+msgstr "Piedra"
+
+msgid "Can't save after the mission has ended"
+msgstr "No se puede guardar con la misión terminada"
+
+msgid "Can't get there"
+msgstr "No se puede llegar ahí"
+
+msgid "no ability on this key"
+msgstr "nada en esta tecla"
+
+msgid "out of ammo"
+msgstr "sin munición"
+
+msgid "not ready yet"
+msgstr "aún no está listo"
+
+msgid "no body in reach"
+msgstr "ningún cuerpo al alcance"
+
+msgid "invalid target"
+msgstr "objetivo no válido"
+
+msgid "This save can't be loaded. Restart the mission?"
+msgstr "Esta partida no se puede cargar. ¿Reiniciar la misión?"
+
+msgid "Couldn't save the game"
+msgstr "No se pudo guardar la partida"
+
+msgid "Game saved"
+msgstr "Partida guardada"
+
+msgid "No save found"
+msgstr "No hay partida guardada"
+
+msgid "Game loaded"
+msgstr "Partida cargada"
+
+msgid "Start"
+msgstr "Empezar"
+
+msgid "Enter or Space also start  ·  Credits and licences: /credits.txt"
+msgstr "Intro o Espacio también empiezan  ·  Créditos y licencias: /credits.txt"

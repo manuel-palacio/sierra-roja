@@ -41,6 +41,11 @@ var mission_buttons: Array[Button] = []
 ## What history says of the mission shown; hidden when it has no note.
 var note_label: Label
 
+## Switches to the other language, and is named for it in that language.
+var language_button: Button
+
+var _mission: Mission
+var _index := -1
 var _subtitle: Label
 var _objective_box: VBoxContainer
 
@@ -94,11 +99,16 @@ func _init() -> void:
 	for i in Missions.LIST.size():
 		var entry: Dictionary = Missions.LIST[i]
 		var button := UiStyle.button(Button.new(), 13)
-		button.text = "%d  %s" % [i + 1, "%s, %s" % [entry["place"], entry["date"]] if entry["place"] != "" else entry["name"]]
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		button.pressed.connect(func() -> void: mission_chosen.emit(i))
 		missions.add_child(button)
 		mission_buttons.append(button)
+	language_button = UiStyle.button(Button.new(), 13)
+	language_button.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+	language_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	language_button.pressed.connect(func() -> void: Language.choose(Language.other()))
+	column.add_child(language_button)
+	_word_missions()
 	column.add_child(HSeparator.new())
 	# The mission on the left, the controls on the right: one above the other is too tall for a
 	# small window once a mission has its history to tell.
@@ -142,6 +152,8 @@ func _init() -> void:
 
 ## Shows a mission's own title, history and objectives, and marks it in the list of missions.
 func set_mission(mission: Mission, index: int) -> void:
+	_mission = mission
+	_index = index
 	_subtitle.text = mission.title
 	note_label.text = History.before(Missions.id_at(index))
 	note_label.visible = note_label.text != ""
@@ -153,12 +165,28 @@ func set_mission(mission: Mission, index: int) -> void:
 				UiStyle.BRASS_BRIGHT if i == index else Color(0.45, 0.46, 0.5))
 
 
+## The words put together from parts, in the language of the moment.
+func _word_missions() -> void:
+	for i in mission_buttons.size():
+		var entry: Dictionary = Missions.LIST[i]
+		mission_buttons[i].text = "%d  %s" % [i + 1, "%s, %s" % [tr(entry["place"]), tr(entry["date"])]
+				if entry["place"] != "" else tr(entry["name"])]
+	language_button.text = Language.NAMES[Language.other()]
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_TRANSLATION_CHANGED and start_button != null:
+		_word_missions()
+		if _mission != null:
+			_show_objectives(_mission.briefing_lines)
+
+
 func _show_objectives(lines: Array) -> void:
 	for child in _objective_box.get_children():
 		_objective_box.remove_child(child)
 		child.free()
 	for line: String in lines:
-		var label := _text("•  " + line, 16, Color.WHITE)
+		var label := _text("•  " + tr(line), 16, Color.WHITE)
 		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		label.custom_minimum_size = Vector2(TEXT_WIDTH, 0)
 		_objective_box.add_child(label)

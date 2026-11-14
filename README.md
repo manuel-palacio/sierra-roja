@@ -35,6 +35,11 @@ renderer, single-threaded web export). "Sierra Roja" is a working title.
 | `Z` / `X` | Turn the camera a quarter turn |
 | Mouse at the screen edge | Scroll the camera |
 
+The game is in English and Spanish. It starts in the browser's language; the button under the list of
+missions on the briefing switches, and the choice is kept in the browser (`?lang=es` or `?lang=en` in the
+address sets it too). The Spanish is in `assets/i18n/es.po`, looked up by the English text as it stands in
+the code and the scenes; `tests/ui/test_language.gd` fails when a text has none.
+
 The game opens on a briefing with the objectives and these controls; `Start`, `Enter` or `Space`
 begins. Sound starts after your first click or key press (browser rule).
 

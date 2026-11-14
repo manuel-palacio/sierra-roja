@@ -28,3 +28,8 @@ renderer/rendering_method.mobile="gl_compatibility"
 
 world/map_use_async_iterations=false
 world/region_use_async_iterations=false
+
+[internationalization]
+
+locale/translations=PackedStringArray("res://assets/i18n/es.po")
+locale/fallback="en"

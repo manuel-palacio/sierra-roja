@@ -32,6 +32,27 @@
 
 		const status = document.getElementById('status');
 
+		// The page speaks the language the game will: the address's (?lang=), else the one chosen
+		// in the game before, else the browser's. See src/core/language.gd.
+		const SPANISH = {
+			'Loading… ': 'Cargando… ',
+			'Starting…': 'Empezando…',
+			'The game could not start.': 'El juego no ha podido empezar.',
+			'This game must be opened over HTTPS': 'Este juego tiene que abrirse por HTTPS',
+			'This game needs WebGL2. Please use a current desktop browser with hardware acceleration enabled.':
+				'Este juego necesita WebGL2. Usa un navegador de escritorio actual con la aceleración por hardware activada.',
+		};
+		let language = new URLSearchParams(location.search).get('lang');
+		if (language !== 'en' && language !== 'es') {
+			try { language = localStorage.getItem('sierra-roja-language'); } catch (e) { language = null; }
+		}
+		if (language !== 'en' && language !== 'es') {
+			language = (navigator.language || 'en').toLowerCase().startsWith('es') ? 'es' : 'en';
+		}
+		document.documentElement.lang = language;
+		const t = (text) => language === 'es' && SPANISH[text] || text;
+		document.getElementById('percent').textContent = t('Loading… ').trim();
+
 		function fail(text) {
 			canvas.style.display = 'none';
 			status.style.display = 'none';
@@ -43,7 +64,7 @@
 		// it happened in, so it can be read and reported without opening developer tools.
 		function failWhileLoading(what) {
 			if (!window.sierraStarted) {
-				fail('The game could not start.\n\n' + what + '\n\n' + navigator.userAgent);
+				fail(t('The game could not start.') + '\n\n' + what + '\n\n' + navigator.userAgent);
 			}
 		}
 		window.addEventListener('error', (e) => failWhileLoading(e.message || String(e.error)));
@@ -53,9 +74,9 @@
 		// Probe on a throwaway canvas so the game canvas stays untouched.
 		const probe = document.createElement('canvas');
 		if (!window.isSecureContext) {
-			fail('This game must be opened over HTTPS');
+			fail(t('This game must be opened over HTTPS'));
 		} else if (!probe.getContext('webgl2')) {
-			fail('This game needs WebGL2. Please use a current desktop browser with hardware acceleration enabled.');
+			fail(t('This game needs WebGL2. Please use a current desktop browser with hardware acceleration enabled.'));
 		} else {
 			// Downloading fills the bar; after that the browser still has to prepare the engine, which
 			// can take some seconds with nothing to count, so the line says so.
@@ -67,12 +88,12 @@
 					const done = Math.min(100, Math.round(100 * current / total));
 					fill.style.width = done + '%';
 					bar.setAttribute('aria-valuenow', done);
-					percent.textContent = done < 100 ? 'Loading… ' + done + '%' : 'Starting…';
+					percent.textContent = done < 100 ? t('Loading… ') + done + '%' : t('Starting…');
 				}
 			};
 			new Engine(GODOT_CONFIG).startGame({ canvas, onProgress })
 				.then(() => { window.sierraStarted = true; status.style.display = 'none'; })
-				.catch((err) => fail('The game could not start.\n\n' + (err && err.message || err) + '\n\n' + navigator.userAgent));
+				.catch((err) => fail(t('The game could not start.') + '\n\n' + (err && err.message || err) + '\n\n' + navigator.userAgent));
 		}
 	</script>
 </body>

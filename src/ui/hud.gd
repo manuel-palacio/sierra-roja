@@ -49,6 +49,7 @@ var _rules: MissionRules
 var _specialists: Array[Specialist] = []
 var _overlay: VisionOverlay
 var _portraits: Array[PanelContainer] = []
+var _name_labels: Array[Label] = []
 var _ability_row: HBoxContainer
 var _bar_owner: Specialist
 var _message_left := 0.0
@@ -76,6 +77,7 @@ func setup(input: PlayerInput, rules: MissionRules, specialists: Array[Specialis
 	_specialists = specialists
 	_overlay = overlay
 	_build_portraits()
+	_name_portraits()
 	input.selection_changed.connect(func(_s: Specialist) -> void: refresh())
 	input.paused_changed.connect(func(_p: bool) -> void: refresh())
 	input.order_refused.connect(show_message)
@@ -130,10 +132,10 @@ func refresh() -> void:
 				UiStyle.BRASS_BRIGHT if chosen else UiStyle.BRASS, 3 if chosen else 2))
 	_refresh_abilities()
 	_refresh_fuse()
-	alarm_label.text = "Alarm: %d" % _rules.alarm_level
+	alarm_label.text = tr("Alarm: %d") % _rules.alarm_level
 	alarm_label.modulate = Color(1, 0.4, 0.3) if _rules.alarm_level > 0 else Color.WHITE
 	var objective := _rules.current_objective()
-	objective_label.text = OBJECTIVE_PREFIX + objective.current_hud_text() if objective else OBJECTIVE_ESCAPE
+	objective_label.text = tr(OBJECTIVE_PREFIX) + tr(objective.current_hud_text()) if objective else tr(OBJECTIVE_ESCAPE)
 	objective_label.visible = _rules.result == MissionRules.Result.RUNNING
 	pause_box.visible = _input.is_paused()
 
@@ -186,7 +188,7 @@ func _refresh_fuse() -> void:
 	for seconds in left:
 		parts.append("%ds" % ceili(seconds))
 	fuse_label.visible = not left.is_empty()
-	fuse_label.text = "Fuse: " + ", ".join(parts)
+	fuse_label.text = tr("Fuse: ") + ", ".join(parts)
 
 
 func _restart() -> void:
@@ -277,6 +279,17 @@ func _build_bottom() -> void:
 	row.add_child(_ability_row)
 
 
+## "1  Dynamiter", in the language of the moment.
+func _name_portraits() -> void:
+	for i in _name_labels.size():
+		_name_labels[i].text = "%d  %s" % [i + 1, tr(_name_labels[i].get_meta("who"))]
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_TRANSLATION_CHANGED:
+		_name_portraits()
+
+
 func _build_portraits() -> void:
 	var row := bottom_bar.get_child(0) as HBoxContainer
 	for i in _specialists.size():
@@ -297,7 +310,10 @@ func _build_portraits() -> void:
 		var box := _control(VBoxContainer.new())
 		box.add_theme_constant_override("separation", 5)
 		across.add_child(box)
-		box.add_child(_label("%d  %s" % [i + 1, "Dynamiter" if who == &"dynamiter" else "Marksman"]))
+		var name_label := _label("")
+		name_label.set_meta("who", "Dynamiter" if who == &"dynamiter" else "Marksman")
+		box.add_child(name_label)
+		_name_labels.append(name_label)
 		var bar := ProgressBar.new()
 		bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		bar.custom_minimum_size = Vector2(132, 12)

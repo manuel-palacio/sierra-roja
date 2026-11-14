@@ -86,7 +86,7 @@ func _process(delta: float) -> void:
 		label.text = name_text
 	else:
 		var away := Vector2(target.x - _camera.focus.x, target.z - _camera.focus.z).length()
-		label.text = "%s %d m" % [name_text, int(roundf(away))]
+		label.text = "%s %d m" % [tr(name_text), int(roundf(away))]
 	arrow.position = at
 	arrow.rotation = p["angle"]
 	var size := label.get_minimum_size()

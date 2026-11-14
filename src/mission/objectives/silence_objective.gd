@@ -50,7 +50,7 @@ func sentries_left() -> int:
 
 func current_hud_text() -> String:
 	var whole := int(ceilf(time_left))
-	return "%s: %d left. Boats in %d:%02d" % [hud_text, sentries_left(), whole / 60, whole % 60]
+	return tr("%s: %d left. Boats in %d:%02d") % [tr(hud_text), sentries_left(), whole / 60, whole % 60]
 
 
 ## The pointer leads to the sentry nearest the first specialist still alive.

@@ -26,7 +26,7 @@ func points_left() -> int:
 
 
 func current_hud_text() -> String:
-	return "%s: %d left" % [hud_text, points_left()]
+	return tr("%s: %d left") % [tr(hud_text), points_left()]
 
 
 ## The pointer leads to the first point still whole.
