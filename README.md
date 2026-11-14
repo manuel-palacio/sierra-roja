@@ -33,6 +33,7 @@ renderer, single-threaded web export). "Sierra Roja" is a working title.
 | `O` / `L` | Quick save (not once the mission has ended) / quick load |
 | Mouse wheel | Zoom |
 | `Z` / `X` | Turn the camera a quarter turn |
+| `M` | Map: the whole ground at once, with each guard and the beat he walks, the pair, and the way out. `M` again goes back |
 | Mouse at the screen edge | Scroll the camera |
 
 On a phone or a tablet the game is played with fingers, and the briefing says so:
@@ -44,7 +45,7 @@ On a phone or a tablet the game is played with fingers, and the briefing says so
 | Drag | Scroll the view |
 | Two fingers | Pinch to zoom, twist to turn the camera a quarter turn |
 | The pictures, bottom right | The abilities: tap one, then its target; tap it again to put it away |
-| The buttons, top right | Both, Crawl, Use (what `F` does), Save, Load, Pause |
+| The buttons, top right | Both, Crawl, Use (what `F` does), Map, Save, Load, Pause |
 
 The HUD and the briefing are drawn larger there, and a phone held upright is asked to turn. The touch
 buttons also appear on any screen from the first touch on; `?touch=1` in the address shows them from the start.

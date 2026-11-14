@@ -5,7 +5,7 @@ extends Node
 ##
 ## Hotkeys: 1/2 select (again: centre the camera on them), 3 select both, C stance, Q knife, E main ability (charge, else rifle), R pistol,
 ## F pick up / drop, T stone, Space pause, Escape or right click disarm, O quick save, L quick load,
-## Z / X turn the camera a quarter turn.
+## Z / X turn the camera a quarter turn, M shows the whole ground and back.
 ## Fingers: a tap is a left click, a drag scrolls the view, two fingers zoom and turn it.
 
 signal selection_changed(s: Specialist)
@@ -71,6 +71,7 @@ const SELECT_BOTH_KEY := KEY_3
 const SIDE_BY_SIDE := 1.4
 ## Key -> quarter turns of the camera.
 const ROTATE_KEYS := { KEY_Z: -1, KEY_X: 1 }
+const MAP_KEY := KEY_M
 
 ## The specialist abilities belong to; with both selected, the one selected first.
 var selected: Specialist
@@ -274,6 +275,9 @@ func _on_key(event: InputEventKey) -> void:
 	elif ROTATE_KEYS.has(key):
 		# Looking round is always allowed: paused, and after the mission has ended.
 		_camera.rotate_by(ROTATE_KEYS[key])
+	elif key == MAP_KEY:
+		# Looking, like turning the camera: allowed paused and after the mission has ended.
+		_camera.toggle_map_view()
 	elif key == KEY_O:
 		# Saving works paused, but not after a result: that would overwrite the only save with the
 		# ended mission. Loading works any time, so a lost mission can go back to that save.

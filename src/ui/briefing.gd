@@ -26,7 +26,7 @@ const CONTROLS: Array[Array] = [
 	["F", "Use, take, put down or cut. Carry or drop a body (Dynamiter)"],
 	["Space", "Pause and look around"],
 	["O / L", "Quick save / quick load"],
-	["Z / X", "Turn the camera"],
+	["Z / X, M", "Turn the camera; map of the whole ground"],
 	["Mouse wheel, screen edges", "Zoom, scroll"],
 ]
 ## The same, told to someone playing with fingers (see Touch).
@@ -39,7 +39,7 @@ const TOUCH_CONTROLS: Array[Array] = [
 	["Two fingers", "Pinch to zoom, twist to turn the camera"],
 	["Pictures, bottom right", "Knife, charge, pistol, rifle, carry, stone"],
 	["", "Tap one, then its target. A stone brings guards to look"],
-	["Buttons, top right", "Both, crawl, use, save, load, pause"],
+	["Buttons, top right", "Both, crawl, use, map, save, load, pause"],
 ]
 const KEYS_HINT := "Enter or Space also start  ·  Credits and licences: /credits.txt"
 const TOUCH_HINT := "Credits and licences: /credits.txt"

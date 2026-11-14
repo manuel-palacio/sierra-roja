@@ -101,6 +101,10 @@ func _ready() -> void:
 		hud.end_screen.next_button.text = "Back to the missions"
 	hud.end_screen.next_pressed.connect(func() -> void:
 		go_to_mission(Missions.current + 1 if Missions.has_next() else 0))
+	var map := MapView.new()
+	hud.root.add_child(map)
+	hud.root.move_child(map, 0)
+	map.setup(camera, mission, specialists)
 	add_child(_vignette())
 	var objective_marker := ObjectiveMarker.new()
 	add_child(objective_marker)

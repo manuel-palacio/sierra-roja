@@ -145,8 +145,8 @@ msgstr "Pausa para mirar alrededor"
 msgid "Quick save / quick load"
 msgstr "Guardado rápido / carga rápida"
 
-msgid "Turn the camera"
-msgstr "Gira la cámara"
+msgid "Turn the camera; map of the whole ground"
+msgstr "Gira la cámara; mapa de todo el terreno"
 
 msgid "Mouse wheel, screen edges"
 msgstr "Rueda, bordes de pantalla"
@@ -193,8 +193,8 @@ msgstr "Toca uno y luego su objetivo. Una piedra atrae a los guardias"
 msgid "Buttons, top right"
 msgstr "Botones, arriba a la derecha"
 
-msgid "Both, crawl, use, save, load, pause"
-msgstr "Los dos, a rastras, usar, guardar, cargar, pausa"
+msgid "Both, crawl, use, map, save, load, pause"
+msgstr "Los dos, a rastras, usar, mapa, guardar, cargar, pausa"
 
 msgid "The bridge"
 msgstr "El puente"
@@ -561,3 +561,6 @@ msgstr "Continuar"
 
 msgid "Behind the lines, 1937–1943"
 msgstr "Tras las líneas, 1937–1943"
+
+msgid "Map"
+msgstr "Mapa"

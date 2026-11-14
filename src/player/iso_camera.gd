@@ -16,6 +16,9 @@ const EDGE_MARGIN := 16.0
 const PAN_SPEED := 20.0
 ## Seconds a quarter turn takes.
 const ROTATE_TIME := 0.25
+## The map view shows this much of the ground's diagonal, up to MAP_VIEW_MAX metres.
+const MAP_VIEW_FIT := 0.62
+const MAP_VIEW_MAX := 110.0
 
 ## Ground-plane (x, z) rectangle the focus point may move within.
 var bounds := Rect2(-40.0, -30.0, 80.0, 60.0):
@@ -28,6 +31,11 @@ var focus := Vector3.ZERO
 var edge_scroll_enabled := false
 ## False while the pointer is outside the window or the window has lost focus.
 var mouse_inside := true
+
+## The whole ground at once (see toggle_map_view). While it is on, the view neither scrolls nor zooms.
+var map_view := false
+var _size_before_map := ZOOM_START
+var _focus_before_map := Vector3.ZERO
 
 ## Which of the four sides the camera looks from: yaw = YAW_DEG + 90 * quarter.
 var quarter := 0
@@ -133,8 +141,27 @@ func advance_turn(delta: float) -> void:
 	_apply()
 
 
+## Into the map view, where the whole of the mission's ground is on the screen, and back out to
+## where the view was.
+func toggle_map_view() -> void:
+	map_view = not map_view
+	if map_view:
+		_size_before_map = size
+		_focus_before_map = focus
+		var centre := bounds.get_center()
+		focus = Vector3(centre.x, focus.y, centre.y)
+		# Seen from a corner and at a slant, the ground is at most its diagonal across.
+		size = clampf(bounds.size.length() * MAP_VIEW_FIT, ZOOM_MAX, MAP_VIEW_MAX)
+	else:
+		size = _size_before_map
+		focus = _focus_before_map
+	_apply()
+
+
 ## Moves the focus by [param delta] metres on the ground plane (x = east, y = south).
 func pan(delta: Vector2) -> void:
+	if map_view:
+		return
 	focus += Vector3(delta.x, 0.0, delta.y)
 	_apply()
 
@@ -159,6 +186,8 @@ func set_ground_level(y: float) -> void:
 
 ## Brings a place on the ground to the middle of the view.
 func centre_on(pos: Vector3) -> void:
+	if map_view:
+		return
 	focus.x = pos.x
 	focus.z = pos.z
 	_apply()
@@ -166,6 +195,8 @@ func centre_on(pos: Vector3) -> void:
 
 ## Positive steps zoom in, negative zoom out.
 func zoom_by(step: int) -> void:
+	if map_view:
+		return
 	size = clampf(size - step * ZOOM_STEP, ZOOM_MIN, ZOOM_MAX)
 
 

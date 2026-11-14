@@ -392,7 +392,7 @@ func test_touch_buttons_show_only_for_fingers_and_do_what_the_keys_do() -> void:
 	Touch.set_active(true)
 	hud.refresh()
 	assert_true(hud.touch_bar.visible)
-	assert_eq(hud.touch_buttons.keys(), ["Both", "Crawl", "Use", "Save", "Load", "Pause"])
+	assert_eq(hud.touch_buttons.keys(), ["Both", "Crawl", "Use", "Map", "Save", "Load", "Pause"])
 	(hud.touch_buttons["Crawl"] as Button).pressed.emit()
 	assert_eq(specs[0].stance, Unit.Stance.CRAWLING)
 	(hud.touch_buttons["Both"] as Button).pressed.emit()

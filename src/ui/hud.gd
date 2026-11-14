@@ -19,7 +19,8 @@ const LABELS := {
 }
 ## What the keyboard does, for fingers: the button's word, and the key it stands for.
 const TOUCH_BUTTONS: Array[Array] = [
-	["Both", KEY_3], ["Crawl", KEY_C], ["Use", KEY_F], ["Save", KEY_O], ["Load", KEY_L], ["Pause", KEY_SPACE],
+	["Both", KEY_3], ["Crawl", KEY_C], ["Use", KEY_F], ["Map", KEY_M], ["Save", KEY_O], ["Load", KEY_L],
+	["Pause", KEY_SPACE],
 ]
 const TOUCH_BUTTON_SIZE := Vector2(70, 46)
 const RESUME_TEXT := "Space to resume"

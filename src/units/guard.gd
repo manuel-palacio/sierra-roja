@@ -75,6 +75,11 @@ func set_route(points: PackedVector3Array) -> void:
 	_waypoint = 0
 
 
+## The points of the beat, in the order they are walked.
+func route() -> PackedVector3Array:
+	return _route
+
+
 func route_size() -> int:
 	return _route.size()
 
