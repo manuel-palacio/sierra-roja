@@ -152,7 +152,8 @@ func refresh() -> void:
 		var s := _specialists[i]
 		health_bars[i].max_value = s.stats.max_hp
 		health_bars[i].value = s.hp
-		stance_labels[i].visible = s.stance == Unit.Stance.CRAWLING
+		stance_labels[i].visible = s.hidden or s.stance == Unit.Stance.CRAWLING
+		stance_labels[i].text = "Hidden" if s.hidden else "Crawling"
 		var chosen := s in _input.selected_units()
 		_portraits[i].modulate = Color.WHITE if chosen else Color(1, 1, 1, 0.62)
 		_portraits[i].add_theme_stylebox_override("panel", UiStyle.box(UiStyle.PANEL,

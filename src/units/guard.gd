@@ -172,7 +172,7 @@ func _strongest_target() -> Dictionary:
 	var best_dist := INF
 	for node in get_tree().get_nodes_in_group(Unit.HUNTED):
 		var spec := node as Unit
-		if spec == null or not spec.alive:
+		if spec == null or not spec.alive or (spec is Specialist and (spec as Specialist).hidden):
 			continue
 		var zone := Perception.sees(self, spec, vision.target_height(spec.stance),
 				current_far_range(), vision)
@@ -190,7 +190,7 @@ func _strongest_target() -> Dictionary:
 func _find_body() -> Body:
 	for node in get_tree().get_nodes_in_group(Body.GROUP):
 		var body := node as Body
-		if body.found or body.carried_by != null:
+		if body.found or body.hidden or body.carried_by != null:
 			continue
 		var zone := Perception.sees(self, body, vision.target_height_crawling, current_far_range(), vision)
 		if zone != Vision.Zone.NONE:

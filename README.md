@@ -80,6 +80,11 @@ What a mission asks for is a list of objectives in its scene:
 - **Silence** named sentries before a clock runs out, with no alarm raised anywhere until the last is down.
 - **Cut** telephone lines at marked poles.
 
+Haystacks and trucks are hiding places, marked `F: hide` when one of the pair is near. `F` beside one with a
+body in your arms leaves the body inside, where no guard finds it; with empty arms it hides the specialist,
+who is then seen by nobody and can do nothing until `F` or an order to move brings them out. Each holds one
+body and one person, and nobody gets in while a guard is suspicious or alarmed.
+
 `F` uses what is next to the selected specialist (a cell door), takes up what lies there (the orders) and
 puts it down again, and at a marked pole starts cutting the line, which takes four seconds of standing
 still. Whoever holds something cannot carry a body.

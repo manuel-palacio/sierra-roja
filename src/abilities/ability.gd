@@ -40,7 +40,7 @@ func load_state(d: Dictionary) -> void:
 
 
 func _user_ready(user: Specialist) -> bool:
-	return user != null and is_instance_valid(user) and user.alive and user.is_inside_tree()
+	return user != null and is_instance_valid(user) and user.alive and user.is_inside_tree() and not user.hidden
 
 
 ## A live Guard, or null. Knife and firearms only ever target guards.

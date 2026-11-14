@@ -564,3 +564,27 @@ msgstr "Tras las líneas, 1937–1943"
 
 msgid "Map"
 msgstr "Mapa"
+
+msgid "F: hide"
+msgstr "F: esconderse"
+
+msgid "F: come out"
+msgstr "F: salir"
+
+msgid "Hidden. F, or a move, to come out"
+msgstr "Escondido. F, o moverte, para salir"
+
+msgid "The body is hidden"
+msgstr "El cuerpo está escondido"
+
+msgid "There is a body in there already"
+msgstr "Ya hay un cuerpo ahí dentro"
+
+msgid "There is no room in there"
+msgstr "Ahí dentro no cabe nadie más"
+
+msgid "Not while they are looking"
+msgstr "No mientras estén mirando"
+
+msgid "Hidden"
+msgstr "Escondido"

@@ -14,6 +14,11 @@ const KIT := &"guard"
 ## fall. Otherwise (a load) it is already lying there.
 var fell_now := false
 var found := false
+## Put in a hiding place: no guard finds it, and it is not lifted again.
+var hidden := false:
+	set(value):
+		hidden = value
+		visible = not value
 ## The carrier, or null.
 var carried_by: Specialist
 ## The guard this was, which is what identifies it in a save.
@@ -56,6 +61,7 @@ func save_state() -> Dictionary:
 		"pos": [global_position.x, global_position.y, global_position.z],
 		"rot": rotation.y,
 		"found": found,
+		"hidden": hidden,
 		"carrier": carrier,
 	}
 
@@ -68,4 +74,5 @@ func load_state(d: Dictionary) -> void:
 	global_position = Vector3(p[0], p[1], p[2])
 	rotation.y = float(d["rot"])
 	found = bool(d["found"])
+	hidden = bool(d.get("hidden", false))
 	carried_by = null

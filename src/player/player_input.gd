@@ -478,7 +478,7 @@ func _press_carry(ability: Ability) -> void:
 	for node in get_tree().get_nodes_in_group(Body.GROUP):
 		var body := node as Body
 		var d := selected.global_position.distance_to(body.global_position)
-		if body.carried_by == null and d < best:
+		if body.carried_by == null and not body.hidden and d < best:
 			best = d
 			nearest = body
 	if nearest != null and ability.can_use(selected, nearest):

@@ -22,6 +22,8 @@ const HAY := Color(0.78, 0.66, 0.32)
 @export var kind := &"well"
 ## Winter: snow on top of it. A look only.
 @export var snowy := false
+## The kinds a body or a specialist can be hidden in (see HidingPlace).
+const HIDING := [&"haystack", &"truck"]
 ## The kinds with a flat enough top for snow to lie on as a slab.
 const SNOW_TOPPED := [&"truck", &"well", &"launch", &"field_kitchen"]
 
@@ -59,6 +61,12 @@ func stand(ground: Callable) -> void:
 			_field_kitchen()
 		&"gun":
 			_gun()
+	if kind in HIDING:
+		var place := HidingPlace.new()
+		place.name = "HidingPlace"
+		# Near enough from beside it, whichever side: half its longest side and an arm's length.
+		place.reach = maxf(solid.x, solid.z) / 2.0 + 1.3
+		add_child(place)
 
 
 func _truck() -> void:

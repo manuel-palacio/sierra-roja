@@ -12,6 +12,16 @@ var carrying: Body
 ## The thing in hand (see Carryable), or null. With it they can crawl and fight but not carry.
 var holding: Carryable
 
+## In a hiding place (see HidingPlace): seen by nobody, and able to do nothing but come out.
+var hidden := false:
+	set(value):
+		hidden = value
+		if value:
+			stop()
+		var model := get_node_or_null("Model") as Node3D
+		if model != null:
+			model.visible = not value
+
 var _can_run_before_carry := true
 
 
@@ -28,6 +38,12 @@ func _physics_process(delta: float) -> void:
 	super(delta)
 	for id in abilities:
 		(abilities[id] as Ability).tick(delta)
+
+
+## An order to move brings them out of hiding.
+func move_to(target: Vector3, run := false) -> void:
+	hidden = false
+	super(target, run)
 
 
 func grant_abilities(ids: PackedStringArray) -> void:
@@ -70,6 +86,7 @@ func save_state() -> Dictionary:
 	for id in abilities:
 		saved[id] = (abilities[id] as Ability).save_state()
 	d["abilities"] = saved
+	d["hidden"] = hidden
 	return d
 
 
@@ -81,6 +98,7 @@ func load_state(d: Dictionary) -> void:
 	super(d)
 	for id in d["abilities"]:
 		(abilities[id] as Ability).load_state(d["abilities"][id])
+	hidden = bool(d.get("hidden", false))
 
 
 func _on_died(_unit: Unit) -> void:

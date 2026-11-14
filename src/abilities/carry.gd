@@ -17,7 +17,7 @@ func can_use(user: Specialist, target: Variant) -> bool:
 	if typeof(target) != TYPE_OBJECT or target == null or not is_instance_valid(target):
 		return false
 	var body := target as Body
-	return body != null and body.is_inside_tree() and body.carried_by == null \
+	return body != null and body.is_inside_tree() and body.carried_by == null and not body.hidden \
 			and user.global_position.distance_to(body.global_position) <= tuning.pickup_range
 
 
