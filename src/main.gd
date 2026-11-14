@@ -41,6 +41,7 @@ var force_snowfall := false
 
 func _ready() -> void:
 	Language.restore()
+	Difficulty.restore()
 	if Touch.active():
 		_fit_small_screen()
 		get_window().size_changed.connect(_fit_small_screen)

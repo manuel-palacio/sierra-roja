@@ -62,6 +62,10 @@ what history says of each, and opens the next one when the one before is won (wi
 browser). A win shows what really happened. `?mission=<id>` (`guadarrama`, `teruel`, `carchuna`, `ebro`, `volkhov`, `krasny_bor`) in the
 address starts on that mission whether it is open or not.
 
+The briefing also sets how sharp the guards are: Easy (they take longer to be sure, see less far and hit
+less hard), Normal, or Hard (quicker to raise the alarm, slower to stand down, and their rifles hit harder;
+no distance changes, so a way that is unseen on Normal is unseen on Hard). The choice is kept in the browser.
+
 A win shows its score: the time, the guards killed, the alarms raised and the quick loads used, and the
 name it earns (Ghost: no alarm and nobody killed; Unseen: no alarm; Done). The best win of each mission
 is kept in the browser and shown on its briefing.

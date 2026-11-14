@@ -58,6 +58,8 @@ var note_label: Label
 ## Switches to the other language, and is named for it in that language.
 var language_button: Button
 
+## Goes round the levels of Difficulty, and names the one in force.
+var difficulty_button: Button
 ## The best win of the mission shown; hidden until there is one.
 var best_label: Label
 
@@ -124,11 +126,20 @@ func _init() -> void:
 		button.pressed.connect(func() -> void: mission_chosen.emit(i))
 		missions.add_child(button)
 		mission_buttons.append(button)
+	var choices := HBoxContainer.new()
+	choices.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	choices.add_theme_constant_override("separation", 8)
+	column.add_child(choices)
 	language_button = UiStyle.button(Button.new(), 13)
 	language_button.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
-	language_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	language_button.pressed.connect(func() -> void: Language.choose(Language.other()))
-	column.add_child(language_button)
+	choices.add_child(language_button)
+	difficulty_button = UiStyle.button(Button.new(), 13)
+	difficulty_button.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+	difficulty_button.pressed.connect(func() -> void:
+		Difficulty.choose(Difficulty.next())
+		_word_missions())
+	choices.add_child(difficulty_button)
 	_word_missions()
 	column.add_child(HSeparator.new())
 	# The mission on the left, the controls on the right: one above the other is too tall for a
@@ -194,6 +205,7 @@ func _word_missions() -> void:
 		mission_buttons[i].text = "%d  %s" % [i + 1, "%s, %s" % [tr(entry["place"]), tr(entry["date"])]
 				if entry["place"] != "" else tr(entry["name"])]
 	language_button.text = Language.NAMES[Language.other()]
+	difficulty_button.text = tr("Guards: %s") % tr(Difficulty.NAMES[Difficulty.level])
 	var best := Campaign.best(Missions.id_at(_index))
 	best_label.visible = best != null
 	if best != null:

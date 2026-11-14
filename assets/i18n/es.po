@@ -528,3 +528,15 @@ msgstr "Tu mejor marca"
 
 msgid "Best: %s, %s"
 msgstr "Mejor: %s, %s"
+
+msgid "Easy"
+msgstr "Fácil"
+
+msgid "Normal"
+msgstr "Normal"
+
+msgid "Hard"
+msgstr "Difícil"
+
+msgid "Guards: %s"
+msgstr "Guardias: %s"
