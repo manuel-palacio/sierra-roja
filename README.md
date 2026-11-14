@@ -16,6 +16,15 @@ Both of them have to get out each time. The events, places and dates are real; t
 each are invented, and the game says so. Low-poly 3D, isometric camera, Godot 4.7 (Compatibility
 renderer, single-threaded web export). "Sierra Roja" is a working title.
 
+![The title: the Dynamiter and the Marksman before a red sierra](docs/screenshots/title.jpg)
+
+| | |
+|---|---|
+| ![Behind the lines in the Guadarrama, a guard's vision cones shown](docs/screenshots/play.jpg) | ![The map view: every guard and the beat he walks](docs/screenshots/map.jpg) |
+| The Guadarrama, May 1937: a patrol's vision cones | The map view (`M`): each guard and his beat |
+| ![The depot outside Teruel in the snow](docs/screenshots/teruel.jpg) | ![The bank of the Ebro before dawn](docs/screenshots/ebro.jpg) |
+| Teruel, December 1937 | The Ebro, the night of 24 July 1938 |
+
 ## Controls
 
 | Input | Action |
@@ -99,7 +108,11 @@ Each mission's map is authored as tables of numbers in its own file (`tools/make
 `tools/make_volkhov_map.py`, `tools/make_krasny_bor_map.py`), which `tools/mapgen.py` turns into the land
 (`resources/missions/<name>_land.tres`) and the mission scene; `tools/map_preview.gd` draws the
 result from above. A new mission is a new table file and a line in `src/mission/missions.gd`. The
-soldier model and its uniforms come from `tools/make_soldier.py`; helmets, caps, rifles and bags
+whole plaster houses that are not gone into are models made in Blender: `tools/blender/farmhouse.py`
+builds one of a given size, with its shade baked in, and `tools/make_buildings.py` makes one for every size
+the missions use (`assets/buildings/`); `tools/model_preview.gd` renders one beside the same house made of
+plain shapes. A house with no model, and every house that is gone into, is built in code (`src/terrain/building.gd`).
+The soldier model and its uniforms come from `tools/make_soldier.py`; helmets, caps, rifles and bags
 are in `src/units/soldier_gear.gd`, and `tools/unit_preview.gd` renders the units close up.
 
 ## Run it locally
