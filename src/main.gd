@@ -35,6 +35,8 @@ var charge_display: ChargeDisplay
 var hud: Hud
 ## The opening screen while it is up, else null.
 var briefing: Briefing
+## The title, over the briefing, until it is started.
+var title: TitleScreen
 ## Tests set this before the game starts, to have snow fall on a mission that has none.
 var force_snowfall := false
 
@@ -116,6 +118,8 @@ func _ready() -> void:
 	SaveGame.restart_offered.connect(hud.offer_restart)
 	if Briefing.wanted():
 		open_briefing()
+	if TitleScreen.wanted():
+		open_title()
 	var errors := MissionValidator.validate(mission)
 	if not errors.is_empty():
 		for message in errors:
@@ -150,6 +154,15 @@ func open_briefing() -> Briefing:
 		player_input.set_paused(false)
 		player_input.orders_enabled = rules.result == MissionRules.Result.RUNNING)
 	return briefing
+
+
+## Puts the title over everything, the briefing too. Continue goes to the furthest open mission.
+func open_title() -> TitleScreen:
+	title = TitleScreen.new()
+	add_child(title)
+	title.started.connect(func() -> void: title = null)
+	title.continue_chosen.connect(go_to_mission)
+	return title
 
 
 ## Leaves this mission for another one of Missions.LIST, starting with its briefing.

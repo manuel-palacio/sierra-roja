@@ -4,7 +4,7 @@
     uv run --with pillow --with resvg-py python3 tools/make_ui_art.py
 
 The portraits are drawn by hand as vectors in tools/portraits/, flat and hard-shadowed in the
-manner of the war's posters, and only turned into PNGs here. The icons are drawn here as plain
+manner of the war's posters, and only turned into PNGs here, as is the title poster in tools/title/, which is made of them. The icons are drawn here as plain
 cream silhouettes: a knife, a bundle of dynamite, a pistol, a rifle, a man carrying another,
 and a stone in flight.
 """
@@ -19,6 +19,7 @@ INK = (34, 28, 20, 255)
 ICON = 96
 PORTRAITS = Path(__file__).resolve().parent / "portraits"
 PORTRAIT = 192
+TITLE_WIDTH = 1600
 
 
 def portrait(name: str) -> None:
@@ -90,5 +91,8 @@ def carry(d, s):
 if __name__ == "__main__":
     for source in sorted(PORTRAITS.glob("*.svg")):
         portrait(source.stem)
+    title = resvg_py.svg_to_bytes(svg_path=str(PORTRAITS.parent / "title" / "title.svg"), width=TITLE_WIDTH)
+    (OUT / "title.png").write_bytes(title)
+    print("wrote", "title.png")
     for name, draw_it in (("knife", knife), ("charge", charge), ("pistol", pistol), ("rifle", rifle), ("carry", carry), ("stone", stone)):
         icon(name, draw_it)

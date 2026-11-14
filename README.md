@@ -54,7 +54,8 @@ missions on the briefing switches, and the choice is kept in the browser (`?lang
 address sets it too). The Spanish is in `assets/i18n/es.po`, looked up by the English text as it stands in
 the code and the scenes; `tests/ui/test_language.gd` fails when a text has none.
 
-The game opens on a briefing with the objectives and these controls; `Start`, `Enter` or `Space`
+The game opens on its title: `Start`, `Enter` or `Space` goes on, and `Continue`, once a mission is won,
+goes to the furthest mission that is open. Then comes a briefing with the objectives and these controls; `Start`, `Enter` or `Space`
 begins. Sound starts after your first click or key press (browser rule).
 
 The missions are a campaign in date order: the briefing lists them with their place and date, tells

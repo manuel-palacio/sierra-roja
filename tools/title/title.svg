@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+  <!-- The title poster: the pair before a red sierra and the bridge, under a rayed sky. The title
+       itself is set by the game, in its own typeface and language. -->
+  <rect width="1600" height="900" fill="#c4902d"/>
+  <g fill="#d3a23c"><path d="M800 600 L2400 600 L2390 424 Z"/><path d="M800 600 L2360 244 L2311 75 Z"/><path d="M800 600 L2242 -94 L2157 -248 Z"/><path d="M800 600 L2051 -398 L1934 -529 Z"/><path d="M800 600 L1798 -651 L1654 -753 Z"/><path d="M800 600 L1494 -842 L1332 -909 Z"/><path d="M800 600 L1156 -960 L983 -990 Z"/><path d="M800 600 L800 -1000 L624 -990 Z"/><path d="M800 600 L444 -960 L275 -911 Z"/><path d="M800 600 L106 -842 L-48 -757 Z"/><path d="M800 600 L-198 -651 L-329 -534 Z"/><path d="M800 600 L-451 -398 L-553 -254 Z"/><path d="M800 600 L-642 -94 L-709 68 Z"/><path d="M800 600 L-760 244 L-790 417 Z"/><path d="M800 600 L-800 600 L-790 776 Z"/></g>
+  <circle cx="800" cy="600" r="150" fill="#e6c25e"/>
+  <path d="M0 560 L120 470 L210 520 L330 400 L430 480 L560 380 L660 470 L780 420 L900 500 L1010 390 L1130 470 L1250 410 L1380 500 L1480 440 L1600 520 L1600 900 L0 900 Z" fill="#b23a22"/>
+  <path d="M0 640 L140 560 L260 610 L400 520 L520 600 L640 540 L760 610 L880 550 L1000 620 L1140 530 L1280 610 L1420 550 L1600 630 L1600 900 L0 900 Z" fill="#8a2617"/>
+  <g fill="#3a140e">
+    <path d="M520 648 L1080 648 L1080 664 L520 664 Z"/>
+    <path d="M540 664 L560 664 L560 760 L540 760 Z M660 664 L680 664 L680 760 L660 760 Z M780 664 L800 664 L800 760 L780 760 Z M900 664 L920 664 L920 760 L900 760 Z M1020 664 L1040 664 L1040 760 L1020 760 Z"/>
+    <path d="M560 664 C560 700 660 700 660 664 Z M680 664 C680 700 780 700 780 664 Z M800 664 C800 700 900 700 900 664 Z M920 664 C920 700 1020 700 1020 664 Z" fill="#8a2617" stroke="#3a140e" stroke-width="10"/>
+  </g>
+  <path d="M0 740 L200 700 L420 730 L640 705 L860 735 L1080 700 L1320 735 L1600 705 L1600 900 L0 900 Z" fill="#5a1a11"/>
+  <g transform="translate(-30 250) scale(3.5)"><g stroke="#1e1912" stroke-width="2.5" stroke-linejoin="round">
+    <!-- dynamite -->
+    <g transform="rotate(14 150 150)">
+      <path d="M150 122 C150 110 158 108 160 98" fill="none" stroke-width="5"/>
+      <path d="M150 122 C150 110 158 108 160 98" fill="none" stroke="#ecdebe" stroke-width="2"/>
+      <rect x="132" y="120" width="12" height="80" fill="#a63a22"/>
+      <rect x="144" y="120" width="12" height="80" fill="#c04a2a"/>
+      <rect x="156" y="120" width="12" height="80" fill="#8a2c1a"/>
+      <rect x="130" y="140" width="40" height="8" fill="#ecdebe"/>
+    </g>
+    <path d="M164 82 l3 8 8 -2 -5 7 6 6 -9 0 -2 9 -4 -8 -8 3 5 -7 -6 -6 9 1 Z" fill="#f6d667"/>
+    <!-- mono -->
+    <path d="M14 196 L26 152 L70 134 L96 162 L122 134 L166 152 L178 196 Z" fill="#48688c"/>
+    <path d="M96 162 L122 134 L166 152 L178 196 L96 196 Z" fill="#2a3f5a" stroke="none"/>
+    <path d="M58 196 L60 168 M134 196 L132 168" fill="none"/>
+    <!-- neck -->
+    <path d="M78 116 L114 116 L118 146 L74 146 Z" fill="#8a5636"/>
+    <!-- neckerchief -->
+    <path d="M70 130 L96 144 L122 130 L128 146 L106 160 L100 180 L92 180 L86 160 L64 146 Z" fill="#c8361f"/>
+    <path d="M96 144 L122 130 L128 146 L106 160 L100 180 L96 180 Z" fill="#8a2114" stroke="none"/>
+    <path d="M88 152 L96 144 L104 152 L96 160 Z" fill="#c8361f"/>
+    <!-- ears -->
+    <path d="M67 86 L61 84 L62 100 L68 104 Z" fill="#d9a273"/>
+    <path d="M125 86 L131 84 L130 100 L124 104 Z" fill="#8a5636"/>
+    <!-- face -->
+    <path d="M66 62 L126 62 L127 98 L119 120 L105 134 L89 134 L74 120 L66 98 Z" fill="#dfa978"/>
+  </g>
+  <!-- the shadowed side -->
+  <path d="M99 64 L125 64 L126 98 L118 119 L104 133 L97 133 L98 112 L104 109 L100 96 L99 80 Z" fill="#8f5a3a"/>
+  <!-- stubble -->
+  <path d="M67 100 L74 120 L89 134 L105 134 L119 120 L126 100 L117 111 L107 113 L96 110 L85 113 L75 111 Z" fill="#1e1912" opacity="0.32"/>
+  <g fill="#1e1912">
+    <!-- brows, eyes -->
+    <path d="M71 84 L91 81 L93 86 L72 88 Z"/><path d="M103 81 L122 84 L121 88 L102 86 Z"/>
+    <path d="M76 90 L90 90 L88 95 L79 95 Z"/><path d="M105 90 L119 90 L117 95 L107 95 Z"/>
+    <!-- nose, mouth -->
+    <path d="M91 107 L99 110 L104 107 L102 112 L94 112 Z"/>
+    <path d="M85 119 L96 121 L108 119 L107 123 L96 125 L86 123 Z"/>
+    <!-- sideburns -->
+    <path d="M66 64 L73 64 L71 92 L66 86 Z"/><path d="M126 64 L120 64 L122 90 L127 86 Z"/>
+    <!-- beret -->
+    <path d="M52 66 C44 38 88 22 126 30 C150 35 152 58 138 66 C120 74 80 72 52 70 Z" stroke="#1e1912" stroke-width="2.5" stroke-linejoin="round"/>
+    <path d="M98 27 L100 20 L103 21 L102 28 Z"/>
+  </g>
+  <path d="M60 58 C62 44 84 34 108 34 C90 40 74 48 68 62 Z" fill="#4a505e"/>
+  <g fill="#ecdebe"><circle cx="85" cy="92" r="1.4"/><circle cx="113" cy="92" r="1.4"/></g></g>
+  <g transform="translate(950 250) scale(3.5)"><g stroke="#1e1912" stroke-width="2.5" stroke-linejoin="round">
+    <!-- rifle -->
+    <path d="M128 170 L166 14 L172 15 L171 30 L140 170 Z" fill="#2a241c"/>
+    <path d="M124 196 L143 96 L156 99 L140 196 Z" fill="#7a4a26"/>
+    <path d="M165 14 L164 6 L168 6 L169 14 Z" fill="#2a241c"/>
+    <!-- jacket -->
+    <path d="M14 196 L26 152 L72 134 L96 166 L120 134 L166 152 L178 196 Z" fill="#8a5c34"/>
+    <path d="M96 166 L120 134 L166 152 L178 196 L96 196 Z" fill="#553620" stroke="none"/>
+    <!-- shirt -->
+    <path d="M78 134 L96 178 L114 134 Z" fill="#ecdebe"/>
+    <path d="M96 178 L114 134 L100 134 Z" fill="#b9a67c" stroke="none"/>
+    <!-- lapels -->
+    <path d="M72 134 L80 130 L96 178 L92 196 L76 196 L66 160 Z" fill="#9c6a3c"/>
+    <path d="M120 134 L112 130 L96 178 L100 196 L116 196 L126 160 Z" fill="#553620"/>
+    <!-- sling -->
+    <path d="M132 138 L146 144 L74 196 L52 196 Z" fill="#2e1c10"/>
+    <!-- neck -->
+    <path d="M80 116 L112 116 L114 138 L96 150 L78 138 Z" fill="#8a5636"/>
+    <!-- ears -->
+    <path d="M69 88 L63 86 L64 102 L70 106 Z" fill="#d9a273"/>
+    <path d="M123 88 L129 86 L128 102 L122 106 Z" fill="#8a5636"/>
+    <!-- face -->
+    <path d="M68 64 L124 64 L125 100 L118 122 L105 137 L89 137 L75 122 L67 100 Z" fill="#d9a273"/>
+  </g>
+  <!-- the shadowed side, and the peak's shadow over the eyes -->
+  <path d="M99 66 L123 66 L124 100 L117 121 L104 136 L97 136 L99 110 L104 106 L99 90 Z" fill="#8a5636"/>
+  <path d="M69 72 L123 72 L124 86 L112 90 L96 86 L80 90 L68 86 Z" fill="#8a5636"/>
+  <path d="M99 72 L123 72 L124 86 L112 90 L99 87 Z" fill="#5e3a24"/>
+  <g fill="#1e1912">
+    <!-- narrowed eyes, crow's feet -->
+    <path d="M75 88 L91 90 L89 95 L78 94 Z"/><path d="M103 90 L119 88 L116 94 L105 95 Z"/>
+    <path d="M71 90 L74 91 L71 93 Z"/><path d="M123 90 L120 91 L123 93 Z"/>
+    <!-- nose -->
+    <path d="M92 106 L99 109 L105 106 L103 111 L94 111 Z"/>
+    <!-- moustache -->
+    <path d="M76 120 C84 109 93 110 96 114 C99 110 108 109 116 120 C108 124 100 122 96 119 C92 122 84 124 76 120 Z" fill="#3a2414" stroke="#1e1912" stroke-width="1.5"/>
+    <path d="M89 127 L103 127 L101 130 L91 130 Z"/>
+  </g>
+  <g stroke="#1e1912" stroke-width="2.5" stroke-linejoin="round">
+    <!-- cap -->
+    <path d="M56 66 C50 42 78 28 108 30 C138 32 146 52 138 68 C116 62 80 62 56 66 Z" fill="#7a5632"/>
+    <path d="M52 72 C76 60 122 60 142 70 C134 80 112 76 96 76 C80 76 64 82 52 72 Z" fill="#3a2616"/>
+  </g>
+  <path d="M62 60 C60 46 80 36 104 35 C88 42 74 48 70 60 Z" fill="#9a7244"/>
+  <path d="M108 32 C136 34 144 52 137 66 C128 63 118 62 108 61 C114 52 114 42 108 32 Z" fill="#553a22"/>
+  <g fill="#ecdebe"><circle cx="85" cy="92" r="1.2"/><circle cx="111" cy="92" r="1.2"/></g></g>
+  <rect y="860" width="1600" height="40" fill="#1e1912"/>
+</svg>

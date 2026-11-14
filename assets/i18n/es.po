@@ -555,3 +555,9 @@ msgstr "En alarma"
 
 msgid "Patrol"
 msgstr "Patrulla"
+
+msgid "Continue"
+msgstr "Continuar"
+
+msgid "Behind the lines, 1937–1943"
+msgstr "Tras las líneas, 1937–1943"
