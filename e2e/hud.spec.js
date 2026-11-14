@@ -12,9 +12,10 @@ test('HUD, map and a vision cone draw', async ({ page }) => {
   await page.waitForFunction(() => typeof window.sierraProbe === 'function');
   await page.waitForTimeout(500);
   const box = await page.locator('canvas').boundingBox();
+  // A guard that is on the screen: a click outside the page takes the game's focus and pauses it.
   const [x, y] = await page.evaluate(() => {
     window.sierraProbe();
-    return window.sierraGuards[0];
+    return window.sierraGuards.find(([gx, gy]) => gx > 20 && gx < 1260 && gy > 80 && gy < 600);
   });
   await page.mouse.click(box.x + x, box.y + y);
   await page.waitForTimeout(400);
