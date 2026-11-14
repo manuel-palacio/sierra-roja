@@ -29,6 +29,20 @@ const CONTROLS: Array[Array] = [
 	["Z / X", "Turn the camera"],
 	["Mouse wheel, screen edges", "Zoom, scroll"],
 ]
+## The same, told to someone playing with fingers (see Touch).
+const TOUCH_CONTROLS: Array[Array] = [
+	["Tap", "Move the selected specialist"],
+	["Double tap", "Run (the Dynamiter's boots are heard)"],
+	["Tap one of them", "Select the Dynamiter or the Marksman"],
+	["Tap a guard", "Show what it can see: red even crawling, yellow standing"],
+	["Drag", "Scroll the view"],
+	["Two fingers", "Pinch to zoom, twist to turn the camera"],
+	["Pictures, bottom right", "Knife, charge, pistol, rifle, carry, stone"],
+	["", "Tap one, then its target. A stone brings guards to look"],
+	["Buttons, top right", "Both, crawl, use, save, load, pause"],
+]
+const KEYS_HINT := "Enter or Space also start  ·  Credits and licences: /credits.txt"
+const TOUCH_HINT := "Credits and licences: /credits.txt"
 
 ## Set by the first start, and kept for the session: a mission restart goes straight to the game.
 static var seen := false
@@ -133,7 +147,7 @@ func _init() -> void:
 	grid.add_theme_constant_override("h_separation", 24)
 	grid.add_theme_constant_override("v_separation", 1)
 	body.add_child(grid)
-	for row in CONTROLS:
+	for row in (TOUCH_CONTROLS if Touch.active() else CONTROLS):
 		grid.add_child(_text(row[0], 14, Color(1.0, 0.85, 0.55)))
 		grid.add_child(_text(row[1], 14, Color(0.86, 0.88, 0.92)))
 	start_button = UiStyle.button(Button.new(), 22)
@@ -145,7 +159,7 @@ func _init() -> void:
 	gap.custom_minimum_size = Vector2(0, 6)
 	column.add_child(gap)
 	column.add_child(start_button)
-	var hint := _text("Enter or Space also start  ·  Credits and licences: /credits.txt", 13, Color(0.6, 0.63, 0.7))
+	var hint := _text(TOUCH_HINT if Touch.active() else KEYS_HINT, 13, Color(0.6, 0.63, 0.7))
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	column.add_child(hint)
 

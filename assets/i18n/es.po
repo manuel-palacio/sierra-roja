@@ -154,6 +154,48 @@ msgstr "Rueda, bordes de pantalla"
 msgid "Zoom, scroll"
 msgstr "Zoom, desplazamiento"
 
+msgid "Tap"
+msgstr "Toque"
+
+msgid "Double tap"
+msgstr "Doble toque"
+
+msgid "Tap one of them"
+msgstr "Toca a uno de ellos"
+
+msgid "Select the Dynamiter or the Marksman"
+msgstr "Selecciona al Dinamitero o al Tirador"
+
+msgid "Tap a guard"
+msgstr "Toca a un guardia"
+
+msgid "Drag"
+msgstr "Arrastra"
+
+msgid "Scroll the view"
+msgstr "Desplaza la vista"
+
+msgid "Two fingers"
+msgstr "Dos dedos"
+
+msgid "Pinch to zoom, twist to turn the camera"
+msgstr "Pellizca para el zoom, gira para girar la cámara"
+
+msgid "Pictures, bottom right"
+msgstr "Dibujos, abajo a la derecha"
+
+msgid "Knife, charge, pistol, rifle, carry, stone"
+msgstr "Cuchillo, carga, pistola, fusil, cargar, piedra"
+
+msgid "Tap one, then its target. A stone brings guards to look"
+msgstr "Toca uno y luego su objetivo. Una piedra atrae a los guardias"
+
+msgid "Buttons, top right"
+msgstr "Botones, arriba a la derecha"
+
+msgid "Both, crawl, use, save, load, pause"
+msgstr "Los dos, a rastras, usar, guardar, cargar, pausa"
+
 msgid "The bridge"
 msgstr "El puente"
 
@@ -435,3 +477,27 @@ msgstr "Empezar"
 
 msgid "Enter or Space also start  ·  Credits and licences: /credits.txt"
 msgstr "Intro o Espacio también empiezan  ·  Créditos y licencias: /credits.txt"
+
+msgid "Both"
+msgstr "Los dos"
+
+msgid "Crawl"
+msgstr "A rastras"
+
+msgid "Use"
+msgstr "Usar"
+
+msgid "Save"
+msgstr "Guardar"
+
+msgid "Load"
+msgstr "Cargar"
+
+msgid "Pause"
+msgstr "Pausa"
+
+msgid "Tap Pause to resume"
+msgstr "Toca Pausa para seguir"
+
+msgid "Credits and licences: /credits.txt"
+msgstr "Créditos y licencias: /credits.txt"

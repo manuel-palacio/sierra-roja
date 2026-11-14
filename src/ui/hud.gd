@@ -1,6 +1,6 @@
 class_name Hud
 extends CanvasLayer
-## Display only: two portraits with health and stance, the selected specialist's ability bar with
+## Display only (but for the touch buttons, which press keys): two portraits with health and stance, the selected specialist's ability bar with
 ## ammo, the alarm level, the fuse of each planted charge, a pause indicator (with Restart) and
 ## short messages. It reads rules state and never writes it. The ability buttons, Restart and Keep
 ## playing are the only widgets that take the mouse; everything else ignores it so clicks and edge
@@ -17,6 +17,13 @@ const LABELS := {
 	&"knife": "Knife", &"pistol": "Pistol", &"rifle": "Rifle", &"charge": "Charge", &"carry": "Carry",
 	&"stone": "Stone",
 }
+## What the keyboard does, for fingers: the button's word, and the key it stands for.
+const TOUCH_BUTTONS: Array[Array] = [
+	["Both", KEY_3], ["Crawl", KEY_C], ["Use", KEY_F], ["Save", KEY_O], ["Load", KEY_L], ["Pause", KEY_SPACE],
+]
+const TOUCH_BUTTON_SIZE := Vector2(70, 46)
+const RESUME_TEXT := "Space to resume"
+const RESUME_TOUCH_TEXT := "Tap Pause to resume"
 const KEYS := { &"knife": "Q", &"pistol": "R", &"rifle": "E", &"charge": "E", &"carry": "F", &"stone": "T" }
 
 ## Called by Restart. The default reloads the scene; tests replace it.
@@ -31,6 +38,9 @@ var message_label: Label
 var objective_label: Label
 ## "Fuse: 3s, 9s", soonest first; hidden with no charge planted.
 var fuse_label: Label
+## Shown when the game is played with fingers (see Touch): word -> Button.
+var touch_bar: HBoxContainer
+var touch_buttons: Dictionary = {}
 var pause_box: Control
 var restart_button: Button
 ## Shown with a question in the message line after a bad save; answered with its two buttons.
@@ -50,6 +60,7 @@ var _specialists: Array[Specialist] = []
 var _overlay: VisionOverlay
 var _portraits: Array[PanelContainer] = []
 var _name_labels: Array[Label] = []
+var _resume_label: Label
 var _ability_row: HBoxContainer
 var _bar_owner: Specialist
 var _message_left := 0.0
@@ -138,6 +149,8 @@ func refresh() -> void:
 	objective_label.text = tr(OBJECTIVE_PREFIX) + tr(objective.current_hud_text()) if objective else tr(OBJECTIVE_ESCAPE)
 	objective_label.visible = _rules.result == MissionRules.Result.RUNNING
 	pause_box.visible = _input.is_paused()
+	touch_bar.visible = Touch.active()
+	_resume_label.text = RESUME_TOUCH_TEXT if Touch.active() else RESUME_TEXT
 
 
 func _refresh_abilities() -> void:
@@ -167,7 +180,7 @@ func _refresh_abilities() -> void:
 		var ability: Ability = _bar_owner.abilities[id]
 		var button: Button = ability_buttons[id]
 		# Under the picture: the key, and how many are left where that is counted.
-		var text: String = KEYS.get(StringName(id), "?")
+		var text: String = "" if Touch.active() else KEYS.get(StringName(id), "?")
 		if ability.ammo >= 0:
 			text += "  x%d" % ability.ammo
 		button.text = text
@@ -260,6 +273,31 @@ func _build_top() -> void:
 	message_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	message_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	message_row.add_child(message_label)
+	touch_bar = _control(HBoxContainer.new()) as HBoxContainer
+	touch_bar.add_theme_constant_override("separation", 6)
+	touch_bar.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	touch_bar.size_flags_horizontal = Control.SIZE_EXPAND | Control.SIZE_SHRINK_END
+	touch_bar.visible = false
+	message_row.add_child(touch_bar)
+	for entry in TOUCH_BUTTONS:
+		var button := UiStyle.button(Button.new(), 15)
+		button.text = entry[0]
+		button.custom_minimum_size = TOUCH_BUTTON_SIZE
+		button.process_mode = Node.PROCESS_MODE_ALWAYS
+		button.focus_mode = Control.FOCUS_NONE
+		button.pressed.connect(_press_key.bind(entry[1]))
+		touch_bar.add_child(button)
+		touch_buttons[entry[0]] = button
+
+
+## A touch button does what its key does.
+func _press_key(code: Key) -> void:
+	if _input == null:
+		return
+	var event := InputEventKey.new()
+	event.keycode = code
+	event.pressed = true
+	_input.handle_event(event)
 
 
 func _build_bottom() -> void:
@@ -344,8 +382,9 @@ func _build_center() -> void:
 	paused.add_theme_font_size_override("font_size", 40)
 	paused.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(paused)
-	box.add_child(_label("Space to resume"))
-	(box.get_child(1) as Label).horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_resume_label = _label(RESUME_TEXT)
+	_resume_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(_resume_label)
 	restart_button = UiStyle.button(Button.new(), 18)
 	restart_button.text = "Restart"
 	restart_button.process_mode = Node.PROCESS_MODE_ALWAYS

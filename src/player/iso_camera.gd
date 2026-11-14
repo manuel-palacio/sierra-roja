@@ -60,7 +60,11 @@ func _process(delta: float) -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if event is InputEventMouseMotion or event is InputEventMouseButton:
+	if event is InputEventScreenTouch or event is InputEventScreenDrag:
+		# A finger leaves no pointer behind to scroll by.
+		_mouse_known = false
+	elif (event is InputEventMouseMotion or event is InputEventMouseButton) \
+			and event.device != InputEvent.DEVICE_ID_EMULATION:
 		_mouse_pos = event.position
 		_mouse_known = true
 
@@ -133,6 +137,17 @@ func advance_turn(delta: float) -> void:
 func pan(delta: Vector2) -> void:
 	focus += Vector3(delta.x, 0.0, delta.y)
 	_apply()
+
+
+## Moves the view as a finger drags it, so the ground stays under the finger: [param pixels] is
+## how far the finger went on a screen [param viewport_height] high.
+func drag(pixels: Vector2, viewport_height: float) -> void:
+	var per_pixel := size / maxf(viewport_height, 1.0)
+	var right := Vector3(basis.x.x, 0.0, basis.x.z).normalized()
+	var forward := Vector3(-basis.z.x, 0.0, -basis.z.z).normalized()
+	# The ground is seen at a slant, so a pixel up the screen is further along it.
+	var ground := -right * pixels.x * per_pixel + forward * pixels.y * per_pixel / sin(deg_to_rad(-PITCH_DEG))
+	pan(Vector2(ground.x, ground.z))
 
 
 ## The height of the ground the camera looks at. The view turns about a point at this height, so

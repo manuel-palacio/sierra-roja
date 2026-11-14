@@ -1,11 +1,12 @@
 class_name PlayerInput
 extends Node
-## Turns mouse and keyboard into orders for the selected specialist, and drives the camera zoom
+## Turns mouse, keyboard and fingers into orders for the selected specialist, and drives the camera zoom
 ## and the pause. Rules live in Unit and Ability; this only decides which order a click or key is.
 ##
 ## Hotkeys: 1/2 select (again: centre the camera on them), 3 select both, C stance, Q knife, E main ability (charge, else rifle), R pistol,
 ## F pick up / drop, T stone, Space pause, Escape or right click disarm, O quick save, L quick load,
 ## Z / X turn the camera a quarter turn.
+## Fingers: a tap is a left click, a drag scrolls the view, two fingers zoom and turn it.
 
 signal selection_changed(s: Specialist)
 signal paused_changed(paused: bool)
@@ -24,6 +25,17 @@ var _just_put_down: Dictionary = {}
 
 const DOUBLE_CLICK_SEC := 0.3
 const DOUBLE_CLICK_SLOP := 12.0
+## The same for two taps of a finger, which is slower and lands less exactly.
+const DOUBLE_TAP_SEC := 0.4
+const DOUBLE_TAP_SLOP := 44.0
+## A finger that moves less than this between going down and coming up has tapped.
+const TAP_SLOP := 14.0
+## A tap this near a unit on the screen is a tap on it.
+const TAP_REACH := 30.0
+## How much further apart (or closer) two fingers go for one step of zoom, and how far they
+## twist for a quarter turn of the camera.
+const PINCH_STEP := 1.15
+const TWIST_DEG := 32.0
 const SAVE_REFUSED_TEXT := "Can't save after the mission has ended"
 const NO_WAY_TEXT := "Can't get there"
 ## A click this far (on the ground plane) from anywhere a unit can stand is refused, instead of
@@ -77,6 +89,16 @@ var _camera: IsoCamera
 var _specialists: Array[Specialist] = []
 var _last_click_time := -INF
 var _last_click_pos := Vector2.ZERO
+## World position -> where it is on the screen. Replaceable for tests.
+var screen_of := Callable()
+## Finger index -> where it is now.
+var _fingers: Dictionary = {}
+var _finger_down_at := Vector2.ZERO
+## The one finger down has not moved or been joined by another: lifting it is a tap.
+var _may_tap := false
+var _pinch_from := 0.0
+var _twist_from := 0.0
+var _by_finger := false
 
 
 func _init() -> void:
@@ -152,8 +174,87 @@ func _unhandled_input(event: InputEvent) -> void:
 func handle_event(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
 		_on_key(event)
-	elif event is InputEventMouseButton and event.pressed:
+	elif event is InputEventScreenTouch:
+		_on_touch(event)
+	elif event is InputEventScreenDrag:
+		_on_finger_moved(event)
+	elif event is InputEventMouseButton and event.pressed and event.device != InputEvent.DEVICE_ID_EMULATION:
+		# The engine also makes a mouse click of every touch, for the buttons; here the touch
+		# itself is read, so that a drag is not an order.
 		_on_mouse_button(event)
+
+
+func _on_touch(event: InputEventScreenTouch) -> void:
+	Touch.set_active(true)
+	if event.pressed:
+		_fingers[event.index] = event.position
+		_may_tap = _fingers.size() == 1
+		_finger_down_at = event.position
+		if _fingers.size() == 2:
+			_pinch_from = _finger_gap().length()
+			_twist_from = _finger_gap().angle()
+		return
+	var tapped := _may_tap and _fingers.has(event.index) and not event.canceled
+	_fingers.erase(event.index)
+	_may_tap = false
+	if tapped and _can_order():
+		_by_finger = true
+		_on_left_click(event.position)
+		_by_finger = false
+
+
+func _on_finger_moved(event: InputEventScreenDrag) -> void:
+	if not _fingers.has(event.index):
+		return
+	_fingers[event.index] = event.position
+	if _fingers.size() == 1:
+		if _may_tap and event.position.distance_to(_finger_down_at) > TAP_SLOP:
+			_may_tap = false
+		if not _may_tap:
+			var height := _camera.get_viewport().get_visible_rect().size.y if _camera.is_inside_tree() else 720.0
+			_camera.drag(event.relative, height)
+	elif _fingers.size() == 2:
+		var gap := _finger_gap()
+		while _pinch_from > 0.0 and gap.length() > _pinch_from * PINCH_STEP:
+			_camera.zoom_by(1)
+			_pinch_from *= PINCH_STEP
+		while gap.length() > 0.0 and gap.length() < _pinch_from / PINCH_STEP:
+			_camera.zoom_by(-1)
+			_pinch_from /= PINCH_STEP
+		var twist := rad_to_deg(angle_difference(_twist_from, gap.angle()))
+		if absf(twist) >= TWIST_DEG:
+			_camera.rotate_by(1 if twist > 0.0 else -1)
+			_twist_from = gap.angle()
+
+
+## From the first finger down to the second.
+func _finger_gap() -> Vector2:
+	var at: Array = _fingers.values()
+	return (at[1] as Vector2) - (at[0] as Vector2)
+
+
+## What a finger meant by a tap at [param pos]: a unit close by on the screen, when the tap
+## itself fell on the ground beside it. One of your own before a guard.
+func _near_tap(pos: Vector2) -> Unit:
+	var to_screen := screen_of
+	if not to_screen.is_valid():
+		if _camera == null or not _camera.is_inside_tree() or not _camera.current:
+			return null
+		to_screen = func(world: Vector3) -> Vector2: return _camera.unproject_position(world)
+	var best: Unit = null
+	var best_d := TAP_REACH
+	for group in [Specialist.GROUP, Guard.GROUP]:
+		for node in get_tree().get_nodes_in_group(group):
+			var unit := node as Unit
+			if unit == null or not unit.alive:
+				continue
+			var d: float = (to_screen.call(unit.global_position + Vector3.UP * 0.9) as Vector2).distance_to(pos)
+			if d < best_d:
+				best_d = d
+				best = unit
+		if best != null:
+			break
+	return best
 
 
 func _notification(what: int) -> void:
@@ -226,6 +327,10 @@ func _on_mouse_button(event: InputEventMouseButton) -> void:
 
 func _on_left_click(pos: Vector2) -> void:
 	var hit: Dictionary = picker.call(pos)
+	if _by_finger and not hit.get("collider") is Unit:
+		var near := _near_tap(pos)
+		if near != null and (armed_ability == &"" or (near is Guard and MODES[armed_ability] == Mode.GUARD)):
+			hit = { "collider": near, "position": near.global_position }
 	if armed_ability != &"":
 		_use_armed(hit)
 		return
@@ -243,8 +348,8 @@ func _move_selected(target: Vector3, screen_pos: Vector2) -> void:
 		_refuse(NO_WAY_TEXT)
 		return
 	var now: float = clock.call()
-	var double := now - _last_click_time <= DOUBLE_CLICK_SEC \
-			and screen_pos.distance_to(_last_click_pos) <= DOUBLE_CLICK_SLOP
+	var double := now - _last_click_time <= (DOUBLE_TAP_SEC if _by_finger else DOUBLE_CLICK_SEC) \
+			and screen_pos.distance_to(_last_click_pos) <= (DOUBLE_TAP_SLOP if _by_finger else DOUBLE_CLICK_SLOP)
 	_last_click_time = -INF if double else now
 	_last_click_pos = screen_pos
 	var units := selected_units()
@@ -353,7 +458,7 @@ func _press_ability(ids: Array) -> void:
 				ability.use(selected, null)
 				_set_armed(&"")
 			else:
-				_set_armed(id)
+				_set_armed(&"" if armed_ability == id else id)
 		Mode.CARRY:
 			# The HUD's button does all that the F key does.
 			if not (_use_what_is_near() or _put_down()):

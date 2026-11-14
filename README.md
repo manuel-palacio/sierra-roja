@@ -1,6 +1,6 @@
 # Sierra Roja
 
-A real-time stealth tactics game for the desktop browser, set in the Spanish Civil War and after. You
+A real-time stealth tactics game for the browser, on a desktop or on a phone or tablet held sideways, set in the Spanish Civil War and after. You
 command two fictional Republican guerrillas, the Dynamiter and the Marksman, through six missions set at
 real events, in the order of their dates:
 
@@ -34,6 +34,20 @@ renderer, single-threaded web export). "Sierra Roja" is a working title.
 | Mouse wheel | Zoom |
 | `Z` / `X` | Turn the camera a quarter turn |
 | Mouse at the screen edge | Scroll the camera |
+
+On a phone or a tablet the game is played with fingers, and the briefing says so:
+
+| Touch | Action |
+|---|---|
+| Tap the ground | Move the selected specialist (double tap to run) |
+| Tap a specialist or a guard | Select them / show the guard's vision cones; a tap just beside one counts |
+| Drag | Scroll the view |
+| Two fingers | Pinch to zoom, twist to turn the camera a quarter turn |
+| The pictures, bottom right | The abilities: tap one, then its target; tap it again to put it away |
+| The buttons, top right | Both, Crawl, Use (what `F` does), Save, Load, Pause |
+
+The HUD and the briefing are drawn larger there, and a phone held upright is asked to turn. The touch
+buttons also appear on any screen from the first touch on; `?touch=1` in the address shows them from the start.
 
 The game is in English and Spanish. It starts in the browser's language; the button under the list of
 missions on the briefing switches, and the choice is kept in the browser (`?lang=es` or `?lang=en` in the

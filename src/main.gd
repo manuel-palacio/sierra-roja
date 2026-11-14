@@ -18,6 +18,9 @@ const DUSK := { "sun": Color(1.0, 0.62, 0.38), "sun_energy": 0.7, "fill_energy":
 const DUSK_SUN_HEIGHT := 14.0
 
 ## Starts the game again; with another mission chosen in Missions, on that one. Tests replace it.
+## The room the briefing and the HUD need, in their own pixels.
+const SMALL_SCREEN := Vector2(1180, 600)
+
 var reload_action := func() -> void: get_tree().reload_current_scene()
 
 var mission: Mission
@@ -36,6 +39,9 @@ var force_snowfall := false
 
 func _ready() -> void:
 	Language.restore()
+	if Touch.active():
+		_fit_small_screen()
+		get_window().size_changed.connect(_fit_small_screen)
 	if PerfProbe.enabled():
 		add_child(PerfProbe.new())
 	if ScreenProbe.enabled():
@@ -111,6 +117,13 @@ func _ready() -> void:
 			push_error("Invalid mission: " + message)
 		if OS.is_debug_build():
 			get_tree().quit(1)
+
+
+## On a phone or a tablet a screen has many pixels in little room: the HUD and the briefing are
+## drawn larger, as if the screen were SMALL_SCREEN across and down. The land is not scaled.
+func _fit_small_screen() -> void:
+	var pixels := Vector2(get_window().size)
+	get_window().content_scale_factor = maxf(1.0, minf(pixels.x / SMALL_SCREEN.x, pixels.y / SMALL_SCREEN.y))
 
 
 ## Puts up the opening screen. No orders are taken and the view stays on the squad until it is

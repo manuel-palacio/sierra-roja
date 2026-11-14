@@ -12,6 +12,8 @@
 		#status h1 { margin: 0; font-size: 2.2em; font-weight: 600; color: #e0492f; }
 		#bar { width: min(26em, 70vw); height: 0.7em; border: 1px solid #555; border-radius: 0.4em; overflow: hidden; }
 		#fill { width: 0; height: 100%; background: #e0492f; transition: width 0.15s linear; }
+		#turn { display: none; position: absolute; inset: 0; z-index: 5; align-items: center; justify-content: center; text-align: center; padding: 1em; background: #0b0d12; font-size: 1.3em; }
+		@media (pointer: coarse) and (orientation: portrait) { #turn { display: flex; } }
 		#percent { color: #aaa; font-size: 0.95em; min-height: 1.2em; }
 	</style>
 	$GODOT_HEAD_INCLUDE
@@ -19,6 +21,7 @@
 <body>
 	<canvas id="canvas"></canvas>
 	<div id="message"></div>
+	<div id="turn">Turn your phone sideways to play</div>
 	<div id="status">
 		<h1>$GODOT_PROJECT_NAME</h1>
 		<div id="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="fill"></div></div>
@@ -37,10 +40,11 @@
 		const SPANISH = {
 			'Loading… ': 'Cargando… ',
 			'Starting…': 'Empezando…',
+			'Turn your phone sideways to play': 'Gira el teléfono para jugar',
 			'The game could not start.': 'El juego no ha podido empezar.',
 			'This game must be opened over HTTPS': 'Este juego tiene que abrirse por HTTPS',
-			'This game needs WebGL2. Please use a current desktop browser with hardware acceleration enabled.':
-				'Este juego necesita WebGL2. Usa un navegador de escritorio actual con la aceleración por hardware activada.',
+			'This game needs WebGL2. Please use a current browser with hardware acceleration enabled.':
+				'Este juego necesita WebGL2. Usa un navegador actual con la aceleración por hardware activada.',
 		};
 		let language = new URLSearchParams(location.search).get('lang');
 		if (language !== 'en' && language !== 'es') {
@@ -52,6 +56,7 @@
 		document.documentElement.lang = language;
 		const t = (text) => language === 'es' && SPANISH[text] || text;
 		document.getElementById('percent').textContent = t('Loading… ').trim();
+		document.getElementById('turn').textContent = t('Turn your phone sideways to play');
 
 		function fail(text) {
 			canvas.style.display = 'none';
@@ -76,7 +81,7 @@
 		if (!window.isSecureContext) {
 			fail(t('This game must be opened over HTTPS'));
 		} else if (!probe.getContext('webgl2')) {
-			fail(t('This game needs WebGL2. Please use a current desktop browser with hardware acceleration enabled.'));
+			fail(t('This game needs WebGL2. Please use a current browser with hardware acceleration enabled.'));
 		} else {
 			// Downloading fills the bar; after that the browser still has to prepare the engine, which
 			// can take some seconds with nothing to count, so the line says so.

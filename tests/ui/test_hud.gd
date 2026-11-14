@@ -384,3 +384,33 @@ func test_win_without_a_note_shows_none() -> void:
 	rules.result = MissionRules.Result.WON
 	rules.result_changed.emit(MissionRules.Result.WON)
 	assert_false(hud.end_screen.note_label.visible)
+
+
+func test_touch_buttons_show_only_for_fingers_and_do_what_the_keys_do() -> void:
+	hud.refresh()
+	assert_false(hud.touch_bar.visible, "nothing for a mouse and keyboard")
+	Touch.set_active(true)
+	hud.refresh()
+	assert_true(hud.touch_bar.visible)
+	assert_eq(hud.touch_buttons.keys(), ["Both", "Crawl", "Use", "Save", "Load", "Pause"])
+	(hud.touch_buttons["Crawl"] as Button).pressed.emit()
+	assert_eq(specs[0].stance, Unit.Stance.CRAWLING)
+	(hud.touch_buttons["Both"] as Button).pressed.emit()
+	assert_true(input.both_selected)
+	(hud.touch_buttons["Pause"] as Button).pressed.emit()
+	assert_true(input.is_paused())
+	hud.refresh()
+	assert_true(hud.pause_box.visible)
+	(hud.touch_buttons["Pause"] as Button).pressed.emit()
+	assert_false(input.is_paused(), "the same button resumes")
+	Touch.set_active(false)
+
+
+func test_ability_buttons_name_no_keys_for_fingers() -> void:
+	Touch.set_active(true)
+	hud.refresh()
+	assert_eq((hud.ability_buttons["knife"] as Button).text, "")
+	assert_eq((hud.ability_buttons["charge"] as Button).text, "  x2")
+	Touch.set_active(false)
+	hud.refresh()
+	assert_eq((hud.ability_buttons["knife"] as Button).text, "Q")

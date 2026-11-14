@@ -234,3 +234,14 @@ func test_the_clock_waits_for_the_briefing() -> void:
 	assert_false(main.rules.clock_running, "nothing is timed while the player reads")
 	b.begin()
 	assert_true(main.rules.clock_running)
+
+
+func test_the_briefing_tells_fingers_of_taps_and_not_of_keys() -> void:
+	Touch.set_active(true)
+	var touch_briefing := Briefing.new()
+	add_child_autofree(touch_briefing)
+	var texts: Array = touch_briefing.find_children("*", "Label", true, false).map(func(l: Label) -> String: return l.text)
+	Touch.set_active(false)
+	assert_has(texts, "Double tap")
+	assert_does_not_have(texts, "Double-click")
+	assert_has(texts, Briefing.TOUCH_HINT)
