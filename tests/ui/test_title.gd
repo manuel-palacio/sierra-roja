@@ -45,3 +45,21 @@ func test_the_title_has_spanish() -> void:
 	assert_ne(tr(TitleScreen.SUBTITLE), TitleScreen.SUBTITLE)
 	assert_ne(tr("Continue"), "Continue")
 	TranslationServer.set_locale(before)
+
+
+func test_the_title_says_what_the_game_is_and_lists_the_missions_in_either_language() -> void:
+	var before := TranslationServer.get_locale()
+	TranslationServer.set_locale("en")
+	var title := TitleScreen.new()
+	add_child_autofree(title)
+	var texts: Array = title.find_children("*", "Label", true, false).map(func(l: Label) -> String: return l.text)
+	for line in TitleScreen.ABOUT:
+		assert_has(texts, line)
+	assert_eq(title.mission_labels.size(), Missions.LIST.size())
+	assert_eq(title.mission_labels[5].text, "6  Krasny Bor, 9 February 1943")
+	assert_eq(title.language_button.text, "Español")
+	title.language_button.pressed.emit()
+	assert_eq(title.mission_labels[5].text, "6  Krasny Bor, 9 de febrero de 1943")
+	for line in TitleScreen.ABOUT + [TitleScreen.FOOT]:
+		assert_ne(tr(line), line, "no Spanish: " + line)
+	TranslationServer.set_locale(before)

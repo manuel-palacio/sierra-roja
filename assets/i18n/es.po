@@ -588,3 +588,15 @@ msgstr "No mientras estén mirando"
 
 msgid "Hidden"
 msgstr "Escondido"
+
+msgid "A game of stealth and tactics in the Spanish Civil War and after."
+msgstr "Un juego de sigilo y táctica en la Guerra Civil española y después."
+
+msgid "You lead two Republican guerrillas, the Dynamiter and the Marksman, behind the lines: unseen where you can be, quick where you cannot."
+msgstr "Diriges a dos guerrilleros republicanos, el Dinamitero y el Tirador, tras las líneas: sin ser visto donde se pueda, rápido donde no."
+
+msgid "Six missions at real events. The places and dates are history's; the pair and their part in them are invented."
+msgstr "Seis misiones en hechos reales. Los lugares y las fechas son de la historia; la pareja y su papel en ellos son inventados."
+
+msgid "Mouse and keyboard, or fingers on a phone held sideways  ·  Credits and licences: /credits.txt"
+msgstr "Ratón y teclado, o los dedos en un teléfono en horizontal  ·  Créditos y licencias: /credits.txt"
